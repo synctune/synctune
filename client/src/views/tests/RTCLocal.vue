@@ -1,7 +1,7 @@
 <template>
     <div class="RTCLocal">
         <button @click="connectCamera" :disabled="cameraConnected">Connect Camera</button>
-        <button @click="connectRTC" :disabled="streamConnected">Stream</button>
+        <button @click="connectRTC" :disabled="streamConnected || !cameraConnected">Stream</button>
         <button @click="disconnectRTC" :disabled="!streamConnected">Disconnect</button>
 
         <h1>Local Video</h1>
