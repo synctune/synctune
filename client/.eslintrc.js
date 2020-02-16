@@ -5,7 +5,7 @@ module.exports = {
     },
     extends: [
         "plugin:vue/essential",
-        "eslint:recommended",
+        // "eslint:recommended",
         "@vue/typescript/recommended",
         // "@vue/prettier",
         // "@vue/prettier/@typescript-eslint"
@@ -21,6 +21,8 @@ module.exports = {
             "switchCase": 0,
             "ignores": []
         }],
-        indent: ["error", 4]
+        indent: ["error", 4],
+        "no-empty-function": ["error", { "allow": ["functions"] }],
+        "@typescript-eslint/no-empty-function": ["error", { "allow": ["functions"] }],
     }
 };
