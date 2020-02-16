@@ -2,7 +2,8 @@
     <div id="app">
         <div id="nav">
             <router-link to="/">Home</router-link> |
-            <router-link to="/test-rtc-local">Test RTC Local</router-link>
+            <router-link to="/test-rtc-camera-local">Test RTC Camera Local</router-link> |
+            <router-link to="/test-rtc-audio-file-local">Test RTC Audio File Local</router-link>
         </div>
         <router-view />
     </div>

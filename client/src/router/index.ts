@@ -11,10 +11,16 @@ const routes = [
         component: Home
     },
     {
-        path: '/test-rtc-local',
-        name: "WebRTC Local Tests",
+        path: '/test-rtc-camera-local',
+        name: "WebRTC Local Camera Tests",
         component: () => 
-            import(/* webpackChunkName: "about" */ "../views/tests/RTCLocal.vue")
+            import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCCameraLocal.vue")
+    },
+    {
+        path: "/test-rtc-audio-file-local",
+        name: "WebRTC Local File Tests",
+        component: () => 
+            import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCAudioFileLocal.vue")
     }
 ];
 

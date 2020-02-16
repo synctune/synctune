@@ -1,5 +1,5 @@
 <template>
-    <div class="RTCLocal">
+    <div class="RTCLocalCamera">
         <button @click="connectCamera" :disabled="cameraConnected">Connect Camera</button>
         <button @click="connectRTC" :disabled="streamConnected || !cameraConnected">Stream</button>
         <button @click="disconnectRTC" :disabled="!streamConnected">Disconnect</button>
@@ -13,6 +13,8 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
+
 interface Data {
     localStream: MediaStream;
     localConnection: RTCPeerConnection;
@@ -22,7 +24,6 @@ interface Data {
     streamConnected: boolean;
 }
 
-import Vue from 'vue';
 export default Vue.extend({
     data() {
         return {
@@ -118,7 +119,8 @@ export default Vue.extend({
                 console.log("Local: creating offer...");
                 const offer = await localConnection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true});
 
-                console.log(`Local: Offer from local:\n${offer.sdp}`);
+                console.log(`Local: Offer from local:\n${offer}`);
+                console.log(offer);
 
                 try {
                     await localConnection.setLocalDescription(offer);
@@ -144,7 +146,8 @@ export default Vue.extend({
 
                 const answer = await remoteConnection.createAnswer();
 
-                console.log(`Remote: answer from remote:\n${answer.sdp}`);
+                console.log(`Remote: answer from remote:\n${answer}`);
+                console.log(answer);
 
                 try {
                     await remoteConnection.setLocalDescription(answer);
