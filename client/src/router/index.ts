@@ -21,6 +21,12 @@ const routes = [
         name: "WebRTC Local File Tests",
         component: () => 
             import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCAudioFileLocal.vue")
+    },
+    {
+        path: "/test-rtc-signalling-server",
+        name: "WebRTC Connection via Signalling Server",
+        component: () => 
+            import(/* webpackChunkName: "RTCSignallingServer" */ "../views/tests/RTCSignallingServer.vue")
     }
 ];
 

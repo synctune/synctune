@@ -9,11 +9,13 @@
     },
     "dependencies": {
         "core-js": "^3.6.4",
+        "socket.io-client": "^2.3.0",
         "vue": "^2.6.11",
         "vue-router": "^3.1.5",
         "vuex": "^3.1.2"
     },
     "devDependencies": {
+        "@types/socket.io-client": "^1.4.32",
         "@typescript-eslint/eslint-plugin": "^2.18.0",
         "@typescript-eslint/parser": "^2.18.0",
         "@vue/cli-plugin-babel": "~4.2.0",
