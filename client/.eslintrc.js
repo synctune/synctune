@@ -24,5 +24,6 @@ module.exports = {
         indent: ["error", 4],
         "no-empty-function": ["error", { "allow": ["functions"] }],
         "@typescript-eslint/no-empty-function": ["error", { "allow": ["functions"] }],
+        "@typescript-eslint/no-explicit-any": 0 // Disable
     }
 };
