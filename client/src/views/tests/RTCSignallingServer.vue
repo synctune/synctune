@@ -110,12 +110,11 @@ export default Vue.extend({
             const { roomName, socket }: Data = this;
 
             socket.emit(EmissionEvents.ROOM_LEAVE, roomName);
-
-            this.connected = true;
         },
         setupGeneralListeners(socket: SocketIOClient.Socket) {
             socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {
                 console.log(`Left room '${room}'. Kicked: ${kicked}`);
+                this.connected = false;
             });
 
             socket.on(SignalEvents.CLIENT_JOINED, (room: string, clientId: string) => {

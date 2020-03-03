@@ -9,6 +9,37 @@ export default (server: Server) => {
 
     const roomMap = new RoomMap();
 
+    // Handles cleaning up a room when a client leaves, if needed
+    function roomLeaveCleanup(socket: SocketIO.Socket, room: string) {
+        const id = socket.id;
+
+        // If the owner leaves the room
+        if (roomMap.isOwner(room, id)) {
+            io.in(room).clients((err: any, clients: string[]) => {
+
+                // Kick all other clients from the room
+                clients.forEach(clientId => {
+                    const client = io.sockets.sockets[clientId];
+
+                    // console.log("Sockets", io.sockets.sockets);
+
+                    // Do nothing if client has already disconnected or it is the owner
+                    if (!client || client.id === id) return;
+
+                    // Remove the client from the room
+                    client.leave(room);
+                    client.emit(EmissionEvents.ROOM_LEFT, room, true);
+                });
+
+                // Unregister the room
+                roomMap.unregisterRoom(room);
+            });
+        } else {
+            // Notify other clients
+            socket.to(room).emit(EmissionEvents.CLIENT_LEFT, room, socket.id);
+        }
+    }
+
     io.on("connection", (socket: Socket) => {
         // Create a room
         socket.on(SignalEvents.ROOM_CREATE, (room: string) => {
@@ -31,39 +62,18 @@ export default (server: Server) => {
         socket.on(SignalEvents.ROOM_LEAVE, (room: string) => {
             io.in(room).clients((err: any, clients: string[]) => {
                 if (err) return socket.emit(EmissionEvents.ERROR, err);
-
-                const id = socket.id;
-                if (!clients.includes(id)) return socket.emit("not-in-room", room);
+                if (!clients.includes(socket.id)) return socket.emit(EmissionEvents.NOT_IN_ROOM, room);
 
                 // Leave the room
                 socket.leave(room);
                 socket.emit(EmissionEvents.ROOM_LEFT, room, false);
 
-                // If the owner leaves the room
-                if (roomMap.isOwner(room, id)) {
-                    // Kick all other clients from the room
-                    clients.forEach(clientId => {
-                        const client = io.sockets.sockets[clientId];
-
-                        // Do nothing here for owner
-                        if (client.id === id) return;
-
-                        // Remove the client from the room
-                        client.leave(room);
-                        client.emit(EmissionEvents.ROOM_LEFT, room, true);
-                    });
-
-                    // Unregister the room
-                    roomMap.unregisterRoom(room);
-                } else {
-                    // Notify other clients
-                    socket.to(room).emit(EmissionEvents.CLIENT_LEFT, room, socket.id);
-                }
+                roomLeaveCleanup(socket, room);
             });
         });
 
         // Join room
-        socket.on("room-join", (room: string) => {
+        socket.on(SignalEvents.ROOM_JOIN, (room: string) => {
             io.in(room).clients((err: any, clients: string[]) => {
                 if (err) return socket.emit(EmissionEvents.ERROR, err);
                 if (clients.length === 0) return socket.emit(EmissionEvents.ROOM_NOT_EXISTS, `Room '${room}' does not exist`);
@@ -79,10 +89,11 @@ export default (server: Server) => {
             });
         });
 
+        // Forceful disconnect
         socket.on("disconnecting", (reason: any) => {
-            // Notify all rooms that this client has left
+            // Notify all rooms that this client is in that the client has left
             Object.keys(socket.rooms).forEach(room => {
-                socket.to(room).emit(EmissionEvents.CLIENT_LEFT, room, socket.id);
+                roomLeaveCleanup(socket, room);
             });
         });
     });
