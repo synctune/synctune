@@ -17,17 +17,32 @@
         >
             Join Room
         </button>
+
+        <button
+            @click="leaveRoom"
+            :disabled="!connected"
+        >
+            Leave Room
+        </button>
     </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import io from "socket.io-client";
+import { SignalEvents, EmissionEvents } from "../../constants/SocketEvents";
 
 interface Data {
     roomName: string;
     connected: boolean;
     socket: SocketIOClient.Socket;
+}
+
+interface Methods {
+    createRoom: () => void;
+    joinRoom: () => void;
+    leaveRoom: () => void;
+    setupGeneralListeners: (socket: SocketIOClient.Socket) => void;
 }
 
 export default Vue.extend({
@@ -44,44 +59,71 @@ export default Vue.extend({
     methods: {
         createRoom() {
             const { roomName, socket }: Data = this;
+            const { setupGeneralListeners }: Methods = this;
 
-            socket.emit("room-create", roomName);
-            socket.on("error", (err: any) => {
+            console.log("Creating room", roomName);
+
+            socket.emit(EmissionEvents.ROOM_CREATE, roomName);
+
+            socket.on(SignalEvents.ERROR, (err: any) => {
                 console.log("Server error:", err);
                 this.connected = false;
             });
-            socket.on("room-exists", (message: string) => {
+            socket.on(SignalEvents.ROOM_EXISTS, (message: string) => {
                 console.log("Server:", message);
                 this.connected = false;
             });
-            socket.on("room-created", (message: string) => {
+            socket.on(SignalEvents.ROOM_CREATED, (message: string) => {
                 console.log("Server:", message);
                 this.connected = true;
             });
-            socket.on("client-joined", (otherId: string) => {
-                console.log(`'${otherId}' joined room`);
 
-                // TODO: initiate RTC signalling process
-            });
+            setupGeneralListeners(socket);
         },
         joinRoom() {
             const { roomName, socket }: Data = this;
+            const { setupGeneralListeners }: Methods = this;
 
             console.log("Joining room", roomName);
 
-            socket.emit("room-join", roomName);
-            socket.on("error", (err: any) => {
+            socket.emit(EmissionEvents.ROOM_JOIN, roomName);
+
+            socket.on(SignalEvents.ERROR, (err: any) => {
                 console.log("Server error:", err);
                 this.connected = false;
             });
-            socket.on("room-not-exists", (message: string) => {
+            socket.on(SignalEvents.ROOM_NOT_EXISTS, (message: string) => {
                 console.log("Server:", message);
                 this.connected = false;
             });
-            socket.on("room-joined", (room: string) => {
+            socket.on(SignalEvents.ROOM_JOINED, (room: string) => {
                 console.log(`Room '${room}' successfully joined`);
+                this.connected = true;
+
                 // Don't care about any join events
                 // We wait for the room owner to begin communication
+            });
+
+            setupGeneralListeners(socket);
+        },
+        leaveRoom() {
+            const { roomName, socket }: Data = this;
+
+            socket.emit(EmissionEvents.ROOM_LEAVE, roomName);
+
+            this.connected = true;
+        },
+        setupGeneralListeners(socket: SocketIOClient.Socket) {
+            socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {
+                console.log(`Left room '${room}'. Kicked: ${kicked}`);
+            });
+
+            socket.on(SignalEvents.CLIENT_JOINED, (room: string, clientId: string) => {
+                console.log(`Client '${clientId}' joined room '${room}'`);
+            });
+
+            socket.on(SignalEvents.CLIENT_LEFT, (room: string, clientId: string) => {
+                console.log(`Client '${clientId}' left room '${room}'`);
             });
         }
     }
