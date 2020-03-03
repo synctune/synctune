@@ -1,29 +1,71 @@
 <template>
     <div>
-        <input 
-            type="text" 
-            placeholder="Room name" 
-            v-model="roomName"
-        >
-        <button 
-            @click="createRoom"
-            :disabled="connected"
-        >
-            Create Room
-        </button>
-        <button 
-            @click="joinRoom"
-            :disabled="connected"
-        >
-            Join Room
-        </button>
+        <h1>WebRTC Connection via Signalling Server</h1>
 
-        <button
-            @click="leaveRoom"
-            :disabled="!connected"
-        >
-            Leave Room
-        </button>
+        <div>
+            <input 
+                type="text" 
+                placeholder="Room name" 
+                v-model="roomName"
+            >
+            <button 
+                @click="createRoom"
+                :disabled="signallingConnected"
+            >
+                Create Room
+            </button>
+            <button 
+                @click="joinRoom"
+                :disabled="signallingConnected"
+            >
+                Join Room
+            </button>
+
+            <button
+                @click="leaveRoom"
+                :disabled="!signallingConnected"
+            >
+                Leave Room
+            </button>
+        </div>
+
+        <!-- For quick spacing purposes, don't worry! -->
+        <br>
+
+        <div>
+            <div>Signalling Server Connected: {{ signallingConnected }}</div>
+            <div>
+                Signalling Server Clients:
+                <ul>
+                    <li 
+                        :key="`signalling-client-${clientId}`"
+                        v-for="clientId in signallingClientIds"
+                    >
+                        {{clientId}}
+                    </li>
+                </ul>
+            </div>
+            <br>
+            <div>
+                WebRTC Connections:
+                <ul>
+                    <li 
+                        :key="`rtc-peer-${rtcPeer}`"
+                        v-for="rtcPeer in rtcPeers"
+                    >
+                        {{rtcPeer}}
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <button
+                :disabled="!rtcConnected"
+                >
+                    Say Hi!
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -34,8 +76,12 @@ import { SignalEvents, EmissionEvents } from "../../constants/SocketEvents";
 
 interface Data {
     roomName: string;
-    connected: boolean;
+    signallingConnected: boolean;
+    signallingClientIds: string[];
     socket: SocketIOClient.Socket;
+    
+    rtcConnected: boolean;
+    rtcPeers: string[];
 }
 
 interface Methods {
@@ -49,8 +95,12 @@ export default Vue.extend({
     data() {
         return {
             roomName: "test",
-            connected: false,
-            socket: null
+            signallingConnected: false,
+            signallingClientIds: [],
+            socket: null,
+
+            rtcConnected: false,
+            rtcPeers: [],
         }
     },
     mounted() {
@@ -65,20 +115,28 @@ export default Vue.extend({
 
             socket.emit(EmissionEvents.ROOM_CREATE, roomName);
 
+            setupGeneralListeners(socket);
+
             socket.on(SignalEvents.ERROR, (err: any) => {
                 console.log("Server error:", err);
-                this.connected = false;
+                this.signallingConnected = false;
             });
             socket.on(SignalEvents.ROOM_EXISTS, (message: string) => {
                 console.log("Server:", message);
-                this.connected = false;
+                this.signallingConnected = false;
             });
             socket.on(SignalEvents.ROOM_CREATED, (message: string) => {
                 console.log("Server:", message);
-                this.connected = true;
+                this.signallingConnected = true;
+                this.signallingClientIds = [];
+
+                const { signallingClientIds }: Data = this;
+                signallingClientIds.push(`${socket.id} (me)`);
             });
 
-            setupGeneralListeners(socket);
+            socket.on(SignalEvents.CLIENT_JOINED, (room: string, clientId: string) => {
+                console.log("TODO: setup RTC connection");
+            });
         },
         joinRoom() {
             const { roomName, socket }: Data = this;
@@ -88,23 +146,28 @@ export default Vue.extend({
 
             socket.emit(EmissionEvents.ROOM_JOIN, roomName);
 
+            setupGeneralListeners(socket);
+
             socket.on(SignalEvents.ERROR, (err: any) => {
                 console.log("Server error:", err);
-                this.connected = false;
+                this.signallingConnected = false;
             });
             socket.on(SignalEvents.ROOM_NOT_EXISTS, (message: string) => {
                 console.log("Server:", message);
-                this.connected = false;
+                this.signallingConnected = false;
             });
-            socket.on(SignalEvents.ROOM_JOINED, (room: string) => {
+            socket.on(SignalEvents.ROOM_JOINED, (room: string, clients: string[]) => {
                 console.log(`Room '${room}' successfully joined`);
-                this.connected = true;
+                this.signallingConnected = true;
+                this.signallingClientIds = [];
+
+                const { signallingClientIds }: Data = this;
+                signallingClientIds.push(...clients);
+                signallingClientIds.push(`${socket.id} (me)`);
 
                 // Don't care about any join events
                 // We wait for the room owner to begin communication
             });
-
-            setupGeneralListeners(socket);
         },
         leaveRoom() {
             const { roomName, socket }: Data = this;
@@ -114,15 +177,25 @@ export default Vue.extend({
         setupGeneralListeners(socket: SocketIOClient.Socket) {
             socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {
                 console.log(`Left room '${room}'. Kicked: ${kicked}`);
-                this.connected = false;
+                this.signallingConnected = false;
+                this.signallingClientIds = [];
             });
 
             socket.on(SignalEvents.CLIENT_JOINED, (room: string, clientId: string) => {
                 console.log(`Client '${clientId}' joined room '${room}'`);
+
+                const { signallingClientIds }: Data = this;
+                signallingClientIds.push(clientId);
             });
 
             socket.on(SignalEvents.CLIENT_LEFT, (room: string, clientId: string) => {
                 console.log(`Client '${clientId}' left room '${room}'`);
+
+                const { signallingClientIds }: Data = this;
+                const idx = signallingClientIds.indexOf(clientId);
+                if (idx > -1) {
+                    signallingClientIds.splice(idx, 1);
+                }
             });
         }
     }

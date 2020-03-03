@@ -1,7 +1,10 @@
 export const EmissionEvents = {
     ROOM_CREATE: "room-create",
     ROOM_JOIN: "room-join",
-    ROOM_LEAVE: "room-leave"
+    ROOM_LEAVE: "room-leave",
+
+    SEND_OFFER: "send-offer",
+    SEND_ANSWER: "send-answer"
 };
 
 export const SignalEvents = { 

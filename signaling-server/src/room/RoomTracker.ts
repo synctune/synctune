@@ -2,7 +2,7 @@ interface RoomOwnerMap {
     [room: string]: string
 };
 
-export default class RoomMap {
+export default class RoomTracker {
     private _roomOwners: RoomOwnerMap;
 
     constructor() {

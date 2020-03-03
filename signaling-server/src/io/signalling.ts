@@ -2,19 +2,19 @@ import { Server } from "http";
 import SocketIO, { Socket } from "socket.io";
 
 import { EmissionEvents, SignalEvents } from "../constants/SocketEvents";
-import RoomMap from "../room/RoomMap";
+import RoomTracker from "../room/RoomTracker";
 
 export default (server: Server) => {
     const io = SocketIO(server);
 
-    const roomMap = new RoomMap();
+    const roomTracker = new RoomTracker();
 
     // Handles cleaning up a room when a client leaves, if needed
     function roomLeaveCleanup(socket: SocketIO.Socket, room: string) {
         const id = socket.id;
 
         // If the owner leaves the room
-        if (roomMap.isOwner(room, id)) {
+        if (roomTracker.isOwner(room, id)) {
             io.in(room).clients((err: any, clients: string[]) => {
 
                 // Kick all other clients from the room
@@ -32,13 +32,14 @@ export default (server: Server) => {
                 });
 
                 // Unregister the room
-                roomMap.unregisterRoom(room);
+                roomTracker.unregisterRoom(room);
             });
         } else {
             // Notify other clients
             socket.to(room).emit(EmissionEvents.CLIENT_LEFT, room, socket.id);
         }
     }
+    
 
     io.on("connection", (socket: Socket) => {
         // Create a room
@@ -51,7 +52,7 @@ export default (server: Server) => {
                 socket.join(room);
 
                 // Register the user as the room owner
-                roomMap.registerRoom(room, socket.id);
+                roomTracker.registerRoom(room, socket.id);
 
                 // Send to joined socket
                 socket.emit(EmissionEvents.ROOM_CREATED, `Room '${room}' was created`);
@@ -82,7 +83,7 @@ export default (server: Server) => {
                 socket.join(room);
                 
                 // Send to joined client
-                socket.emit(EmissionEvents.ROOM_JOINED, room);
+                socket.emit(EmissionEvents.ROOM_JOINED, room, clients);
 
                 // Send to all other clients in the room
                 socket.to(room).emit(EmissionEvents.CLIENT_JOINED, room, socket.id);

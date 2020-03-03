@@ -1,5 +1,6 @@
 <template>
     <div class="RTCLocalAudioFile">
+        <h1>Audio File Sent Over Local WebRTC</h1>
         <input 
             ref="audioFileEl"
             type="file" 
@@ -20,10 +21,10 @@
             Disconnect
         </button>
 
-        <h1>Local Audio</h1>
+        <h2>Local Audio</h2>
         <audio ref="localAudioEl" controls autoplay muted></audio>
 
-        <h1>Remote Audio</h1>
+        <h2>Remote Audio</h2>
         <audio ref="remoteAudioEl" controls playsinline autoplay></audio>
     </div>
 </template>

@@ -1,5 +1,6 @@
 <template>
     <div class="RTCLocalCamera">
+        <h1>Camera Stream Sent Over Local WebRTC</h1>
         <button @click="connectCamera" :disabled="cameraConnected">Connect Camera</button>
         <button @click="connectRTC" :disabled="streamConnected || !cameraConnected">Stream</button>
         <button @click="disconnectRTC" :disabled="!streamConnected">Disconnect</button>
