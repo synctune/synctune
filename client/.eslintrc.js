@@ -21,6 +21,7 @@ module.exports = {
             "switchCase": 0,
             "ignores": []
         }],
+        "vue/no-unused-vars": "warn",
         indent: ["error", 4],
         "no-empty-function": ["error", { "allow": ["functions"] }],
         "@typescript-eslint/no-empty-function": ["error", { "allow": ["functions"] }],

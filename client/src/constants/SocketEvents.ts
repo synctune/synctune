@@ -3,8 +3,8 @@ export const EmissionEvents = {
     ROOM_JOIN: "room-join",
     ROOM_LEAVE: "room-leave",
 
-    SEND_OFFER: "send-offer",
-    SEND_ANSWER: "send-answer"
+    // WebRTC Emission Events
+    SIGNAL_SEND: "signal-send",
 };
 
 export const SignalEvents = { 
@@ -15,9 +15,13 @@ export const SignalEvents = {
     ROOM_CREATED: "room-created",
     ROOM_JOINED: "room-joined",
     ROOM_LEFT: "room-left",
+    TARGET_NOT_FOUND: "target-not-found",
     ERROR: "error",
 
     // Room Listener Events
     CLIENT_JOINED: "client-joined",
     CLIENT_LEFT: "client-left",
+
+    // WebRTC Signalling Events
+    SIGNAL_RECEIVE: "signal-receive",
 };

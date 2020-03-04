@@ -1,8 +1,11 @@
 import { Server } from "http";
 import SocketIO, { Socket } from "socket.io";
 
+import RTCDataContainer from "./RTCDataContainer";
 import { EmissionEvents, SignalEvents } from "../constants/SocketEvents";
 import RoomTracker from "../room/RoomTracker";
+
+// TODO: add validation to all socket.on params
 
 export default (server: Server) => {
     const io = SocketIO(server);
@@ -39,7 +42,24 @@ export default (server: Server) => {
             socket.to(room).emit(EmissionEvents.CLIENT_LEFT, room, socket.id);
         }
     }
+
+    function setupSignallingHandlers(socket: SocketIO.Socket, room: string) {
+        // Send WebRTC signal 
+        socket.on(SignalEvents.SIGNAL_SEND, (room: string, targetId: string, data: RTCDataContainer) => {
+            io.in(room).clients((err: any, clients: string[]) => {
+                if (err) return socket.emit(EmissionEvents.ERROR, err);
+                if (!clients.includes(socket.id)) return socket.emit(EmissionEvents.NOT_IN_ROOM, room);
     
+                const targetExists = clients.includes(targetId);
+                if (!targetExists) return socket.emit(EmissionEvents.TARGET_NOT_FOUND, room, targetId);
+
+                console.log(`${socket.id}: sending signal to ${targetId}`);
+    
+                // Send description to the target
+                io.to(targetId).emit(EmissionEvents.SIGNAL_RECEIVE, room, socket.id, data);
+            });
+        }); 
+    }
 
     io.on("connection", (socket: Socket) => {
         // Create a room
@@ -47,6 +67,8 @@ export default (server: Server) => {
             io.in(room).clients((err: any, clients: string[]) => {
                 if (err) return socket.emit(EmissionEvents.ERROR, err);
                 if (clients.length > 0) return socket.emit(EmissionEvents.ROOM_EXISTS, `Room '${room}' already exists`);
+
+                setupSignallingHandlers(socket, room);
 
                 // Join room
                 socket.join(room);
@@ -78,6 +100,8 @@ export default (server: Server) => {
             io.in(room).clients((err: any, clients: string[]) => {
                 if (err) return socket.emit(EmissionEvents.ERROR, err);
                 if (clients.length === 0) return socket.emit(EmissionEvents.ROOM_NOT_EXISTS, `Room '${room}' does not exist`);
+
+                setupSignallingHandlers(socket, room);
 
                 // Join room
                 socket.join(room);

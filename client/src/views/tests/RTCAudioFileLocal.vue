@@ -58,6 +58,9 @@ export default Vue.extend({
             streamConnected: false,
         }
     },
+    mounted() {
+        console.log(this);
+    },
     methods: {
         addAudioFile() {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -103,6 +106,8 @@ export default Vue.extend({
 
                 localConnection.addEventListener('icecandidate', async (event) => {
                     try {
+                        console.log("Local: icecandidate", event);
+
                         await remoteConnection.addIceCandidate(event.candidate);
 
                         console.log("Local: addIceCandidate success");
@@ -113,6 +118,8 @@ export default Vue.extend({
 
                 remoteConnection.addEventListener('icecandidate', async (event) => {
                     try {
+                        console.log("Remote: icecandidate", event);
+
                         await localConnection.addIceCandidate(event.candidate);
 
                         console.log("Remote: addIceCandidate success");
@@ -142,7 +149,6 @@ export default Vue.extend({
                     }
                 });
 
-                // localStream.getTracks().forEach(track => localConnection.addTrack(track, localStream));
                 const localAudioEl = this.$refs.localAudioEl as HTMLMediaElementExtended;
                 const localStream = localAudioEl.captureStream();
                 localStream.getTracks().forEach(track => localConnection.addTrack(track, localStream));
