@@ -16,18 +16,6 @@ interface RegisteredListeners {
     [eventName: string]: Function[];
 }
 
-// export enum PeerManagerEvents {
-//     RECEIVE_CHANNEL_OPEN = "receivechannelbufferedamountlow",
-//     RECEIVE_CHANNEL_MESSAGE = "receive-channel-message",
-//     RECEIVE_CHANNEL_CLOSE = "receive-channel-close",
-//     RECEIVE_CHANNEL_ERROR = "receive-channel-error",
-//     RECEIVE_CHANNEL_BUFFERED_AMOUNT_LOW = "receive-channel-buffered-amount-low",
-
-//     RTC_CONNECTED = "rtc-connection-successful",
-//     RTC_DISCONNECTED = "rtc-disconnected",
-//     RTC_FAILED = "rtc-failed",
-// };
-
 interface PeerManagerEventMap {
     "receivechannelbufferedamountlow": Event;
     "receivechannelclose": Event;
