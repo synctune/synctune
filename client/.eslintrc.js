@@ -22,7 +22,7 @@ module.exports = {
             "ignores": []
         }],
         "vue/no-unused-vars": "warn",
-        indent: ["error", 4],
+        indent: ["error", 4, { "SwitchCase": 1 }],
         "no-empty-function": ["error", { "allow": ["functions"] }],
         "@typescript-eslint/no-empty-function": ["error", { "allow": ["functions"] }],
         "@typescript-eslint/no-explicit-any": 0 // Disable
