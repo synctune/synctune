@@ -51,7 +51,7 @@
                 <ul>
                     <li 
                         :key="`rtc-peer-${clientId}`"
-                        v-for="(pc, clientId) in rtcPeers"
+                        v-for="(clientId) in rtcPeers"
                     >
                         {{ clientId }}
                     </li>
@@ -64,6 +64,11 @@
                 >
                     Say Hi!
                 </button>
+                <input 
+                    type="text" 
+                    placeholder="Send to..." 
+                    v-model="sendClientId"
+                >
             </div>
         </div>
     </div>
@@ -71,9 +76,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import adapter from 'webrtc-adapter';
 import io from "socket.io-client";
 import { SignalEvents, EmissionEvents } from "../../constants/SocketEvents";
-import RTCDataContainer from '../../../../signaling-server/src/io/RTCDataContainer';
+import RTCDataContainer from '../../rtc/RTCDataContainer';
+import PeerManager from "../../rtc/PeerManager";
 
 interface Data {
     roomName: string;
@@ -81,23 +88,28 @@ interface Data {
     signallingClientIds: string[];
     socket: SocketIOClient.Socket;
     
+    sendClientId: string;
+    peerManager: PeerManager;
     rtcConnected: boolean;
-    rtcPeers: {
-        [clientId: string]: {
-            peer: RTCPeerConnection;
-            sendChannel: RTCDataChannel;
-        };
-    };
+
+    rtcPeers: string[];
+    // rtcPeers: {
+    //     [clientId: string]: {
+    //         peer: RTCPeerConnection;
+    //         sendChannel: RTCDataChannel;
+    //     };
+    // };
 }
 
 interface Methods {
     createRoom: () => void;
     joinRoom: () => void;
     leaveRoom: () => void;
+    setupPeerManager: (socket: SocketIOClient.Socket, roomName: string) => void;
     setupGeneralListeners: (socket: SocketIOClient.Socket) => void;
-    getPeerConnection: (socket: SocketIOClient.Socket, room: string, clientId: string) => RTCPeerConnection;
-    getSendChannel: (socket: SocketIOClient.Socket, room: string, clientId: string) => RTCDataChannel;
-    createPeerConnection: (socket: SocketIOClient.Socket, room: string, clientId: string) => void;
+    // getPeerConnection: (socket: SocketIOClient.Socket, room: string, clientId: string) => RTCPeerConnection;
+    // getSendChannel: (socket: SocketIOClient.Socket, room: string, clientId: string) => RTCDataChannel;
+    // createPeerConnection: (socket: SocketIOClient.Socket, room: string, clientId: string) => void;
 }
 
 export default Vue.extend({
@@ -108,8 +120,12 @@ export default Vue.extend({
             signallingClientIds: [],
             socket: null,
 
+            sendClientId: "",
+
             rtcConnected: false,
-            rtcPeers: {},
+            rtcPeers: [],
+
+            peerManager: null
         }
     },
     mounted() {
@@ -119,71 +135,76 @@ export default Vue.extend({
     },
     methods: {
         sayHi() {
-            const { roomName, socket, rtcPeers }: Data = this;
-            const { getSendChannel }: Methods = this;
+            // const { roomName, socket, rtcPeers }: Data = this;
+            // const { getSendChannel }: Methods = this;
 
-            const sendChannel = getSendChannel(socket, roomName, Object.keys(rtcPeers)[0]);
+            // const sendChannel = getSendChannel(socket, roomName, Object.keys(rtcPeers)[0]);
 
-            sendChannel.send("Hello from the other side!");
+            // sendChannel.send("Hello from the other side!");
+
+            const { peerManager, sendClientId }: Data = this;
+
+            peerManager.sendMessage(sendClientId, "Hello from the other side!");
         },
-        getPeerConnection(socket: SocketIOClient.Socket, room: string, clientId: string) {
-            const { rtcPeers }: Data = this;
-            const { createPeerConnection }: Methods = this;
+        // getPeerConnection(socket: SocketIOClient.Socket, room: string, clientId: string) {
+        //     const { rtcPeers }: Data = this;
+        //     const { createPeerConnection }: Methods = this;
 
-            // Creat the peer connection if it does already not exist
-            if (!rtcPeers[clientId]) {
-                createPeerConnection(socket, room, clientId);
-            }
+        //     // Creat the peer connection if it does already not exist
+        //     if (!rtcPeers[clientId]) {
+        //         createPeerConnection(socket, room, clientId);
+        //     }
 
-            return rtcPeers[clientId].peer;
-        },
-        getSendChannel(socket: SocketIOClient.Socket, room: string, clientId: string) {
-            const { rtcPeers }: Data = this;
-            const { createPeerConnection }: Methods = this;
+        //     return rtcPeers[clientId].peer;
+        // },
+        // getSendChannel(socket: SocketIOClient.Socket, room: string, clientId: string) {
+        //     const { rtcPeers }: Data = this;
+        //     const { createPeerConnection }: Methods = this;
 
-            // Creat the peer connection if it does already not exist
-            if (!rtcPeers[clientId]) {
-                createPeerConnection(socket, room, clientId);
-            }
+        //     // Creat the peer connection if it does already not exist
+        //     if (!rtcPeers[clientId]) {
+        //         createPeerConnection(socket, room, clientId);
+        //     }
 
-            return rtcPeers[clientId].sendChannel;
-        },
-        createPeerConnection(socket: SocketIOClient.Socket, room: string, clientId: string) {
-            const { rtcPeers }: Data = this;
+        //     return rtcPeers[clientId].sendChannel;
+        // },
+        // createPeerConnection(socket: SocketIOClient.Socket, room: string, clientId: string) {
+        //     const { rtcPeers }: Data = this;
 
-            const pc = new RTCPeerConnection();
+        //     const pc = new RTCPeerConnection();
 
-            console.log("Creating peer connection");
+        //     console.log("Creating peer connection");
 
-            pc.onicecandidate = ({ candidate }) => {
-                console.log("Sending ICE candidate to", clientId, candidate);
-                socket.emit(EmissionEvents.SIGNAL_SEND, room, clientId, { candidate });
-            };
+        //     pc.onicecandidate = ({ candidate }) => {
+        //         console.log("Sending ICE candidate to", clientId, candidate);
+        //         socket.emit(EmissionEvents.SIGNAL_SEND, room, clientId, { candidate });
+        //     };
 
-            // Setup data send channel
-            const sendChannel = pc.createDataChannel("sendDataChannel");
+        //     // Setup data send channel
+        //     const sendChannel = pc.createDataChannel("sendDataChannel");
 
-            pc.ondatachannel = (event) => {
-                const receiveChannel = event.channel;
-                receiveChannel.onmessage = (event) => {
-                    console.log("Message from", clientId, event.data);
-                };
-            };
+        //     pc.ondatachannel = (event) => {
+        //         const receiveChannel = event.channel;
+        //         receiveChannel.onmessage = (event) => {
+        //             console.log("Message from", clientId, event.data);
+        //         };
+        //     };
 
-            rtcPeers[clientId] = {
-                peer: pc,
-                sendChannel
-            };
-        },
+        //     rtcPeers[clientId] = {
+        //         peer: pc,
+        //         sendChannel
+        //     };
+        // },
         createRoom() {
             const { roomName, socket }: Data = this;
-            const { setupGeneralListeners }: Methods = this;
+            const { setupGeneralListeners, setupPeerManager }: Methods = this;
 
             console.log("Creating room", roomName);
 
             socket.emit(EmissionEvents.ROOM_CREATE, roomName);
 
             setupGeneralListeners(socket);
+            setupPeerManager(socket, roomName);
 
             socket.on(SignalEvents.ERROR, (err: any) => {
                 console.log("Server error:", err);
@@ -203,27 +224,42 @@ export default Vue.extend({
             });
 
             socket.on(SignalEvents.CLIENT_JOINED, async (room: string, clientId: string) => {
-                console.log("Client joined", clientId);
-                // Setup peer connection with newly joined client
-                const { getPeerConnection }: Methods = this;
-                const pc = getPeerConnection(socket, room, clientId);
+                const { peerManager }: Data = this;
 
-                // Initiate by creating offer
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                console.log("Initiating to", clientId, { description: offer });
-                socket.emit(EmissionEvents.SIGNAL_SEND, room, clientId, { description: offer });
+                console.log("Client joined", clientId);
+
+                peerManager.connectRTC(clientId);
+
+                const pc = peerManager.getPeerConnection(clientId);
+
+                // pc.ondatachannel = (event) => {
+                //     const receiveChannel = event.channel;
+                //     receiveChannel.onmessage = (event) => {
+                //         console.log("Message from", clientId, event.data);
+                //     };
+                // };
+
+                // Setup peer connection with newly joined client
+                // const { getPeerConnection }: Methods = this;
+                // const pc = getPeerConnection(socket, room, clientId);
+
+                // // Initiate by creating offer
+                // const offer = await pc.createOffer();
+                // await pc.setLocalDescription(offer);
+                // console.log("Initiating to", clientId, { description: offer });
+                // socket.emit(EmissionEvents.SIGNAL_SEND, room, clientId, { description: offer });
             });
         },
         joinRoom() {
             const { roomName, socket }: Data = this;
-            const { setupGeneralListeners }: Methods = this;
+            const { setupGeneralListeners, setupPeerManager }: Methods = this;
 
             console.log("Joining room", roomName);
 
             socket.emit(EmissionEvents.ROOM_JOIN, roomName);
 
             setupGeneralListeners(socket);
+            setupPeerManager(socket, roomName);
 
             socket.on(SignalEvents.ERROR, (err: any) => {
                 console.log("Server error:", err);
@@ -247,11 +283,32 @@ export default Vue.extend({
                 // Don't care about any join events
                 // We wait for the room owner to begin communication
             });
+
         },
         leaveRoom() {
             const { roomName, socket }: Data = this;
 
             socket.emit(EmissionEvents.ROOM_LEAVE, roomName);
+        },
+        setupPeerManager(socket: SocketIOClient.Socket, roomName: string) {
+            this.peerManager = new PeerManager(socket, roomName);
+            const { peerManager, rtcPeers }: Data = this;
+            peerManager.addEventListener("rtcconnected", (clientId, e) => {
+                console.log(`RTC: Client '${clientId}' connected`);
+                rtcPeers.push(clientId);
+                this.rtcConnected = true;
+            });
+
+            peerManager.addEventListener("rtcdisconnected", (clientId, e) => {
+                console.log(`RTC: Client '${clientId}' disconnected`);
+                const idx = rtcPeers.indexOf(clientId);
+                if (idx >= 0) rtcPeers.splice(idx, 1);
+                this.rtcConnected = false;
+            });
+
+            peerManager.addEventListener("receivechannelmessage", (clientId, event) => {
+                console.log("Message from", clientId, event.data);
+            });
         },
         setupGeneralListeners(socket: SocketIOClient.Socket) {
             socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {
@@ -277,42 +334,42 @@ export default Vue.extend({
                 }
             });
 
-            socket.on(SignalEvents.SIGNAL_RECEIVE, async (room: string, senderId: string, data: RTCDataContainer) => {
-                console.log("Received signal from", senderId, data);
+            // socket.on(SignalEvents.SIGNAL_RECEIVE, async (room: string, senderId: string, data: RTCDataContainer) => {
+            //     console.log("Received signal from", senderId, data);
 
-                // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
-                try {
-                    const { getPeerConnection }: Methods = this;
-                    const { description, candidate } = data;
+            //     // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
+            //     try {
+            //         const { getPeerConnection }: Methods = this;
+            //         const { description, candidate } = data;
 
-                    // Get the peer connection, creating it if need be
-                    const pc = getPeerConnection(socket, room, senderId);
+            //         // Get the peer connection, creating it if need be
+            //         const pc = getPeerConnection(socket, room, senderId);
 
-                    if (description) {
-                        // If an offer is received then reply with an answer
-                        if (description.type === "offer") {
-                            await pc.setRemoteDescription(description);
+            //         if (description) {
+            //             // If an offer is received then reply with an answer
+            //             if (description.type === "offer") {
+            //                 await pc.setRemoteDescription(description);
 
-                            // TODO: setup data channel???
+            //                 // TODO: setup data channel???
 
-                            const answer = await pc.createAnswer();
-                            await pc.setLocalDescription(answer);
-                            console.log("Sending response signal to", senderId, { description: answer })
-                            socket.emit(EmissionEvents.SIGNAL_SEND, room, senderId, { description: answer });
+            //                 const answer = await pc.createAnswer();
+            //                 await pc.setLocalDescription(answer);
+            //                 console.log("Sending response signal to", senderId, { description: answer })
+            //                 socket.emit(EmissionEvents.SIGNAL_SEND, room, senderId, { description: answer });
 
-                        } else if (description.type === "answer") {
-                            await pc.setRemoteDescription(description);
-                        }  else {
-                            console.log('Unsupported SDP type.');
-                        }
+            //             } else if (description.type === "answer") {
+            //                 await pc.setRemoteDescription(description);
+            //             }  else {
+            //                 console.log('Unsupported SDP type.');
+            //             }
 
-                    } else if (candidate) {
-                        await pc.addIceCandidate(candidate);
-                    }
-                } catch(err) {
-                    console.log(err);
-                }
-            });
+            //         } else if (candidate) {
+            //             await pc.addIceCandidate(candidate);
+            //         }
+            //     } catch(err) {
+            //         console.log(err);
+            //     }
+            // });
         }
     }
 });
