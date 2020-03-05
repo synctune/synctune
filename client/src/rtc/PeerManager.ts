@@ -6,6 +6,7 @@ import RTCDataContainer from "./RTCDataContainer";
 interface PeerObject {
     peer: RTCPeerConnection;
     sendChannel: RTCDataChannel;
+    receiveChannel?: RTCDataChannel;
 }
 
 interface PeersMap {
@@ -46,8 +47,6 @@ export default class PeerManager {
 
     private setupSocketListeners() {
         this.socket.on(SignalEvents.SIGNAL_RECEIVE, async (room: string, senderId: string, data: RTCDataContainer) => {
-            console.log("Received signal from", senderId, data); // TODO: remove
-
             // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
             try {
                 const { description, candidate } = data;
@@ -64,8 +63,6 @@ export default class PeerManager {
 
                             const answer = await pc.createAnswer();
                             await pc.setLocalDescription(answer);
-
-                            console.log("Sending response signal to", senderId, { description: answer }); // TODO: remove
 
                             // Send back the answer
                             this.socket.emit(EmissionEvents.SIGNAL_SEND, this.room, senderId, { description: answer });
@@ -109,6 +106,24 @@ export default class PeerManager {
     }
 
     /**
+     * Cleans up the closed peer for the given client
+     * 
+     * @param clientId The client id
+     */
+    private cleanupClosedPeer(clientId: string) {
+        // Cleanup event listeners
+        const peerObj = this.getPeerObject(clientId, false);
+
+        if (peerObj) {
+            peerObj.peer.onicecandidate = null;
+            peerObj.peer.onconnectionstatechange = null;
+
+            // Remove peer connection from the peer objects
+            delete this.rtcPeers[clientId];
+        }
+    }
+
+    /**
      * Creates and sets up a peer object with the given client id. 
      * Note: will overwrite if one already exists.
      * 
@@ -118,7 +133,6 @@ export default class PeerManager {
         const pc = new RTCPeerConnection();
 
         pc.addEventListener("icecandidate", ({ candidate }) => {
-            console.log("Sending ICE candidate to", clientId, candidate); // TODO: remove
             this.socket.emit(EmissionEvents.SIGNAL_SEND, this.room, clientId, { candidate });
         });
 
@@ -128,15 +142,9 @@ export default class PeerManager {
         pc.addEventListener("datachannel", (event) => {
             console.log("Data channel", event);
 
-            const receiveChannel = event.channel
-            
-            // receiveChannel.onmessage = (event) => {
-            //     console.log("PM: Message from", clientId, event.data);
-            // };
+            const receiveChannel = event.channel;
 
-            // receiveChannel.addEventListener("message", (event) => {
-            //     console.log("PM: Message from", clientId, event.data);
-            // });
+            this.rtcPeers[clientId].receiveChannel = receiveChannel;
 
             receiveChannel.addEventListener("open", this.linkToEventEmitter("receivechannelopen", clientId));
             receiveChannel.addEventListener("message", this.linkToEventEmitter("receivechannelmessage", clientId));
@@ -146,8 +154,6 @@ export default class PeerManager {
         });
 
         pc.addEventListener("iceconnectionstatechange", (event) => {
-            console.log("Connection state change:", pc.iceConnectionState); // TODO: remove
-
             switch(pc.iceConnectionState) {
                 case "new":
                     break;
@@ -159,22 +165,15 @@ export default class PeerManager {
                 case "completed":
                     break;
                 case "disconnected":
-                    // Cleanup event listeners
-                    const peerObj = this.getPeerObject(clientId, false);
-                    peerObj.peer.onicecandidate = null;
-                    peerObj.peer.onconnectionstatechange = null;
-
-                    // Remove peer connection from the peer objects
-                    delete this.rtcPeers[clientId];
-
-                    console.log("Disconnected from", clientId); // TODO: remove
-
+                    this.cleanupClosedPeer(clientId);
                     this.emitEvent("rtcdisconnected", clientId, event);
                     break;
                 case "failed":
                     this.emitEvent("rtcfailed", clientId, event);
                     break;
                 case "closed":
+                    this.cleanupClosedPeer(clientId);
+                    this.emitEvent("rtcdisconnected", clientId, event);
                     break;
             }
         });
@@ -214,8 +213,6 @@ export default class PeerManager {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
-        console.log("Initiating to", clientId, { description: offer }); // TODO: remove
-
         // Send offer to client
         this.socket.emit(EmissionEvents.SIGNAL_SEND, this.room, clientId, { description: offer });
     }
@@ -226,8 +223,19 @@ export default class PeerManager {
      * @param clientId The target client id
      */
     disconnectRTC(clientId: string): void {
-        const ps = this.getPeerConnection(clientId, false);
-        ps?.close();
+        const peerObj = this.getPeerObject(clientId, false);
+        peerObj?.peer?.close();
+
+        // Close channels
+        peerObj?.sendChannel?.close();
+        peerObj?.receiveChannel?.close();
+    }
+
+    /**
+     * Disconnect from all clients
+     */
+    disconnectAll(): void {
+        Object.keys(this.rtcPeers).forEach(clientId => this.disconnectRTC(clientId));
     }
 
     /**

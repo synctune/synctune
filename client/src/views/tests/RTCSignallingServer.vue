@@ -201,7 +201,9 @@ export default Vue.extend({
 
         },
         leaveRoom() {
-            const { roomName, socket }: Data = this;
+            const { roomName, socket, peerManager }: Data = this;
+
+            peerManager.disconnectAll();
 
             socket.emit(EmissionEvents.ROOM_LEAVE, roomName);
         },
@@ -216,8 +218,9 @@ export default Vue.extend({
 
             peerManager.addEventListener("rtcdisconnected", (clientId, e) => {
                 console.log(`RTC: Client '${clientId}' disconnected`);
+                
                 const idx = rtcPeers.indexOf(clientId);
-                if (idx >= 0) rtcPeers.splice(idx, 1);
+                if (idx >= 0) Vue.delete(this.rtcPeers, idx);
                 this.rtcConnected = false;
             });
 
@@ -244,9 +247,7 @@ export default Vue.extend({
 
                 const { signallingClientIds }: Data = this;
                 const idx = signallingClientIds.indexOf(clientId);
-                if (idx > -1) {
-                    signallingClientIds.splice(idx, 1);
-                }
+                if (idx >= 0) Vue.delete(this.signallingClientIds, idx);
             });
         }
     }
