@@ -1,9 +1,9 @@
 import adapter from 'webrtc-adapter';
 import Emittable from '@/events/Emittable';
 import PeerManager, { PeerManagerEventMap } from "@/rtc/PeerManager";
-import io from "socket.io-client";
 import { SignalEvents, EmissionEvents } from '@/constants/SocketEvents';
 import RTCDataContainer from './RTCDataContainer';
+import SignallingSocket from '@/socket/SignallingSocket';
 
 type RoomParam = {
     room: string;
@@ -33,22 +33,22 @@ type ErrorParam = {
 
 type RoomManagerStatus = "owner" | "client" | "disconnected";
 
-// interface RoomManagerEventMap extends PeerManagerEventMap {
-interface RoomManagerEventMap {
-    "signallingroomcreated": RoomParam;
-    "signallingroomjoined": RoomParam & ClientsListParam;
-    "signallingroomleft": RoomParam & KickedParam;
+interface RoomManagerEventMap extends PeerManagerEventMap {
+// interface RoomManagerEventMap {
+    // "signallingroomcreated": RoomParam;
+    // "signallingroomjoined": RoomParam & ClientsListParam;
+    // "signallingroomleft": RoomParam & KickedParam;
 
-    "signallingclientjoined": RoomParam & ClientIdParam;
-    "signallingclientleft": RoomParam & ClientIdParam;
+    // "signallingclientjoined": RoomParam & ClientIdParam;
+    // "signallingclientleft": RoomParam & ClientIdParam;
 
-    "signallingroomexists": RoomParam;
-    "signallingroomnotexists": RoomParam;
-    "signallingerror": ErrorParam;
-    "signallingnotinroom": RoomParam;
-    "signallingtargetnotfound": RoomParam & ClientIdParam;
+    // "signallingroomexists": RoomParam;
+    // "signallingroomnotexists": RoomParam;
+    // "signallingerror": ErrorParam;
+    // "signallingnotinroom": RoomParam;
+    // "signallingtargetnotfound": RoomParam & ClientIdParam;
 
-    "sigallingsignalreceive": RoomParam & ClientIdParam & { data: RTCDataContainer };
+    // "sigallingsignalreceive": RoomParam & ClientIdParam & { data: RTCDataContainer };
 
     "statuschange": RoomManagerStatus;
     "peermanagercreated": PeerManager;
@@ -83,7 +83,7 @@ interface RoomManagerEventMap {
 // }
 
 export default class RoomManager extends Emittable {
-    private socket: SocketIOClient.Socket;
+    private socket: SignallingSocket;
     private id: string | null;
 
     private room: string | null;
@@ -97,19 +97,19 @@ export default class RoomManager extends Emittable {
         this.socket = socket;
         this.id = this.socket.id;
 
-        this.setupSocketEventRelays(this.socket);
+        // this.setupSocketEventRelays(this.socket);
     }
 
     createRoom(room: string) {
         // Setup socket listeners
         this.setupCommonSocketListeners(this.socket);
 
-        this.socket.on(SignalEvents.ROOM_EXISTS, (room: string) => {
+        this.socket.on("room-exists", (room: string) => {
             // console.log(`Room '${room}' already exists`); // TODO: remove
             // Do nothing
         });
 
-        this.socket.on(SignalEvents.ROOM_CREATED, (room: string) => {
+        this.socket.on("room-created", (room: string) => {
             console.log("~ Room created", room); // TODO: remove
 
             this.room = room;
@@ -121,7 +121,7 @@ export default class RoomManager extends Emittable {
             this.setupPeerManager(this.socket, room);
         });
 
-        this.socket.on(SignalEvents.CLIENT_JOINED, async(_: any, clientId: string) => {
+        this.socket.on("client-joined", async(_: any, clientId: string) => {
             // console.log(`Client '${clientId}' joined, connecting rtc`, this._peerManager); // TODO: remove
 
             // Attempt to establish peer connection 
@@ -129,19 +129,19 @@ export default class RoomManager extends Emittable {
         });
 
         // Attempt to create room
-        this.socket.emit(EmissionEvents.ROOM_CREATE, room);
+        this.socket.emit("room-create", room);
     }
 
     joinRoom(room: string) {
         // Setup socket listeners
         this.setupCommonSocketListeners(this.socket);
 
-        this.socket.on(SignalEvents.ROOM_NOT_EXISTS, (room: string) => {
+        this.socket.on("room-not-exists", (room: string) => {
             // console.log(`Room '${room}' does not exist`); // TODO: remove
             // Do nothing
         });
 
-        this.socket.on(SignalEvents.ROOM_JOINED, (room: string, clients: string[]) => {
+        this.socket.on("room-joined", (room: string, clients: string[]) => {
             // console.log(`Room '${room}' successfully joined`);
 
             this.room = room;
@@ -151,11 +151,11 @@ export default class RoomManager extends Emittable {
         });
 
         // Attempt to join room
-        this.socket.emit(EmissionEvents.ROOM_JOIN, room);
+        this.socket.emit("room-join", room);
     }
 
     leaveRoom() {
-        this.socket.emit(EmissionEvents.ROOM_LEAVE, this.room);
+        this.socket.emit("room-leave", this.room);
 
         // Disconnect peer manager
         this._peerManager.disconnectAll();
@@ -174,6 +174,10 @@ export default class RoomManager extends Emittable {
         return this._peerManager;
     }
 
+    get signallingSocket(): SignallingSocket {
+        return this.socket;
+    }
+
     private setupPeerManager(socket: SocketIOClient.Socket, room: string) {
         // Create the peer manager and setup event relays
         this._peerManager = new PeerManager(socket, room);
@@ -182,33 +186,33 @@ export default class RoomManager extends Emittable {
         this.emitEvent("peermanagercreated", this._peerManager);
     }
 
-    private setupSocketEventRelays(socket: SocketIOClient.Socket) {
-        // TODO: there is probably a better way... with a loop and map or something
-        // This really needs a better way...
-        socket.on(SignalEvents.CLIENT_JOINED, this.linkToSocketEvent("signallingclientjoined", ["room", "clientId"]));
-        socket.on(SignalEvents.CLIENT_LEFT, this.linkToSocketEvent("signallingclientleft", ["room", "clientId"]));
-        socket.on(SignalEvents.ERROR, this.linkToSocketEvent("signallingerror", ["message"]));
-        socket.on(SignalEvents.NOT_IN_ROOM, this.linkToSocketEvent("signallingnotinroom", ["room"]));
-        socket.on(SignalEvents.ROOM_CREATED, this.linkToSocketEvent("signallingroomcreated", ["room"]));
-        socket.on(SignalEvents.ROOM_EXISTS, this.linkToSocketEvent("signallingroomexists", ["room"]));
-        socket.on(SignalEvents.ROOM_JOINED, this.linkToSocketEvent("signallingroomjoined", ["room", "clients"]));
-        socket.on(SignalEvents.ROOM_LEFT, this.linkToSocketEvent("signallingroomleft", ["room", "kicked"]));
-        socket.on(SignalEvents.ROOM_NOT_EXISTS, this.linkToSocketEvent("signallingroomnotexists", ["room"]));
-        socket.on(SignalEvents.SIGNAL_RECEIVE, this.linkToSocketEvent("sigallingsignalreceive", ["room", "clientId", "data"]));
-        socket.on(SignalEvents.TARGET_NOT_FOUND, this.linkToSocketEvent("signallingtargetnotfound", ["room", "clientId"]));
-    }
+    // private setupSocketEventRelays(socket: SocketIOClient.Socket) {
+    //     // TODO: there is probably a better way... with a loop and map or something
+    //     // This really needs a better way...
+    //     socket.on(SignalEvents.CLIENT_JOINED, this.linkToSocketEvent("signallingclientjoined", ["room", "clientId"]));
+    //     socket.on(SignalEvents.CLIENT_LEFT, this.linkToSocketEvent("signallingclientleft", ["room", "clientId"]));
+    //     socket.on(SignalEvents.ERROR, this.linkToSocketEvent("signallingerror", ["message"]));
+    //     socket.on(SignalEvents.NOT_IN_ROOM, this.linkToSocketEvent("signallingnotinroom", ["room"]));
+    //     socket.on(SignalEvents.ROOM_CREATED, this.linkToSocketEvent("signallingroomcreated", ["room"]));
+    //     socket.on(SignalEvents.ROOM_EXISTS, this.linkToSocketEvent("signallingroomexists", ["room"]));
+    //     socket.on(SignalEvents.ROOM_JOINED, this.linkToSocketEvent("signallingroomjoined", ["room", "clients"]));
+    //     socket.on(SignalEvents.ROOM_LEFT, this.linkToSocketEvent("signallingroomleft", ["room", "kicked"]));
+    //     socket.on(SignalEvents.ROOM_NOT_EXISTS, this.linkToSocketEvent("signallingroomnotexists", ["room"]));
+    //     socket.on(SignalEvents.SIGNAL_RECEIVE, this.linkToSocketEvent("sigallingsignalreceive", ["room", "clientId", "data"]));
+    //     socket.on(SignalEvents.TARGET_NOT_FOUND, this.linkToSocketEvent("signallingtargetnotfound", ["room", "clientId"]));
+    // }
 
-    private setupPeerManagerEventRelays(peerManager: PeerManager) {
-        // TODO: there is probably a better way... with a loop or something
-        peerManager.addEventListener("rtcconnected", this.linkToPeerManagerEvent("rtcconnected"));
-        peerManager.addEventListener("rtcdisconnected", this.linkToPeerManagerEvent("rtcdisconnected"));
-        peerManager.addEventListener("rtcfailed", this.linkToPeerManagerEvent("rtcfailed"));
-        peerManager.addEventListener("rtcreceivechannelbufferedamountlow", this.linkToPeerManagerEvent("rtcreceivechannelbufferedamountlow"));
-        peerManager.addEventListener("rtcreceivechannelclose", this.linkToPeerManagerEvent("rtcreceivechannelclose"));
-        peerManager.addEventListener("rtcreceivechannelerror", this.linkToPeerManagerEvent("rtcreceivechannelerror"));
-        peerManager.addEventListener("rtcreceivechannelmessage", this.linkToPeerManagerEvent("rtcreceivechannelmessage"));
-        peerManager.addEventListener("rtcreceivechannelopen", this.linkToPeerManagerEvent("rtcreceivechannelopen"));
-    }
+    // private setupPeerManagerEventRelays(peerManager: PeerManager) {
+    //     // TODO: there is probably a better way... with a loop or something
+    //     peerManager.addEventListener("rtcconnected", this.linkToPeerManagerEvent("rtcconnected"));
+    //     peerManager.addEventListener("rtcdisconnected", this.linkToPeerManagerEvent("rtcdisconnected"));
+    //     peerManager.addEventListener("rtcfailed", this.linkToPeerManagerEvent("rtcfailed"));
+    //     peerManager.addEventListener("rtcreceivechannelbufferedamountlow", this.linkToPeerManagerEvent("rtcreceivechannelbufferedamountlow"));
+    //     peerManager.addEventListener("rtcreceivechannelclose", this.linkToPeerManagerEvent("rtcreceivechannelclose"));
+    //     peerManager.addEventListener("rtcreceivechannelerror", this.linkToPeerManagerEvent("rtcreceivechannelerror"));
+    //     peerManager.addEventListener("rtcreceivechannelmessage", this.linkToPeerManagerEvent("rtcreceivechannelmessage"));
+    //     peerManager.addEventListener("rtcreceivechannelopen", this.linkToPeerManagerEvent("rtcreceivechannelopen"));
+    // }
 
     private setupCommonSocketListeners(socket: SocketIOClient.Socket) {
         // socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {

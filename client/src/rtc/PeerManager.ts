@@ -3,6 +3,7 @@ import Emittable from "@/events/Emittable";
 import {} from "socket.io-client";
 import { SignalEvents, EmissionEvents } from "@/constants/SocketEvents";
 import RTCDataContainer from "@/rtc/RTCDataContainer";
+import SignallingSocket from '@/socket/SignallingSocket';
 
 interface PeerObject {
     peer: RTCPeerConnection;
@@ -42,7 +43,7 @@ export interface PeerManagerEventMap {
 // }
 
 export default class PeerManager extends Emittable {
-    private socket: SocketIOClient.Socket;
+    private socket: SignallingSocket;
     private room: string;
 
     private rtcPeers: PeersMap;
@@ -60,7 +61,7 @@ export default class PeerManager extends Emittable {
     }
 
     private setupSocketListeners() {
-        this.socket.on(SignalEvents.SIGNAL_RECEIVE, async (room: string, senderId: string, data: RTCDataContainer) => {
+        this.socket.on("signal-receive", async (room: string, senderId: string, data: RTCDataContainer) => {
             // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
             try {
                 const { description, candidate } = data;
@@ -79,7 +80,7 @@ export default class PeerManager extends Emittable {
                             await pc.setLocalDescription(answer);
 
                             // Send back the answer
-                            this.socket.emit(EmissionEvents.SIGNAL_SEND, this.room, senderId, { description: answer });
+                            this.socket.emit("signal-send", this.room, senderId, { description: answer });
 
                             break;
                         // Just update remote description with answer 
@@ -131,7 +132,7 @@ export default class PeerManager extends Emittable {
         const pc = new RTCPeerConnection();
 
         pc.addEventListener("icecandidate", ({ candidate }) => {
-            this.socket.emit(EmissionEvents.SIGNAL_SEND, this.room, clientId, { candidate });
+            this.socket.emit("signal-send", this.room, clientId, { candidate });
         });
 
         // Setup data channel
@@ -210,7 +211,7 @@ export default class PeerManager extends Emittable {
         await pc.setLocalDescription(offer);
 
         // Send offer to client
-        this.socket.emit(EmissionEvents.SIGNAL_SEND, this.room, clientId, { description: offer });
+        this.socket.emit("signal-send", this.room, clientId, { description: offer });
     }
 
     /**
