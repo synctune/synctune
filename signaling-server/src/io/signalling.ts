@@ -2,7 +2,6 @@ import { Server } from "http";
 import SocketIO, { Socket } from "socket.io";
 
 import RTCDataContainer from "./RTCDataContainer";
-import { EmissionEvents, SignalEvents } from "../constants/SocketEvents";
 import RoomTracker from "../room/RoomTracker";
 import SignallingSocket from "./SignallingSocket";
 
@@ -24,8 +23,6 @@ export default (server: Server) => {
                 // Kick all other clients from the room
                 clients.forEach(clientId => {
                     const client: SignallingSocket = io.sockets.sockets[clientId];
-
-                    // console.log("Sockets", io.sockets.sockets);
 
                     // Do nothing if client has already disconnected or it is the owner
                     if (!client || client.id === id) return;
@@ -102,13 +99,14 @@ export default (server: Server) => {
                 if (err) return socket.emit("error", err);
                 if (clients.length === 0) return socket.emit("room-not-exists", room);
 
+                const owner = roomTracker.getOwner(room);
                 setupSignallingHandlers(socket, room);
 
                 // Join room
                 socket.join(room);
                 
                 // Send to joined client
-                socket.emit("room-joined", room, clients);
+                socket.emit("room-joined", room, owner!, clients);
 
                 // Send to all other clients in the room
                 socket.to(room).emit("client-joined", room, socket.id);

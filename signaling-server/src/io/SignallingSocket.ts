@@ -24,7 +24,7 @@ export default interface SignallingSocket extends SocketIO.Socket {
     emit(event: "room-not-exists", room: string): boolean;
     emit(event: "not-in-room", room: string): boolean;
     emit(event: "room-created", room: string): boolean;
-    emit(event: "room-joined", room: string, clients: string[]): boolean;
+    emit(event: "room-joined", room: string, ownerId: string, clients: string[]): boolean;
     emit(event: "room-left", room: string, kicked: boolean): boolean;
     emit(event: "target-not-found", room: string, targetId: string): boolean;
     emit(event: "error", message: any): boolean;

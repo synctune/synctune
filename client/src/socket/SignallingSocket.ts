@@ -10,7 +10,7 @@ export default interface SignallingSocket extends SocketIOClient.Socket {
     on(event: "room-not-exists", fn: (room: string) => unknown): SocketIOClient.Emitter;
     on(event: "not-in-room", fn: (room: string) => unknown): SocketIOClient.Emitter;
     on(event: "room-created", fn: (room: string) => unknown): SocketIOClient.Emitter;
-    on(event: "room-joined", fn: (room: string, clients: string[]) => unknown): SocketIOClient.Emitter;
+    on(event: "room-joined", fn: (room: string, ownerId: string, clients: string[]) => unknown): SocketIOClient.Emitter;
     on(event: "room-left", fn: (room: string, kicked: boolean) => unknown): SocketIOClient.Emitter;
     on(event: "target-not-found", fn: (room: string, targetId: string) => unknown): SocketIOClient.Emitter;
     on(event: "error", fn: (message: any) => unknown): SocketIOClient.Emitter;

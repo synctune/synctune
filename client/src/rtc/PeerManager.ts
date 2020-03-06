@@ -1,7 +1,6 @@
 import adapter from 'webrtc-adapter';
 import Emittable from "@/events/Emittable";
 import {} from "socket.io-client";
-import { SignalEvents, EmissionEvents } from "@/constants/SocketEvents";
 import RTCDataContainer from "@/rtc/RTCDataContainer";
 import SignallingSocket from '@/socket/SignallingSocket';
 
@@ -30,17 +29,6 @@ export interface PeerManagerEventMap {
     "rtcdisconnected": PeerManagerEvent<Event>;
     "rtcfailed": PeerManagerEvent<Event>;
 }
-
-// export interface IPeerManager {
-//     connectRTC(clientId: string): Promise<void>;
-//     disconnectRTC(clientId: string): void;
-//     disconnectAll(): void;
-//     hasPeerObject(clientId: string): boolean;
-//     getPeerConnection(clientId: string, createIfMissing?: boolean): RTCPeerConnection | null;
-//     getSendChannel(clientId: string, createIfMissing?: boolean): RTCDataChannel | null;
-//     addEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (event: PeerManagerEventMap[K]) => any): void;
-//     removeEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (event: PeerManagerEventMap[K]) => any): void;
-// }
 
 export default class PeerManager extends Emittable {
     private socket: SignallingSocket;
@@ -90,7 +78,7 @@ export default class PeerManager extends Emittable {
                             break;
                         default:
                             // TODO: handle error properly
-                            console.log('Unsupported SDP type.');
+                            console.error('Unsupported SDP type.');
                     }
                 } 
                 // If a candidate was received instead then add it
