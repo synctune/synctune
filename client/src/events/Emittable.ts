@@ -10,12 +10,13 @@ export default class Emittable {
     }
 
     protected emitEvent(eventName: string, ...args: any[]) {
-        // No events register for this event, do nothing
-        if (!this.listeners[eventName]) {
+        const listeners = this.listeners[eventName];
+
+        // No events registered to this event, do nothing
+        if (!listeners) {
             return;
         }
-
-        const listeners = this.listeners[eventName];
+        
         listeners.forEach(listener => listener(...args));
     }
 
