@@ -1,4 +1,5 @@
 import adapter from 'webrtc-adapter';
+import Emittable from "../events/Emittable";
 import {} from "socket.io-client";
 import { SignalEvents, EmissionEvents } from "../constants/SocketEvents";
 import RTCDataContainer from "./RTCDataContainer";
@@ -28,14 +29,16 @@ interface PeerManagerEventMap {
     "rtcfailed": Event;
 }
 
-export default class PeerManager {
+export default class PeerManager extends Emittable {
     private socket: SocketIOClient.Socket;
     private room: string;
 
     private rtcPeers: PeersMap;
-    private listeners: RegisteredListeners;
+    // private listeners: RegisteredListeners;
 
     constructor(socket: SocketIOClient.Socket, room: string) {
+        super();
+
         this.socket = socket;
         this.room = room;
 
@@ -87,22 +90,6 @@ export default class PeerManager {
                 console.error(err);
             }
         });
-    }
-
-    private emitEvent<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string, event: PeerManagerEventMap[K]) {
-        // No events register for this event, do nothing
-        if (!this.listeners[eventName]) {
-            return;
-        }
-
-        const listeners = this.listeners[eventName];
-        listeners.forEach(listener => listener(clientId, event));
-    }
-
-    private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
-        return (event: any) => {
-            this.emitEvent(eventName, clientId, event);
-        }
     }
 
     /**
@@ -287,29 +274,22 @@ export default class PeerManager {
         const peerObject = this.getPeerObject(clientId, createIfMissing);
         return peerObject?.sendChannel;
     }
+
+    private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
+        return (event: any) => {
+            this.emitEvent(eventName, clientId, event);
+        }
+    }
+
+    protected emitEvent<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string, event: PeerManagerEventMap[K]) {
+        super.emitEvent(eventName, clientId, event);
+    }
     
     addEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (clientId: string, e: PeerManagerEventMap[K]) => any) {
-        // No listeners on event yet, add the first one
-        if (!this.listeners[event]) {
-            this.listeners[event] = [listener];
-            return;
-        }
-
-        this.listeners[event].push(listener);
+        super.addEventListener(event, listener);
     }
 
     removeEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (clientId: string, e: PeerManagerEventMap[K]) => any) {
-        // No listeners on event, so do nothing
-        if (!this.listeners[event]) {
-            return;
-        }
-
-        // Attempt to find listener
-        const idx = this.listeners[event].findIndex((list) => list === listener);
-
-        // Listener was found, remove it
-        if (idx >= 0) {
-            this.listeners[event].splice(idx, 1);
-        }
+        super.removeEventListener(event, listener);
     }
 }
