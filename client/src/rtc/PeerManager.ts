@@ -1,8 +1,8 @@
 import adapter from 'webrtc-adapter';
-import Emittable from "../events/Emittable";
+import Emittable from "@/events/Emittable";
 import {} from "socket.io-client";
-import { SignalEvents, EmissionEvents } from "../constants/SocketEvents";
-import RTCDataContainer from "./RTCDataContainer";
+import { SignalEvents, EmissionEvents } from "@/constants/SocketEvents";
+import RTCDataContainer from "@/rtc/RTCDataContainer";
 
 interface PeerObject {
     peer: RTCPeerConnection;
@@ -14,27 +14,38 @@ interface PeersMap {
     [clientId: string]: PeerObject;
 }
 
-interface RegisteredListeners {
-    [eventName: string]: Function[];
+export interface PeerManagerEvent<T> {
+    clientId: string;
+    sourceEvent: T;
 }
 
-interface PeerManagerEventMap {
-    "receivechannelbufferedamountlow": Event;
-    "receivechannelclose": Event;
-    "receivechannelerror": RTCErrorEvent;
-    "receivechannelmessage": MessageEvent;
-    "receivechannelopen": Event;
-    "rtcconnected": Event;
-    "rtcdisconnected": Event;
-    "rtcfailed": Event;
+export interface PeerManagerEventMap {
+    "rtcreceivechannelbufferedamountlow": PeerManagerEvent<Event>;
+    "rtcreceivechannelclose": PeerManagerEvent<Event>;
+    "rtcreceivechannelerror": PeerManagerEvent<RTCErrorEvent>;
+    "rtcreceivechannelmessage": PeerManagerEvent<MessageEvent>;
+    "rtcreceivechannelopen": PeerManagerEvent<Event>;
+    "rtcconnected": PeerManagerEvent<Event>;
+    "rtcdisconnected": PeerManagerEvent<Event>;
+    "rtcfailed": PeerManagerEvent<Event>;
 }
+
+// export interface IPeerManager {
+//     connectRTC(clientId: string): Promise<void>;
+//     disconnectRTC(clientId: string): void;
+//     disconnectAll(): void;
+//     hasPeerObject(clientId: string): boolean;
+//     getPeerConnection(clientId: string, createIfMissing?: boolean): RTCPeerConnection | null;
+//     getSendChannel(clientId: string, createIfMissing?: boolean): RTCDataChannel | null;
+//     addEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (event: PeerManagerEventMap[K]) => any): void;
+//     removeEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (event: PeerManagerEventMap[K]) => any): void;
+// }
 
 export default class PeerManager extends Emittable {
     private socket: SocketIOClient.Socket;
     private room: string;
 
     private rtcPeers: PeersMap;
-    // private listeners: RegisteredListeners;
 
     constructor(socket: SocketIOClient.Socket, room: string) {
         super();
@@ -127,17 +138,15 @@ export default class PeerManager extends Emittable {
         const sendChannel = pc.createDataChannel("sendDataChannel");
 
         pc.addEventListener("datachannel", (event) => {
-            console.log("Data channel", event);
-
             const receiveChannel = event.channel;
 
             this.rtcPeers[clientId].receiveChannel = receiveChannel;
 
-            receiveChannel.addEventListener("open", this.linkToEventEmitter("receivechannelopen", clientId));
-            receiveChannel.addEventListener("message", this.linkToEventEmitter("receivechannelmessage", clientId));
-            receiveChannel.addEventListener("close", this.linkToEventEmitter("receivechannelclose", clientId));
-            receiveChannel.addEventListener("error", this.linkToEventEmitter("receivechannelerror", clientId));
-            receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("receivechannelbufferedamountlow", clientId));
+            receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcreceivechannelopen", clientId));
+            receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcreceivechannelmessage", clientId));
+            receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcreceivechannelclose", clientId));
+            receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcreceivechannelerror", clientId));
+            receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcreceivechannelbufferedamountlow", clientId));
         });
 
         pc.addEventListener("iceconnectionstatechange", (event) => {
@@ -147,20 +156,20 @@ export default class PeerManager extends Emittable {
                 case "checking":
                     break;
                 case "connected":
-                    this.emitEvent("rtcconnected", clientId, event);
+                    this.emitEvent("rtcconnected", { clientId, sourceEvent: event });
                     break;
                 case "completed":
                     break;
                 case "disconnected":
                     this.cleanupClosedPeer(clientId);
-                    this.emitEvent("rtcdisconnected", clientId, event);
+                    this.emitEvent("rtcdisconnected", { clientId, sourceEvent: event });
                     break;
                 case "failed":
-                    this.emitEvent("rtcfailed", clientId, event);
+                    this.emitEvent("rtcfailed", { clientId, sourceEvent: event });
                     break;
                 case "closed":
                     this.cleanupClosedPeer(clientId);
-                    this.emitEvent("rtcdisconnected", clientId, event);
+                    this.emitEvent("rtcdisconnected", { clientId, sourceEvent: event });
                     break;
             }
         });
@@ -192,7 +201,7 @@ export default class PeerManager extends Emittable {
      * 
      * @param clientId The target client id
      */
-    async connectRTC(clientId: string) {
+    async connectRTC(clientId: string): Promise<void> {
         // Get peer connection, creating it if need be
         const pc = this.getPeerConnection(clientId, true);
 
@@ -276,20 +285,21 @@ export default class PeerManager extends Emittable {
     }
 
     private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
-        return (event: any) => {
-            this.emitEvent(eventName, clientId, event);
+        return (sourceEvent: any) => {
+            const event: PeerManagerEvent<any> = { clientId, sourceEvent };
+            this.emitEvent(eventName, event);
         }
     }
 
-    protected emitEvent<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string, event: PeerManagerEventMap[K]) {
-        super.emitEvent(eventName, clientId, event);
+    protected emitEvent<K extends keyof PeerManagerEventMap>(eventName: K, event: PeerManagerEventMap[K]) {
+        super.emitEvent(eventName, event);
     }
     
-    addEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (clientId: string, e: PeerManagerEventMap[K]) => any) {
+    addEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (event: PeerManagerEventMap[K]) => any) {
         super.addEventListener(event, listener);
     }
 
-    removeEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (clientId: string, e: PeerManagerEventMap[K]) => any) {
+    removeEventListener<K extends keyof PeerManagerEventMap>(event: K, listener: (event: PeerManagerEventMap[K]) => any) {
         super.removeEventListener(event, listener);
     }
 }

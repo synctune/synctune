@@ -66,7 +66,7 @@ export default (server: Server) => {
         socket.on(SignalEvents.ROOM_CREATE, (room: string) => {
             io.in(room).clients((err: any, clients: string[]) => {
                 if (err) return socket.emit(EmissionEvents.ERROR, err);
-                if (clients.length > 0) return socket.emit(EmissionEvents.ROOM_EXISTS, `Room '${room}' already exists`);
+                if (clients.length > 0) return socket.emit(EmissionEvents.ROOM_EXISTS, room);
 
                 setupSignallingHandlers(socket, room);
 
@@ -77,7 +77,7 @@ export default (server: Server) => {
                 roomTracker.registerRoom(room, socket.id);
 
                 // Send to joined socket
-                socket.emit(EmissionEvents.ROOM_CREATED, `Room '${room}' was created`);
+                socket.emit(EmissionEvents.ROOM_CREATED, room);
             });
         });
 
@@ -99,7 +99,7 @@ export default (server: Server) => {
         socket.on(SignalEvents.ROOM_JOIN, (room: string) => {
             io.in(room).clients((err: any, clients: string[]) => {
                 if (err) return socket.emit(EmissionEvents.ERROR, err);
-                if (clients.length === 0) return socket.emit(EmissionEvents.ROOM_NOT_EXISTS, `Room '${room}' does not exist`);
+                if (clients.length === 0) return socket.emit(EmissionEvents.ROOM_NOT_EXISTS, room);
 
                 setupSignallingHandlers(socket, room);
 

@@ -81,6 +81,7 @@ import io from "socket.io-client";
 import { SignalEvents, EmissionEvents } from "../../constants/SocketEvents";
 import RTCDataContainer from '../../rtc/RTCDataContainer';
 import PeerManager from "../../rtc/PeerManager";
+import RoomManager from "../../rtc/RoomManager";
 
 interface Data {
     roomName: string;
@@ -89,8 +90,10 @@ interface Data {
     socket: SocketIOClient.Socket;
     
     sendClientId: string;
-    peerManager: PeerManager;
+    // peerManager: PeerManager;
     rtcConnected: boolean;
+
+    roomManager: RoomManager;
 
     rtcPeers: string[];
 }
@@ -99,8 +102,9 @@ interface Methods {
     createRoom: () => void;
     joinRoom: () => void;
     leaveRoom: () => void;
-    setupPeerManager: (socket: SocketIOClient.Socket, roomName: string) => void;
-    setupGeneralListeners: (socket: SocketIOClient.Socket) => void;
+    // setupPeerManager(socket: SocketIOClient.Socket, roomName: string): void;
+    setupGeneralRTCListeners(peerManager: PeerManager): void;
+    setupGeneralSocketListeners(socket: SocketIOClient.Socket): void;
 }
 
 export default Vue.extend({
@@ -120,103 +124,184 @@ export default Vue.extend({
         }
     },
     mounted() {
+        // TODO: don't hardcode signalling server address
         this.socket = io("localhost:5000");
+
+        this.roomManager = new RoomManager(this.socket);
 
         console.log(this);
     },
     methods: {
         sayHi() {
-            const { peerManager, sendClientId }: Data = this;
-            peerManager.sendMessage(sendClientId, "Hello from the other side!");
+            const { roomManager, sendClientId }: Data = this;
+            const peerManager = roomManager.peerManager as PeerManager; // TODO: why does this do that?
+            peerManager.sendMessage(sendClientId.trim(), "Hello from the other side!");
+
+            // const { peerManager, sendClientId }: Data = this;
+            // peerManager.sendMessage(sendClientId, "Hello from the other side!");
         },
         createRoom() {
-            const { roomName, socket }: Data = this;
-            const { setupGeneralListeners, setupPeerManager }: Methods = this;
+            const { roomManager, roomName }: Data = this;
+            const { setupGeneralSocketListeners }: Methods = this;
 
-            console.log("Creating room", roomName);
+            roomManager.createRoom(roomName);
 
-            socket.emit(EmissionEvents.ROOM_CREATE, roomName);
-
-            setupGeneralListeners(socket);
-            setupPeerManager(socket, roomName);
-
-            socket.on(SignalEvents.ERROR, (err: any) => {
-                console.log("Server error:", err);
+            roomManager.addEventListener("signallingerror", ({ message }) => {
+                console.log("Server error:", message);
                 this.signallingConnected = false;
             });
-            socket.on(SignalEvents.ROOM_EXISTS, (message: string) => {
-                console.log("Server:", message);
+
+            roomManager.addEventListener("signallingroomexists", ({ room }) => {
                 this.signallingConnected = false;
             });
-            socket.on(SignalEvents.ROOM_CREATED, (message: string) => {
-                console.log("Server:", message);
+
+            roomManager.addEventListener("signallingroomcreated", ({ room }) => {
                 this.signallingConnected = true;
                 this.signallingClientIds = [];
 
-                const { signallingClientIds }: Data = this;
+                const { signallingClientIds, socket }: Data = this;
                 signallingClientIds.push(`${socket.id} (me)`);
             });
 
-            socket.on(SignalEvents.CLIENT_JOINED, async (room: string, clientId: string) => {
-                const { peerManager }: Data = this;
+            setupGeneralSocketListeners(this.socket);
 
-                console.log("Client joined", clientId);
+            // const { roomName, socket }: Data = this;
+            // const { setupGeneralSocketListeners, setupPeerManager }: Methods = this;
 
-                peerManager.connectRTC(clientId);
-            });
+            // console.log("Creating room", roomName);
+
+            // socket.emit(EmissionEvents.ROOM_CREATE, roomName);
+
+            // setupGeneralSocketListeners(socket);
+            // setupPeerManager(socket, roomName);
+
+            // socket.on(SignalEvents.ERROR, (err: any) => {
+            //     console.log("Server error:", err);
+            //     this.signallingConnected = false;
+            // });
+            // socket.on(SignalEvents.ROOM_EXISTS, (message: string) => {
+            //     console.log("Server:", message);
+            //     this.signallingConnected = false;
+            // });
+            // socket.on(SignalEvents.ROOM_CREATED, (message: string) => {
+            //     console.log("Server:", message);
+            //     this.signallingConnected = true;
+            //     this.signallingClientIds = [];
+
+            //     const { signallingClientIds }: Data = this;
+            //     signallingClientIds.push(`${socket.id} (me)`);
+            // });
+
+            // socket.on(SignalEvents.CLIENT_JOINED, async (room: string, clientId: string) => {
+            //     const { peerManager }: Data = this;
+
+            //     console.log("Client joined", clientId);
+
+            //     peerManager.connectRTC(clientId);
+            // });
         },
         joinRoom() {
-            const { roomName, socket }: Data = this;
-            const { setupGeneralListeners, setupPeerManager }: Methods = this;
+            const { roomManager, roomName }: Data = this;
+            const { setupGeneralSocketListeners }: Methods = this;
 
-            console.log("Joining room", roomName);
+            roomManager.joinRoom(roomName);
 
-            socket.emit(EmissionEvents.ROOM_JOIN, roomName);
-
-            setupGeneralListeners(socket);
-            setupPeerManager(socket, roomName);
-
-            socket.on(SignalEvents.ERROR, (err: any) => {
-                console.log("Server error:", err);
+            roomManager.addEventListener("signallingerror", ({ message }) => {
+                console.log("Server error:", message);
                 this.signallingConnected = false;
             });
 
-            socket.on(SignalEvents.ROOM_NOT_EXISTS, (message: string) => {
-                console.log("Server:", message);
+            roomManager.addEventListener("signallingroomnotexists", ({ room }) => {
                 this.signallingConnected = false;
             });
 
-            socket.on(SignalEvents.ROOM_JOINED, (room: string, clients: string[]) => {
-                console.log(`Room '${room}' successfully joined`);
+            roomManager.addEventListener("signallingroomjoined", ({ room, clients }) => {
                 this.signallingConnected = true;
                 this.signallingClientIds = [];
 
-                const { signallingClientIds }: Data = this;
+                const { signallingClientIds, socket }: Data = this;
                 signallingClientIds.push(...clients);
                 signallingClientIds.push(`${socket.id} (me)`);
-
-                // Don't care about any join events
-                // We wait for the room owner to begin communication
             });
+
+            
+            setupGeneralSocketListeners(this.socket);
+
+            // const { roomName, socket }: Data = this;
+            // const { setupGeneralSocketListeners, setupPeerManager }: Methods = this;
+
+            // console.log("Joining room", roomName);
+
+            // socket.emit(EmissionEvents.ROOM_JOIN, roomName);
+
+            // setupGeneralSocketListeners(socket);
+            // setupPeerManager(socket, roomName);
+
+            // socket.on(SignalEvents.ERROR, (err: any) => {
+            //     console.log("Server error:", err);
+            //     this.signallingConnected = false;
+            // });
+
+            // socket.on(SignalEvents.ROOM_NOT_EXISTS, (message: string) => {
+            //     console.log("Server:", message);
+            //     this.signallingConnected = false;
+            // });
+
+            // socket.on(SignalEvents.ROOM_JOINED, (room: string, clients: string[]) => {
+            //     console.log(`Room '${room}' successfully joined`);
+            //     this.signallingConnected = true;
+            //     this.signallingClientIds = [];
+
+            //     const { signallingClientIds }: Data = this;
+            //     signallingClientIds.push(...clients);
+            //     signallingClientIds.push(`${socket.id} (me)`);
+
+            //     // Don't care about any join events
+            //     // We wait for the room owner to begin communication
+            // });
 
         },
         leaveRoom() {
-            const { roomName, socket, peerManager }: Data = this;
+            const { roomManager, roomName }: Data = this;
 
-            peerManager.disconnectAll();
+            roomManager.leaveRoom();
 
-            socket.emit(EmissionEvents.ROOM_LEAVE, roomName);
+            // const { roomName, socket, peerManager }: Data = this;
+
+            // peerManager.disconnectAll();
+
+            // socket.emit(EmissionEvents.ROOM_LEAVE, roomName);
         },
-        setupPeerManager(socket: SocketIOClient.Socket, roomName: string) {
-            this.peerManager = new PeerManager(socket, roomName);
-            const { peerManager, rtcPeers }: Data = this;
-            peerManager.addEventListener("rtcconnected", (clientId, e) => {
+        // setupPeerManager(socket: SocketIOClient.Socket, roomName: string) {
+        //     this.peerManager = new PeerManager(socket, roomName);
+        //     const { peerManager, rtcPeers }: Data = this;
+        //     peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
+        //         console.log(`RTC: Client '${clientId}' connected`);
+        //         rtcPeers.push(clientId);
+        //         this.rtcConnected = true;
+        //     });
+
+        //     peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
+        //         console.log(`RTC: Client '${clientId}' disconnected`);
+                
+        //         const idx = rtcPeers.indexOf(clientId);
+        //         if (idx >= 0) Vue.delete(this.rtcPeers, idx);
+        //         this.rtcConnected = false;
+        //     });
+
+        //     peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
+        //         console.log("Message from", clientId, sourceEvent.data);
+        //     });
+        // },
+        setupGeneralRTCListeners(peerManager: PeerManager) {
+            const { rtcPeers }: Data = this;
+            peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
                 console.log(`RTC: Client '${clientId}' connected`);
                 rtcPeers.push(clientId);
                 this.rtcConnected = true;
             });
 
-            peerManager.addEventListener("rtcdisconnected", (clientId, e) => {
+            peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
                 console.log(`RTC: Client '${clientId}' disconnected`);
                 
                 const idx = rtcPeers.indexOf(clientId);
@@ -224,31 +309,61 @@ export default Vue.extend({
                 this.rtcConnected = false;
             });
 
-            peerManager.addEventListener("receivechannelmessage", (clientId, event) => {
-                console.log("Message from", clientId, event.data);
+            peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
+                console.log("Message from", clientId, sourceEvent.data);
             });
         },
-        setupGeneralListeners(socket: SocketIOClient.Socket) {
-            socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {
-                console.log(`Left room '${room}'. Kicked: ${kicked}`);
+        setupGeneralSocketListeners(socket: SocketIOClient.Socket) {
+            console.log("setting up general sockets");
+
+            const { roomManager, roomName }: Data = this;
+
+            roomManager.addEventListener("signallingroomleft", ({ room, kicked }) => {
+                console.log(`> Left room '${room}'. Kicked: ${kicked}`);
                 this.signallingConnected = false;
                 this.signallingClientIds = [];
             });
 
-            socket.on(SignalEvents.CLIENT_JOINED, (room: string, clientId: string) => {
-                console.log(`Client '${clientId}' joined room '${room}'`);
+            roomManager.addEventListener("signallingclientjoined", ({ room, clientId }) => {
+                console.log(`> Client '${clientId}' joined room '${room}'`);
 
                 const { signallingClientIds }: Data = this;
                 signallingClientIds.push(clientId);
             });
 
-            socket.on(SignalEvents.CLIENT_LEFT, (room: string, clientId: string) => {
-                console.log(`Client '${clientId}' left room '${room}'`);
+            roomManager.addEventListener("signallingclientleft", ({ room, clientId }) => {
+                console.log(`> Client '${clientId}' left room '${room}'`);
 
                 const { signallingClientIds }: Data = this;
                 const idx = signallingClientIds.indexOf(clientId);
                 if (idx >= 0) Vue.delete(this.signallingClientIds, idx);
             });
+
+            roomManager.addEventListener("peermanagercreated", () => {
+                const { setupGeneralRTCListeners }: Methods = this;
+                setupGeneralRTCListeners(roomManager.peerManager);
+            });
+
+            // socket.on(SignalEvents.ROOM_LEFT, (room: string, kicked: boolean) => {
+            //     console.log(`Left room '${room}'. Kicked: ${kicked}`);
+            //     this.signallingConnected = false;
+            //     this.signallingClientIds = [];
+            // });
+
+            // socket.on(SignalEvents.CLIENT_JOINED, (room: string, clientId: string) => {
+            //     console.log(`Client '${clientId}' joined room '${room}'`);
+
+            //     const { signallingClientIds }: Data = this;
+            //     signallingClientIds.push(clientId);
+            // });
+
+            // socket.on(SignalEvents.CLIENT_LEFT, (room: string, clientId: string) => {
+            //     console.log(`Client '${clientId}' left room '${room}'`);
+
+            //     const { signallingClientIds }: Data = this;
+            //     const idx = signallingClientIds.indexOf(clientId);
+            //     if (idx >= 0) Vue.delete(this.signallingClientIds, idx);
+            // });
         }
     }
 });
