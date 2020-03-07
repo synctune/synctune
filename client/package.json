@@ -33,6 +33,7 @@
         "node-sass": "^4.12.0",
         "prettier": "^1.19.1",
         "sass-loader": "^8.0.2",
+        "simple-progress-webpack-plugin": "^1.1.2",
         "typescript": "~3.7.5",
         "vue-template-compiler": "^2.6.11"
     }

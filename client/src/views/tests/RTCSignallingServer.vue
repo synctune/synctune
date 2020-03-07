@@ -81,6 +81,7 @@ import io from "socket.io-client";
 import PeerManager from "../../rtc/PeerManager";
 import RoomManager from "../../rtc/RoomManager";
 import SignallingSocket from "../../socket/SignallingSocket";
+import KEYS from "../../keys";
 
 interface Data {
     roomName: string;
@@ -121,12 +122,8 @@ export default Vue.extend({
         }
     },
     mounted() {
-        // TODO: don't hardcode signalling server address
-        this.socket = io("localhost:5000");
-
+        this.socket = io(`/`, { path: KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH });
         this.roomManager = new RoomManager(this.socket);
-
-        console.log(this);
     },
     methods: {
         sayHi() {

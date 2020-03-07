@@ -6,7 +6,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc",
-        "dev": "nodemon app.ts",
+        "dev": "nodemon --legacy-watch app.ts",
         "prod": "NODE_ENV=production node ./build/server.js"
     },
     "author": "",

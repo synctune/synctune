@@ -4,11 +4,12 @@ import SocketIO, { Socket } from "socket.io";
 import RTCDataContainer from "./RTCDataContainer";
 import RoomTracker from "../room/RoomTracker";
 import SignallingSocket from "./SignallingSocket";
+import KEYS from "../../keys";
 
 // TODO: add validation to all socket.on params
 
 export default (server: Server) => {
-    const io = SocketIO(server);
+    const io = SocketIO(server, { path: KEYS.SOCKET_IO_PATH });
 
     const roomTracker = new RoomTracker();
 
@@ -51,7 +52,7 @@ export default (server: Server) => {
                 const targetExists = clients.includes(targetId);
                 if (!targetExists) return socket.emit("target-not-found", room, targetId);
 
-                console.log(`${socket.id}: sending signal to ${targetId}`);
+                console.log(`${socket.id}: sending signal to ${targetId}`); // TODO: remove
     
                 // Send description to the target
                 socket.to(targetId).emit("signal-receive", room, socket.id, data);
@@ -60,6 +61,8 @@ export default (server: Server) => {
     }
 
     io.on("connection", (socket: SignallingSocket) => {
+        console.log(`socket '${socket.id}' connected`); // TODO: remove
+
         // Create a room
         socket.on("room-create", (room: string) => {
             io.in(room).clients((err: any, clients: string[]) => {
