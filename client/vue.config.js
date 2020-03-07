@@ -5,7 +5,6 @@ module.exports = {
         watchOptions: {
             poll: true
         },
-        // This flag stops the terminal from being flooding with build messages
         progress: false 
     },
     // Source: https://github.com/vuejs/vue-cli/issues/3603#issuecomment-483913563
@@ -17,6 +16,6 @@ module.exports = {
             {
             format: 'minimal', // options are minimal, compact, expanded, verbose
             },
-       ]);
+        ]);
     }
 }
