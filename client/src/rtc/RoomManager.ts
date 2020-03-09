@@ -24,6 +24,11 @@ export default class RoomManager extends Emittable {
 
         this.socket = socket;
         this.id = this.socket.id;
+
+        window.addEventListener("beforeunload", () => {
+            // Leave the room
+            this.leaveRoom();
+        });
     }
 
     createRoom(room: string) {
