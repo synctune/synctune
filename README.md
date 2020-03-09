@@ -11,6 +11,8 @@ To start the development environment, simply type the following command
 npm run start:dev
 ```
 
+Then connect to `localhost:3050`
+
 ### NPM Scripts
 
 Below are some useful NPM scripts for development
