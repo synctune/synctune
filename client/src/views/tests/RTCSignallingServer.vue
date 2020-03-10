@@ -191,7 +191,7 @@ export default Vue.extend({
             setupGeneralSocketListeners(this.socket);
         },
         leaveRoom() {
-            const { roomManager, roomName }: Data = this;
+            const { roomManager }: Data = this;
 
             roomManager.leaveRoom();
         },

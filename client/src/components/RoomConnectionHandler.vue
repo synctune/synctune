@@ -7,7 +7,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters, mapActions } from "vuex";
-import { Getters, Actions, MapGettersStructure, MapActionsStructure } from "../store/modules/room"
+import { Getters, Actions, MapGettersStructure, MapActionsStructure } from "../store/modules/room";
 import RoomManager from '../rtc/RoomManager';
 import VueRouter, { Route } from 'vue-router';
 import SignallingSocket from '../socket/SignallingSocket';
@@ -60,6 +60,8 @@ export default Vue.extend({
         },
         onFail(room: string) {
             console.log(`Unable to join room '${room}'`); // TODO: remove
+
+            // TODO: handle failure
 
             // Make sure there is no room manager object in the store
             const { deleteRoomManager }: Methods = this;

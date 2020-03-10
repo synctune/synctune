@@ -7,19 +7,19 @@
         >
 
         <button 
-            class="RoomConnectionForm__join"
-            @click="joinRoom"
-            :disabled="!validRoomName"
-        >
-            Join Room
-        </button>
-
-        <button 
             class="RoomConnectionForm__create"
             @click="createRoom"
             :disabled="!validRoomName"
         >
             Create Room
+        </button>
+
+        <button 
+            class="RoomConnectionForm__join"
+            @click="joinRoom"
+            :disabled="!validRoomName"
+        >
+            Join Room
         </button>
     </div>
 </template>
