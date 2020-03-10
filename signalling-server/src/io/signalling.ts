@@ -118,6 +118,8 @@ export default (server: Server) => {
 
         // Forceful disconnect
         io.on("disconnecting", (reason: any) => {
+            console.log(`socket '${socket.id}' disconnecting`);
+
             // Notify all rooms that this client is in that the client has left
             Object.keys(socket.rooms).forEach(room => {
                 roomLeaveCleanup(socket, room);

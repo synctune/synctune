@@ -77,7 +77,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import adapter from 'webrtc-adapter';
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import PeerManager from "../../rtc/PeerManager";
 import RoomManager from "../../rtc/RoomManager";
 import SignallingSocket from "../../socket/SignallingSocket";
@@ -122,8 +122,13 @@ export default Vue.extend({
         }
     },
     mounted() {
-        this.socket = io(`/`, { path: KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH });
-        this.roomManager = new RoomManager(this.socket);
+        // this.socket = io(`/`, { path: KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH });
+        // this.roomManager = new RoomManager(this.socket);
+
+        const roomManager = new RoomManager();
+    
+        this.roomManager = roomManager;
+        this.socket = roomManager.signallingSocket as SignallingSocket;
     },
     methods: {
         sayHi() {

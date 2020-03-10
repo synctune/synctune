@@ -2,6 +2,8 @@ import adapter from 'webrtc-adapter';
 import Emittable from '@/events/Emittable';
 import PeerManager, { PeerManagerEventMap } from "@/rtc/PeerManager";
 import SignallingSocket from '@/socket/SignallingSocket';
+import KEYS from "@/keys";
+import io from "socket.io-client";
 
 type RoomManagerStatus = "owner" | "client" | "disconnected";
 
@@ -19,8 +21,10 @@ export default class RoomManager extends Emittable {
 
     private _peerManager: PeerManager | null;
 
-    constructor(socket: SocketIOClient.Socket) {
+    constructor() {
         super();
+
+        const socket = io(`/`, { path: KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH });
 
         this.socket = socket;
         this.id = this.socket.id;
@@ -66,7 +70,7 @@ export default class RoomManager extends Emittable {
         this.socket.emit("room-leave", this._room);
 
         // Disconnect peer manager
-        this._peerManager.disconnectAll();
+        this._peerManager?.disconnectAll();
 
         // TODO: Clear all event listeners???
     }

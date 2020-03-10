@@ -11,6 +11,25 @@ const routes = [
         component: Home
     },
     {
+        path: "/room",
+        name: "room",
+        component: () =>
+            import(/* webpackChunkName: "Room" */ "../views/room/Room.vue")
+    },
+    {
+        path: "/room/join/:id",
+        name: "room-join",
+        component: () => 
+            import(/* webpackChunkName: "Room" */ "../views/room/RoomJoin.vue")
+    },
+    {
+        path: "/room/create/:id",
+        name: "room-create",
+        component: () => 
+            import(/* webpackChunkName: "Room" */ "../views/room/RoomCreate.vue")
+    },
+    // Test routes
+    {
         path: '/test-rtc-camera-local',
         name: "WebRTC Local Camera Tests",
         component: () => 
