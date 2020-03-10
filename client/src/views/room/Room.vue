@@ -129,7 +129,6 @@ export default Vue.extend({
             peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
                 console.log(`RTC: Client '${clientId}' connected`);
                 rtcPeers.push(clientId);
-                this.rtcConnected = true;
             });
 
             peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
@@ -137,7 +136,6 @@ export default Vue.extend({
                 
                 const idx = rtcPeers.indexOf(clientId);
                 if (idx >= 0) Vue.delete(this.rtcPeers, idx);
-                this.rtcConnected = false;
             });
 
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {

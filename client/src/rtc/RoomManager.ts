@@ -4,12 +4,42 @@ import PeerManager, { PeerManagerEventMap } from "@/rtc/PeerManager";
 import SignallingSocket from '@/socket/SignallingSocket';
 import KEYS from "@/keys";
 import io from "socket.io-client";
+import RTCDataContainer from './RTCDataContainer';
 
 type RoomManagerStatus = "owner" | "client" | "disconnected";
+
+type RoomParam = { room: string }
+type ClientIdParam = { clientId: string }
+type SenderIdParam = { senderId: string }
+type OwnerIdParam = { ownerId: string }
+type TargetIdParam = { targetId: string }
+type DataParam = { data: RTCDataContainer }
+type ClientsParam = { clients: string[] }
+type KickedParam = { kicked: boolean }
+type MessageParam = { message: any }
+
+
 
 interface RoomManagerEventMap extends PeerManagerEventMap {
     "statuschange": RoomManagerStatus;
     "peermanagercreated": PeerManager;
+
+    "roomcreate": RoomParam;
+    "roomjoin": RoomParam;
+    "roomleave": RoomParam;
+    "signalsend": RoomParam & TargetIdParam & DataParam;
+
+    "roomexists": RoomParam;
+    "roomnotexists": RoomParam;
+    "notinroom": RoomParam;
+    "roomjoined": RoomParam & OwnerIdParam & ClientsParam;
+    "roomleft": RoomParam & KickedParam;
+    "targetnotfound": RoomParam & TargetIdParam;
+    "error": MessageParam;
+
+    "signalreceive": RoomParam & SenderIdParam & DataParam;
+    "clientjoined": RoomParam & ClientIdParam;
+    "clientleft": RoomParam & ClientIdParam;
 }
 
 export default class RoomManager extends Emittable {

@@ -20,6 +20,8 @@ type Data = {
     roomName: string;
 }
 
+type ModeProp = "join" | "create";
+
 type Computed = Pick<MapGettersStructure, Getters.roomManager | Getters.isConnected> & {}
 
 type Methods = Pick<MapActionsStructure, Actions.setRoomManager | Actions.deleteRoomManager> & {
@@ -30,7 +32,7 @@ type Methods = Pick<MapActionsStructure, Actions.setRoomManager | Actions.delete
 export default Vue.extend({
     props: {
         mode: {
-            type: String,
+            type: Object as () => ModeProp,
             validator(val) {
                 return ["join", "create"].includes(val);
             }
