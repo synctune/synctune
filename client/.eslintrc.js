@@ -25,6 +25,9 @@ module.exports = {
         indent: ["error", 4, { "SwitchCase": 1 }],
         "no-empty-function": ["error", { "allow": ["functions"] }],
         "@typescript-eslint/no-empty-function": ["error", { "allow": ["functions"] }],
-        "@typescript-eslint/no-explicit-any": 0 // Disable
+        "@typescript-eslint/no-explicit-any": 0, // Disable
+        "@typescript-eslint/no-empty-interface": ["warn"],
+        "no-empty-function": "off",
+        "@typescript-eslint/no-empty-function": "warn"
     }
 };
