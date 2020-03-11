@@ -52,8 +52,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from "vuex";
-import { Getters, MapGettersStructure } from "../../store/modules/room";
+import { mapGetters, mapActions } from "vuex";
+import { Getters, MapGettersStructure, Actions,MapActionsStructure } from "../../store/modules/room";
 import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager from '../../rtc/RoomManager';
@@ -67,11 +67,12 @@ interface Data {
 
 type Computed = Pick<MapGettersStructure, Getters.roomManager | Getters.isConnected> & {}
 
-interface Methods {
+type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     leaveRoom(): void;
     sayHi(): void;
+    onRoomLeft(): void;
     setupGeneralRTCListeners(peerManager: PeerManager): void;
-    // setupGeneralSocketListeners(socket: SignallingSocket): void;
+    setupGeneralSocketListeners(socket: SignallingSocket): void;
 }
 
 export default Vue.extend({
@@ -99,14 +100,19 @@ export default Vue.extend({
         if (!isConnected) {
             console.log("WARNING: Not connected to a room... you shouldn't be in here");
         } else {
-            const { setupGeneralRTCListeners }: Methods = this;
+            const { setupGeneralRTCListeners, setupGeneralSocketListeners }: Methods = this;
             const roomManager = this.roomManager as RoomManager;
             const peerManager = roomManager.peerManager as PeerManager;
+            const signallingSocket = roomManager.signallingSocket as SignallingSocket;
 
             setupGeneralRTCListeners(peerManager);
+            setupGeneralSocketListeners(signallingSocket);
         }
     },
     methods: {
+        ...mapActions({
+            deleteRoomManager: Actions.deleteRoomManager
+        }),
         sayHi() {
             const { sendClientId }: Data = this;
             const roomManager = this.roomManager as RoomManager;
@@ -115,9 +121,13 @@ export default Vue.extend({
         },
         leaveRoom() {
             const roomManager = this.roomManager as RoomManager;
+            roomManager.leaveRoom();
+        },
+        onRoomLeft() {
+            const { deleteRoomManager }: Methods = this;
             const router = this.$router as VueRouter;
 
-            roomManager.leaveRoom();
+            deleteRoomManager();
 
             // Go back to home page
             router.push('/');
@@ -127,21 +137,40 @@ export default Vue.extend({
             // TODO: fix this
             const { rtcPeers }: Data = this;
             peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
+                // console.log("rtcconnected: ", clientId, sourceEvent);
                 console.log(`RTC: Client '${clientId}' connected`);
                 rtcPeers.push(clientId);
             });
 
             peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
+                // console.log("rtcdisconnected: ", clientId, sourceEvent);
                 console.log(`RTC: Client '${clientId}' disconnected`);
                 
                 const idx = rtcPeers.indexOf(clientId);
                 if (idx >= 0) Vue.delete(this.rtcPeers, idx);
             });
 
+            peerManager.addEventListener("rtcfailed", ({ clientId, sourceEvent }) => {
+                // console.log("rtcfailed: ", clientId, sourceEvent);
+            });
+
+            peerManager.addEventListener("rtcreceivechannelclose", ({ clientId, sourceEvent }) => {
+                console.log("receivechannelclose: ", clientId, sourceEvent);
+
+                const idx = rtcPeers.indexOf(clientId);
+                if (idx >= 0) Vue.delete(this.rtcPeers, idx);
+            });
+
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
-                console.log("Message from", clientId, sourceEvent.data);
+                console.log("rtcreceivechannelmessage: Message from", clientId, sourceEvent.data);
             });
         },
+        setupGeneralSocketListeners(socket: SignallingSocket) {
+            socket.on("room-left", () => {
+                const { onRoomLeft }: Methods = this;
+                onRoomLeft();
+            });
+        }
     }
 });
 </script>

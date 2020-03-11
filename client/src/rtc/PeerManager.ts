@@ -90,6 +90,10 @@ export default class PeerManager extends Emittable {
                 console.error(err);
             }
         });
+
+        this.socket.on("room-left", (room, kicked) => {
+            this.disconnectAll();
+        });
     }
 
     /**
@@ -210,11 +214,16 @@ export default class PeerManager extends Emittable {
      */
     disconnectRTC(clientId: string): void {
         const peerObj = this.getPeerObject(clientId, false);
-        peerObj?.peer?.close();
+
+        if (!peerObj) return;
+
+        console.log("Closing connections for", clientId);
 
         // Close channels
-        peerObj?.sendChannel?.close();
-        peerObj?.receiveChannel?.close();
+        peerObj.sendChannel.close();
+        peerObj.receiveChannel?.close();
+
+        peerObj.peer.close();
     }
 
     /**

@@ -103,11 +103,6 @@ export default class RoomManager extends Emittable {
     leaveRoom() {
         if (this._room) {
             this.socket.emit("room-leave", this._room!);
-
-            // Disconnect peer manager
-            this._peerManager?.disconnectAll();
-
-            // TODO: Clear all event listeners???
         }
     }
 
