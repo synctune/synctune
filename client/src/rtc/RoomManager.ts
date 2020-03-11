@@ -56,6 +56,10 @@ export default class RoomManager extends Emittable {
 
         const socket = io(`/`, { path: KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH });
 
+        this._room = null;
+        this._roomOwner = null;
+        this._peerManager = null;
+
         this.socket = socket;
         this.id = this.socket.id;
 
@@ -97,15 +101,17 @@ export default class RoomManager extends Emittable {
     }
 
     leaveRoom() {
-        this.socket.emit("room-leave", this._room);
+        if (this._room) {
+            this.socket.emit("room-leave", this._room!);
 
-        // Disconnect peer manager
-        this._peerManager?.disconnectAll();
+            // Disconnect peer manager
+            this._peerManager?.disconnectAll();
 
-        // TODO: Clear all event listeners???
+            // TODO: Clear all event listeners???
+        }
     }
 
-    get peerManager(): PeerManager {
+    get peerManager(): PeerManager | null {
         return this._peerManager;
     }
 

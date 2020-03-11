@@ -32,7 +32,7 @@ type Methods = Pick<MapActionsStructure, Actions.setRoomManager | Actions.delete
 export default Vue.extend({
     props: {
         mode: {
-            type: Object as () => ModeProp,
+            type: String,
             validator(val) {
                 return ["join", "create"].includes(val);
             }

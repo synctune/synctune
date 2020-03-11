@@ -55,7 +55,7 @@ export default class PeerManager extends Emittable {
                 const { description, candidate } = data;
 
                 // Get the peer connection with the sender, creating it if need be
-                const pc = this.getPeerConnection(senderId, true);
+                const pc = this.getPeerConnection(senderId, true)!;
 
                 // If a description was received
                 if (description) {
@@ -120,7 +120,8 @@ export default class PeerManager extends Emittable {
         const pc = new RTCPeerConnection();
 
         pc.addEventListener("icecandidate", ({ candidate }) => {
-            this.socket.emit("signal-send", this.room, clientId, { candidate });
+            const candidateCleaned = (candidate) ? candidate : undefined;
+            this.socket.emit("signal-send", this.room, clientId, { candidate: candidateCleaned });
         });
 
         // Setup data channel
@@ -192,7 +193,7 @@ export default class PeerManager extends Emittable {
      */
     async connectRTC(clientId: string): Promise<void> {
         // Get peer connection, creating it if need be
-        const pc = this.getPeerConnection(clientId, true);
+        const pc = this.getPeerConnection(clientId, true)!;
 
         // Create offer
         const offer = await pc.createOffer();
@@ -259,7 +260,9 @@ export default class PeerManager extends Emittable {
      */
     getPeerConnection(clientId: string, createIfMissing = true): RTCPeerConnection | null {
         const peerObject = this.getPeerObject(clientId, createIfMissing);
-        return peerObject?.peer; // ? is called "optional-chaining"
+
+        if (!peerObject) return null;
+        return peerObject.peer; // ? is called "optional-chaining"
     }
 
     /**
@@ -270,7 +273,8 @@ export default class PeerManager extends Emittable {
      */
     getSendChannel(clientId: string, createIfMissing = true): RTCDataChannel | null {
         const peerObject = this.getPeerObject(clientId, createIfMissing);
-        return peerObject?.sendChannel;
+        if (!peerObject) return null;
+        return peerObject.sendChannel;
     }
 
     private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
