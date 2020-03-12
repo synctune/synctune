@@ -78,11 +78,13 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
     });
 
     signallingSocket.on("room-created", () => {
+        // Add self
         Vue.set(state, "connectedSocketClients", [signallingSocket.id]);
     });
 
     signallingSocket.on("room-joined", (_, ownerId, clients) => {
-        Vue.set(state, "connectedSocketClients", [...clients]);
+        // Add other already connected clients + self
+        Vue.set(state, "connectedSocketClients", [...clients, signallingSocket.id]);
     });
 
     signallingSocket.on("room-left", () => {
