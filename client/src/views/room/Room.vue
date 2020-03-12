@@ -9,6 +9,10 @@
 
         <div>
             <div>RoomManager connected: {{ isConnected }}</div>
+            <div>Is Room Owner: {{ isOwner }}</div>
+            <div>ID: {{ id }}</div>
+
+            <br>
 
             <div>
                 Signalling Server Clients:
@@ -21,7 +25,9 @@
                     </li>
                 </ul>
             </div>
+
             <br>
+
             <div>
                 WebRTC Connections:
                 <ul>
@@ -37,6 +43,7 @@
             <div>
                 <button
                     @click="sayHi"
+                    :disabled="!isConnected"
                 >
                     Say Hi!
                 </button>
@@ -44,8 +51,36 @@
                     type="text" 
                     placeholder="Send to..." 
                     v-model="sendClientId"
+                    :disabled="!isConnected"
                 >
             </div>
+
+            <br>
+
+            <div>
+                <div>Play audio file</div>
+                <input 
+                    ref="audioFileInputEl"
+                    type="file" 
+                    name="audio-file"
+                    :disabled="!isConnected || !isOwner"
+                    @change="onAudioFileChange"
+                >
+                <button
+                    @click="playAudio"
+                    :disabled="!isConnected || !isOwner || isPlaying"
+                >
+                    Play
+                </button>
+                <button
+                    @click="pauseAudio"
+                    :disabled="!isConnected || !isOwner || !isPlaying"
+                >
+                    Pause
+                </button>
+            </div>
+
+            <audio ref="audioPlayer"></audio>
         </div>
     </div>
 </template>
@@ -61,12 +96,19 @@ import VueRouter from 'vue-router';
 
 interface Data {
     sendClientId: string;
+    isPlaying: boolean;
 
-    connectedSocketClients: string[];
-    connectedRTCClients: string[];
+    audioFile: File;
 }
 
-type Computed = Pick<MapGettersStructure, Getters.roomManager | Getters.isConnected> & {}
+type Computed = Pick<MapGettersStructure, 
+        Getters.roomManager 
+        | Getters.isConnected 
+        | Getters.isOwner
+        | Getters.connectedSocketClients
+        | Getters.connectedRTCClients
+        | Getters.id 
+    > & {}
 
 type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     leaveRoom(): void;
@@ -74,6 +116,12 @@ type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     onRoomLeft(): void;
     setupGeneralRTCListeners(peerManager: PeerManager): void;
     setupGeneralSocketListeners(socket: SignallingSocket): void;
+
+    onAudioFileChange(): void;
+    loadAudioFile(audioFile: File): void;
+    syncAudioFile(audioFile: File): void;
+    playAudio(): void;
+    pauseAudio(): void;
 }
 
 export default Vue.extend({
@@ -85,14 +133,19 @@ export default Vue.extend({
     data() {
         return {
             sendClientId: "",
+            isPlaying: false,
+
+            audioFile: null
         }
     },
     computed: {
         ...mapGetters({
             roomManager: Getters.roomManager,
             isConnected: Getters.isConnected,
+            isOwner: Getters.isOwner,
             connectedSocketClients: Getters.connectedSocketClients,
             connectedRTCClients: Getters.connectedRTCClients,
+            id: Getters.id
         })
     },
     mounted() {
@@ -143,6 +196,24 @@ export default Vue.extend({
                 const { onRoomLeft }: Methods = this;
                 onRoomLeft();
             });
+        },
+        onAudioFileChange() {
+            // const { loadAudioFile, syncAudioFile }: Methods = this;
+            // const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
+
+            // const audioFile = audioFileInputEl.files[0];
+        },
+        loadAudioFile(audioFile: File) {
+
+        },
+        syncAudioFile(audioFile: File) {
+
+        },
+        playAudio() {
+
+        },
+        pauseAudio() {
+
         }
     }
 });

@@ -32,9 +32,13 @@ export default class RoomManager extends Emittable {
         this._peerManager = null;
 
         this.socket = socket;
-        this._id = this.socket.id;
+        this._id = null;
 
         this.setupSignallingSocketListeners(socket);
+
+        socket.on("connect", () => {
+            this._id = socket.id;
+        });
 
         window.addEventListener("beforeunload", () => {
             // Leave the room

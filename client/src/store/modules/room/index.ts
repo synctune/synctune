@@ -20,8 +20,10 @@ interface RoomManagerPayload {
 export enum Getters {
     roomManager = "roomManager",
     isConnected = "isConnected",
+    isOwner = "isOwner",
     connectedSocketClients = "connectedSocketClients",
-    connectedRTCClients = "connectedRTCClients"
+    connectedRTCClients = "connectedRTCClients",
+    id = "id"
 }
 
 export enum Mutations {
@@ -37,7 +39,10 @@ export enum Actions {
 export interface MapGettersStructure {
     [Getters.roomManager]: RoomManager | null;
     [Getters.isConnected]: boolean;
-    
+    [Getters.isOwner]: boolean;
+    [Getters.connectedSocketClients]: string[];
+    [Getters.connectedRTCClients]: string[];
+    [Getters.id]: string | null;
 }
 
 export interface MapMutationsStructure {
@@ -130,11 +135,17 @@ const getters: GetterTree<RoomState, RootState> = {
     [Getters.isConnected](state): boolean {
         return !!state.roomManager;
     },
+    [Getters.isOwner](state): boolean {
+        return (state.roomManager) ? state.roomManager.isOwner : false;
+    },
     [Getters.connectedSocketClients](state): string[] {
         return state.connectedSocketClients;
     },
     [Getters.connectedRTCClients](state): string[] {
         return state.connectedRTCClients;
+    },
+    [Getters.id](state): string | null {
+        return (state.roomManager) ? state.roomManager.id : null;
     }
 };
 
