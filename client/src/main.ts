@@ -2,6 +2,9 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
+import VueYouTubeEmbed from "vue-youtube-embed";
+
+Vue.use(VueYouTubeEmbed, {global: false});
 
 Vue.config.productionTip = false;
 

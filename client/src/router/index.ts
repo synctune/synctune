@@ -46,6 +46,12 @@ const routes = [
         name: "WebRTC Connection via Signalling Server",
         component: () => 
             import(/* webpackChunkName: "RTCSignallingServer" */ "../views/tests/RTCSignallingServer.vue")
+    },
+    {
+        path: "/test-youtube",
+        name: "YouTube embed API",
+        component: () => 
+            import(/* webpackChunkName: "YouTubeIframe" */ "../views/tests/YouTubeIframe.vue")
     }
 ];
 

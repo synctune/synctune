@@ -12,6 +12,7 @@
         "socket.io-client": "^2.3.0",
         "vue": "^2.6.11",
         "vue-router": "^3.1.5",
+        "vue-youtube-embed": "^2.2.2",
         "vuex": "^3.1.2",
         "webrtc-adapter": "^7.5.0"
     },
