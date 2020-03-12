@@ -1,51 +1,20 @@
 import adapter from 'webrtc-adapter';
 import Emittable from '@/events/Emittable';
-import PeerManager, { PeerManagerEventMap } from "@/rtc/PeerManager";
+import PeerManager from "@/rtc/PeerManager";
 import SignallingSocket from '@/socket/SignallingSocket';
 import KEYS from "@/keys";
 import io from "socket.io-client";
-import RTCDataContainer from './RTCDataContainer';
 
-type RoomManagerStatus = "owner" | "client" | "disconnected";
+// TODO: implement this
+type RoomManagerStatus = "connected" | "disconnected";
 
-type RoomParam = { room: string }
-type ClientIdParam = { clientId: string }
-type SenderIdParam = { senderId: string }
-type OwnerIdParam = { ownerId: string }
-type TargetIdParam = { targetId: string }
-type DataParam = { data: RTCDataContainer }
-type ClientsParam = { clients: string[] }
-type KickedParam = { kicked: boolean }
-type MessageParam = { message: any }
-
-
-
-// interface RoomManagerEventMap extends PeerManagerEventMap {
 interface RoomManagerEventMap {
-    // "statuschange": RoomManagerStatus;
     "peermanagercreated": PeerManager;
-
-    // "roomcreate": RoomParam;
-    // "roomjoin": RoomParam;
-    // "roomleave": RoomParam;
-    // "signalsend": RoomParam & TargetIdParam & DataParam;
-
-    // "roomexists": RoomParam;
-    // "roomnotexists": RoomParam;
-    // "notinroom": RoomParam;
-    // "roomjoined": RoomParam & OwnerIdParam & ClientsParam;
-    // "roomleft": RoomParam & KickedParam;
-    // "targetnotfound": RoomParam & TargetIdParam;
-    // "error": MessageParam;
-
-    // "signalreceive": RoomParam & SenderIdParam & DataParam;
-    // "clientjoined": RoomParam & ClientIdParam;
-    // "clientleft": RoomParam & ClientIdParam;
 }
 
 export default class RoomManager extends Emittable {
     private socket: SignallingSocket;
-    private id: string | null;
+    private _id: string | null;
 
     private _room: string | null;
     private _roomOwner: string | null;
@@ -55,6 +24,7 @@ export default class RoomManager extends Emittable {
     constructor() {
         super();
 
+        // Create a socket connection
         const socket = io(`/`, { path: KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH });
 
         this._room = null;
@@ -62,7 +32,7 @@ export default class RoomManager extends Emittable {
         this._peerManager = null;
 
         this.socket = socket;
-        this.id = this.socket.id;
+        this._id = this.socket.id;
 
         this.setupSignallingSocketListeners(socket);
 
@@ -71,6 +41,11 @@ export default class RoomManager extends Emittable {
             this.leaveRoom();
         });
     }
+
+
+    // -----------------------
+    // --- Private Helpers ---
+    // -----------------------
 
     private setupSignallingSocketListeners(socket: SignallingSocket) {
         socket.on("room-left", (room, kicked) => {
@@ -86,6 +61,16 @@ export default class RoomManager extends Emittable {
         this.emitEvent("peermanagercreated", this._peerManager);
     }
 
+
+    // ----------------------
+    // --- Public Methods ---
+    // ----------------------
+
+    /**
+     * Attempts to crete a room
+     * 
+     * @param room The room name
+     */
     createRoom(room: string) {
         this.socket.on("room-created", (room: string) => {
             this._room = room;
@@ -93,13 +78,9 @@ export default class RoomManager extends Emittable {
 
             // Setup peer manager
             this.createPeerManager(this.socket, room);
-
-            console.log(">> Room created", this._peerManager);
         });
 
         this.socket.on("client-joined", async(_: any, clientId: string) => {
-            console.log(">> Client joined", clientId, this._peerManager);
-
             // Attempt to establish peer connection 
             this._peerManager?.connectRTC(clientId);
         });
@@ -108,6 +89,11 @@ export default class RoomManager extends Emittable {
         this.socket.emit("room-create", room);
     }
 
+    /**
+     * Attempts to join a room
+     * 
+     * @param room The room name
+     */
     joinRoom(room: string) {
         this.socket.on("room-joined", (room: string, ownerId: string) => {
             this._room = room;
@@ -115,18 +101,32 @@ export default class RoomManager extends Emittable {
             
             // Setup peer manager
             this.createPeerManager(this.socket, room);
-
-            console.log(">> Room joined", this._peerManager);
         });
 
         // Attempt to join room
         this.socket.emit("room-join", room);
     }
 
+    /**
+     * Leaves the current room, if in one
+     */
     leaveRoom() {
         if (this._room) {
             this.socket.emit("room-leave", this._room!);
         }
+    }
+
+
+    // ---------------
+    // --- Getters ---
+    // ---------------
+
+    get id(): string | null {
+        return this._id;
+    }
+
+    get isOwner(): boolean {
+        return this._id === this._roomOwner;
     }
 
     get peerManager(): PeerManager | null {
@@ -144,6 +144,11 @@ export default class RoomManager extends Emittable {
     get roomOwner(): string | null {
         return this._roomOwner;
     }
+
+
+    // -------------------------------------
+    // --- EventEmitter Method Overrides ---
+    // -------------------------------------
 
     protected emitEvent<K extends keyof RoomManagerEventMap>(eventName: K, event: RoomManagerEventMap[K]) {
         super.emitEvent(eventName, event);

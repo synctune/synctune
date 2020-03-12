@@ -48,6 +48,16 @@ export default class PeerManager extends Emittable {
         this.setupSocketListeners(socket);
     }
 
+    
+    // -----------------------
+    // --- Private Helpers ---
+    // -----------------------
+
+    /**
+     * Sets up listeners to the given socket
+     * 
+     * @param socket The socket 
+     */
     private setupSocketListeners(socket: SignallingSocket) {
         socket.on("signal-receive", async (room: string, senderId: string, data: RTCDataContainer) => {
             // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
@@ -186,6 +196,11 @@ export default class PeerManager extends Emittable {
         return this.rtcPeers[clientId];
     }
 
+
+    // ----------------------
+    // --- Public Methods ---
+    // ----------------------
+
     /**
      * Initializes an RTC connection process with a client in the room
      * 
@@ -281,6 +296,11 @@ export default class PeerManager extends Emittable {
         if (!peerObject) return null;
         return peerObject.sendChannel;
     }
+
+
+    // -------------------------------------
+    // --- EventEmitter Method Overrides ---
+    // -------------------------------------
 
     private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
         return (sourceEvent: any) => {

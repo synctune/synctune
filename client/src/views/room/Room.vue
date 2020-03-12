@@ -60,9 +60,7 @@ import RoomManager from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
 
 interface Data {
-    // signallingClientIds: string[];
     sendClientId: string;
-    // rtcPeers: string[];
 
     connectedSocketClients: string[];
     connectedRTCClients: string[];
@@ -86,9 +84,7 @@ export default Vue.extend({
     },
     data() {
         return {
-            // signallingClientIds: [],
             sendClientId: "",
-            // rtcPeers: [],
         }
     },
     computed: {
@@ -138,36 +134,8 @@ export default Vue.extend({
             router.push('/');
         },
         setupGeneralRTCListeners(peerManager: PeerManager) {
-            // Note: this only works for rtc clients that connect while this page is open
-            // TODO: fix this
-            // const { rtcPeers }: Data = this;
-            // peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
-            //     // console.log("rtcconnected: ", clientId, sourceEvent);
-            //     console.log(`RTC: Client '${clientId}' connected`);
-            //     rtcPeers.push(clientId);
-            // });
-
-            // peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
-            //     // console.log("rtcdisconnected: ", clientId, sourceEvent);
-            //     console.log(`RTC: Client '${clientId}' disconnected`);
-                
-            //     const idx = rtcPeers.indexOf(clientId);
-            //     if (idx >= 0) Vue.delete(this.rtcPeers, idx);
-            // });
-
-            // peerManager.addEventListener("rtcfailed", ({ clientId, sourceEvent }) => {
-            //     // console.log("rtcfailed: ", clientId, sourceEvent);
-            // });
-
-            // peerManager.addEventListener("rtcreceivechannelclose", ({ clientId, sourceEvent }) => {
-            //     console.log("receivechannelclose: ", clientId, sourceEvent);
-
-            //     const idx = rtcPeers.indexOf(clientId);
-            //     if (idx >= 0) Vue.delete(this.rtcPeers, idx);
-            // });
-
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
-                console.log("rtcreceivechannelmessage: Message from", clientId, sourceEvent.data);
+                console.log("Message from", clientId, sourceEvent.data); // TODO: remove
             });
         },
         setupGeneralSocketListeners(socket: SignallingSocket) {

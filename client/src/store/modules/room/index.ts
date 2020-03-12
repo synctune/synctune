@@ -90,7 +90,7 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
     });
     
 
-    // --- Setup PeerManager Listeners, when it's added ---
+    // --- Setup PeerManager listeners, when it is added ---
     roomManager.addEventListener("peermanagercreated", (peerManager) => {
         peerManager.addEventListener("rtcconnected", ({ clientId }) => {
             state.connectedRTCClients.push(clientId);
