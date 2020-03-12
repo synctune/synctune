@@ -9,7 +9,7 @@ export default class Emittable {
         this.listeners = {};
     }
 
-    protected clearListeners(eventName?: string) {
+    clearListeners(eventName?: string) {
         // If no specific event was given, clear all event listeners
         if (!eventName) {
             this.listeners = {};

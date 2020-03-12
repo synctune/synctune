@@ -36,7 +36,7 @@ export default class PeerManager extends Emittable {
 
     private rtcPeers: PeersMap;
 
-    constructor(socket: SocketIOClient.Socket, room: string) {
+    constructor(socket: SignallingSocket, room: string) {
         super();
 
         this.socket = socket;
@@ -45,11 +45,21 @@ export default class PeerManager extends Emittable {
         this.rtcPeers = {};
         this.listeners = {};
 
-        this.setupSocketListeners();
+        this.setupSocketListeners(socket);
     }
 
-    private setupSocketListeners() {
-        this.socket.on("signal-receive", async (room: string, senderId: string, data: RTCDataContainer) => {
+    
+    // -----------------------
+    // --- Private Helpers ---
+    // -----------------------
+
+    /**
+     * Sets up listeners to the given socket
+     * 
+     * @param socket The socket 
+     */
+    private setupSocketListeners(socket: SignallingSocket) {
+        socket.on("signal-receive", async (room: string, senderId: string, data: RTCDataContainer) => {
             // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
             try {
                 const { description, candidate } = data;
@@ -89,10 +99,6 @@ export default class PeerManager extends Emittable {
                 // TODO: handle error properly
                 console.error(err);
             }
-        });
-
-        this.socket.on("room-left", (room, kicked) => {
-            this.disconnectAll();
         });
     }
 
@@ -190,6 +196,11 @@ export default class PeerManager extends Emittable {
         return this.rtcPeers[clientId];
     }
 
+
+    // ----------------------
+    // --- Public Methods ---
+    // ----------------------
+
     /**
      * Initializes an RTC connection process with a client in the room
      * 
@@ -285,6 +296,11 @@ export default class PeerManager extends Emittable {
         if (!peerObject) return null;
         return peerObject.sendChannel;
     }
+
+
+    // -------------------------------------
+    // --- EventEmitter Method Overrides ---
+    // -------------------------------------
 
     private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
         return (sourceEvent: any) => {
