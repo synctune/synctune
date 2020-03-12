@@ -104,7 +104,7 @@ interface Data {
     sendClientId: string;
     isPlaying: boolean;
 
-    audioFile: File;
+    audioFile: File | null;
     loadedAudio: boolean;
 }
 
@@ -210,10 +210,12 @@ export default Vue.extend({
             const { loadAudioFile, syncAudioFile }: Methods = this;
             const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
 
-            const audioFile = audioFileInputEl.files[0];
+            const audioFile = audioFileInputEl!.files ? audioFileInputEl!.files[0] : null;
 
-            loadAudioFile(audioFile);
-            syncAudioFile(audioFile);
+            if (audioFile) {
+                loadAudioFile(audioFile);
+                syncAudioFile(audioFile);
+            }
         },
         loadAudioFile(audioFile: File) {
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;

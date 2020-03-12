@@ -32,7 +32,7 @@ type Methods = Pick<MapActionsStructure, Actions.setRoomManager | Actions.delete
 export default Vue.extend({
     props: {
         mode: {
-            type: String,
+            type: String as () => ModeProp,
             validator(val) {
                 return ["join", "create"].includes(val);
             }
@@ -40,7 +40,7 @@ export default Vue.extend({
     },
     data() {
         return {
-            roomName: null
+            roomName: ""
         }
     },
     computed: {
@@ -80,7 +80,7 @@ export default Vue.extend({
         const router = this.$router as VueRouter;
 
         const targetRoom = route.params["id"];
-        this.roomName = targetRoom;
+        this.roomName = (targetRoom) ? targetRoom : "";
 
         if (isConnected && roomManager?.room !== targetRoom) {
             // TODO: show an actual dialog box

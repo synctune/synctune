@@ -1,10 +1,10 @@
 import Vue from "vue";
-import VueRouter from "vue-router";
+import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
 
 Vue.use(VueRouter);
 
-const routes = [
+const routes: RouteConfig[] = [
     {
         path: "/",
         name: "Home",
@@ -28,31 +28,32 @@ const routes = [
         component: () => 
             import(/* webpackChunkName: "Room" */ "../views/room/RoomCreate.vue")
     },
+    // TODO: remove these tests routes
     // Test routes
-    {
-        path: '/test-rtc-camera-local',
-        name: "WebRTC Local Camera Tests",
-        component: () => 
-            import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCCameraLocal.vue")
-    },
-    {
-        path: "/test-rtc-audio-file-local",
-        name: "WebRTC Local File Tests",
-        component: () => 
-            import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCAudioFileLocal.vue")
-    },
-    {
-        path: "/test-rtc-signalling-server",
-        name: "WebRTC Connection via Signalling Server",
-        component: () => 
-            import(/* webpackChunkName: "RTCSignallingServer" */ "../views/tests/RTCSignallingServer.vue")
-    },
-    {
-        path: "/test-youtube",
-        name: "YouTube embed API",
-        component: () => 
-            import(/* webpackChunkName: "YouTubeIframe" */ "../views/tests/YouTubeIframe.vue")
-    }
+    // {
+    //     path: '/test-rtc-camera-local',
+    //     name: "WebRTC Local Camera Tests",
+    //     component: async () => 
+    //         import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCCameraLocal.vue")
+    // },
+    // {
+    //     path: "/test-rtc-audio-file-local",
+    //     name: "WebRTC Local File Tests",
+    //     component: async () => 
+    //         import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCAudioFileLocal.vue")
+    // },
+    // {
+    //     path: "/test-rtc-signalling-server",
+    //     name: "WebRTC Connection via Signalling Server",
+    //     component: async () => 
+    //         import(/* webpackChunkName: "RTCSignallingServer" */ "../views/tests/RTCSignallingServer.vue")
+    // },
+    // {
+    //     path: "/test-youtube",
+    //     name: "YouTube embed API",
+    //     component: () => 
+    //         import(/* webpackChunkName: "YouTubeIframe" */ "../views/tests/YouTubeIframe.vue")
+    // }
 ];
 
 const router = new VueRouter({
