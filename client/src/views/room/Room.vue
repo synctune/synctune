@@ -15,7 +15,7 @@
                 <ul>
                     <li 
                         :key="`signalling-client-${clientId}`"
-                        v-for="clientId in signallingClientIds"
+                        v-for="clientId in connectedSocketClients"
                     >
                         {{ clientId }}
                     </li>
@@ -27,7 +27,7 @@
                 <ul>
                     <li 
                         :key="`rtc-peer-${clientId}`"
-                        v-for="(clientId) in rtcPeers"
+                        v-for="(clientId) in connectedRTCClients"
                     >
                         {{ clientId }}
                     </li>
@@ -52,17 +52,20 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters, mapActions } from "vuex";
-import { Getters, MapGettersStructure, Actions,MapActionsStructure } from "../../store/modules/room";
+import { mapState, mapGetters, mapActions } from "vuex";
+import { Getters, MapGettersStructure, Actions, MapActionsStructure } from "../../store/modules/room";
 import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
 
 interface Data {
-    signallingClientIds: string[];
+    // signallingClientIds: string[];
     sendClientId: string;
-    rtcPeers: string[];
+    // rtcPeers: string[];
+
+    connectedSocketClients: string[];
+    connectedRTCClients: string[];
 }
 
 type Computed = Pick<MapGettersStructure, Getters.roomManager | Getters.isConnected> & {}
@@ -83,15 +86,17 @@ export default Vue.extend({
     },
     data() {
         return {
-            signallingClientIds: [],
+            // signallingClientIds: [],
             sendClientId: "",
-            rtcPeers: [],
+            // rtcPeers: [],
         }
     },
     computed: {
         ...mapGetters({
             roomManager: Getters.roomManager,
             isConnected: Getters.isConnected,
+            connectedSocketClients: Getters.connectedSocketClients,
+            connectedRTCClients: Getters.connectedRTCClients,
         })
     },
     mounted() {
@@ -135,31 +140,31 @@ export default Vue.extend({
         setupGeneralRTCListeners(peerManager: PeerManager) {
             // Note: this only works for rtc clients that connect while this page is open
             // TODO: fix this
-            const { rtcPeers }: Data = this;
-            peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
-                // console.log("rtcconnected: ", clientId, sourceEvent);
-                console.log(`RTC: Client '${clientId}' connected`);
-                rtcPeers.push(clientId);
-            });
+            // const { rtcPeers }: Data = this;
+            // peerManager.addEventListener("rtcconnected", ({ clientId, sourceEvent }) => {
+            //     // console.log("rtcconnected: ", clientId, sourceEvent);
+            //     console.log(`RTC: Client '${clientId}' connected`);
+            //     rtcPeers.push(clientId);
+            // });
 
-            peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
-                // console.log("rtcdisconnected: ", clientId, sourceEvent);
-                console.log(`RTC: Client '${clientId}' disconnected`);
+            // peerManager.addEventListener("rtcdisconnected", ({ clientId, sourceEvent }) => {
+            //     // console.log("rtcdisconnected: ", clientId, sourceEvent);
+            //     console.log(`RTC: Client '${clientId}' disconnected`);
                 
-                const idx = rtcPeers.indexOf(clientId);
-                if (idx >= 0) Vue.delete(this.rtcPeers, idx);
-            });
+            //     const idx = rtcPeers.indexOf(clientId);
+            //     if (idx >= 0) Vue.delete(this.rtcPeers, idx);
+            // });
 
-            peerManager.addEventListener("rtcfailed", ({ clientId, sourceEvent }) => {
-                // console.log("rtcfailed: ", clientId, sourceEvent);
-            });
+            // peerManager.addEventListener("rtcfailed", ({ clientId, sourceEvent }) => {
+            //     // console.log("rtcfailed: ", clientId, sourceEvent);
+            // });
 
-            peerManager.addEventListener("rtcreceivechannelclose", ({ clientId, sourceEvent }) => {
-                console.log("receivechannelclose: ", clientId, sourceEvent);
+            // peerManager.addEventListener("rtcreceivechannelclose", ({ clientId, sourceEvent }) => {
+            //     console.log("receivechannelclose: ", clientId, sourceEvent);
 
-                const idx = rtcPeers.indexOf(clientId);
-                if (idx >= 0) Vue.delete(this.rtcPeers, idx);
-            });
+            //     const idx = rtcPeers.indexOf(clientId);
+            //     if (idx >= 0) Vue.delete(this.rtcPeers, idx);
+            // });
 
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
                 console.log("rtcreceivechannelmessage: Message from", clientId, sourceEvent.data);

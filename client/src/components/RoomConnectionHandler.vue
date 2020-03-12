@@ -72,33 +72,34 @@ export default Vue.extend({
     },
     mounted() {
         const { isConnected }: Computed = this;
-        const { setRoomManager, onSuccess, onFail }: Methods = this;
+        const { setRoomManager, deleteRoomManager, onSuccess, onFail }: Methods = this;
         const { mode }: Props = this;
 
         let roomManager = this.roomManager as RoomManager;
         const route = this.$route as Route;
         const router = this.$router as VueRouter;
 
-        const id = route.params["id"];
-        this.roomName = id;
+        const targetRoom = route.params["id"];
+        this.roomName = targetRoom;
 
-        if (isConnected && roomManager.room !== id) {
+        if (isConnected && roomManager?.room !== targetRoom) {
             // TODO: show an actual dialog box
             const goAnyways = confirm("Warning: already connected to a room! Are you sure you want to leave this room?");
 
-            if (!goAnyways) {
+            if (!goAnyways) { // Answer: no
                 router.push("/"); // Redirect to home
                 return;
             }
         }
 
-        // Create a new room manager, if needed
-        if (!roomManager) {
-            roomManager = new RoomManager();
+        // Disconnect and remove current room manager, if it exists
+        if (roomManager) {
+            roomManager.leaveRoom();
+            deleteRoomManager();
         }
 
-        // Leave the room, if it already is in one
-        roomManager?.leaveRoom();
+        // Create a new room manager
+        roomManager = new RoomManager();
 
         // Join the room
         if (mode === "join") {
@@ -108,7 +109,7 @@ export default Vue.extend({
             signallingSocket.on("room-not-exists", onFail);
             signallingSocket.on("room-joined", onSuccess);
 
-            roomManager.joinRoom(id);
+            roomManager.joinRoom(targetRoom);
         } 
         // Create room
         else if (mode === "create") {
@@ -118,9 +119,10 @@ export default Vue.extend({
             signallingSocket.on("room-exists", onFail);
             signallingSocket.on("room-created", onSuccess);
 
-            roomManager.createRoom(id);
+            roomManager.createRoom(targetRoom);
         }
 
+        // Update store with the new room manager
         setRoomManager({ roomManager });
     }
 });

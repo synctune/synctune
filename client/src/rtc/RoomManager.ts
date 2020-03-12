@@ -20,26 +20,27 @@ type MessageParam = { message: any }
 
 
 
-interface RoomManagerEventMap extends PeerManagerEventMap {
-    "statuschange": RoomManagerStatus;
+// interface RoomManagerEventMap extends PeerManagerEventMap {
+interface RoomManagerEventMap {
+    // "statuschange": RoomManagerStatus;
     "peermanagercreated": PeerManager;
 
-    "roomcreate": RoomParam;
-    "roomjoin": RoomParam;
-    "roomleave": RoomParam;
-    "signalsend": RoomParam & TargetIdParam & DataParam;
+    // "roomcreate": RoomParam;
+    // "roomjoin": RoomParam;
+    // "roomleave": RoomParam;
+    // "signalsend": RoomParam & TargetIdParam & DataParam;
 
-    "roomexists": RoomParam;
-    "roomnotexists": RoomParam;
-    "notinroom": RoomParam;
-    "roomjoined": RoomParam & OwnerIdParam & ClientsParam;
-    "roomleft": RoomParam & KickedParam;
-    "targetnotfound": RoomParam & TargetIdParam;
-    "error": MessageParam;
+    // "roomexists": RoomParam;
+    // "roomnotexists": RoomParam;
+    // "notinroom": RoomParam;
+    // "roomjoined": RoomParam & OwnerIdParam & ClientsParam;
+    // "roomleft": RoomParam & KickedParam;
+    // "targetnotfound": RoomParam & TargetIdParam;
+    // "error": MessageParam;
 
-    "signalreceive": RoomParam & SenderIdParam & DataParam;
-    "clientjoined": RoomParam & ClientIdParam;
-    "clientleft": RoomParam & ClientIdParam;
+    // "signalreceive": RoomParam & SenderIdParam & DataParam;
+    // "clientjoined": RoomParam & ClientIdParam;
+    // "clientleft": RoomParam & ClientIdParam;
 }
 
 export default class RoomManager extends Emittable {
@@ -63,10 +64,26 @@ export default class RoomManager extends Emittable {
         this.socket = socket;
         this.id = this.socket.id;
 
+        this.setupSignallingSocketListeners(socket);
+
         window.addEventListener("beforeunload", () => {
             // Leave the room
             this.leaveRoom();
         });
+    }
+
+    private setupSignallingSocketListeners(socket: SignallingSocket) {
+        socket.on("room-left", (room, kicked) => {
+            // Disconnect all peers
+            this._peerManager?.disconnectAll();
+        });
+    }
+
+    private createPeerManager(socket: SocketIOClient.Socket, room: string) {
+        // Create the peer manager and setup event relays
+        this._peerManager = new PeerManager(socket, room);
+
+        this.emitEvent("peermanagercreated", this._peerManager);
     }
 
     createRoom(room: string) {
@@ -75,10 +92,14 @@ export default class RoomManager extends Emittable {
             this._roomOwner = this.socket.id;
 
             // Setup peer manager
-            this.setupPeerManager(this.socket, room);
+            this.createPeerManager(this.socket, room);
+
+            console.log(">> Room created", this._peerManager);
         });
 
         this.socket.on("client-joined", async(_: any, clientId: string) => {
+            console.log(">> Client joined", clientId, this._peerManager);
+
             // Attempt to establish peer connection 
             this._peerManager?.connectRTC(clientId);
         });
@@ -93,7 +114,9 @@ export default class RoomManager extends Emittable {
             this._roomOwner = ownerId;
             
             // Setup peer manager
-            this.setupPeerManager(this.socket, room);
+            this.createPeerManager(this.socket, room);
+
+            console.log(">> Room joined", this._peerManager);
         });
 
         // Attempt to join room
@@ -120,13 +143,6 @@ export default class RoomManager extends Emittable {
 
     get roomOwner(): string | null {
         return this._roomOwner;
-    }
-
-    private setupPeerManager(socket: SocketIOClient.Socket, room: string) {
-        // Create the peer manager and setup event relays
-        this._peerManager = new PeerManager(socket, room);
-
-        this.emitEvent("peermanagercreated", this._peerManager);
     }
 
     protected emitEvent<K extends keyof RoomManagerEventMap>(eventName: K, event: RoomManagerEventMap[K]) {
