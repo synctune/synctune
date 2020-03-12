@@ -68,19 +68,25 @@
                 >
                 <button
                     @click="playAudio"
-                    :disabled="!isConnected || !isOwner || isPlaying"
+                    :disabled="!isConnected || !isOwner || !loadedAudio || isPlaying"
                 >
                     Play
                 </button>
                 <button
                     @click="pauseAudio"
-                    :disabled="!isConnected || !isOwner || !isPlaying"
+                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
                 >
                     Pause
                 </button>
+                <button
+                    @click="stopAudio"
+                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
+                >
+                    Stop
+                </button>
             </div>
 
-            <audio ref="audioPlayer"></audio>
+            <audio ref="audioPlayerEl"></audio>
         </div>
     </div>
 </template>
@@ -99,6 +105,7 @@ interface Data {
     isPlaying: boolean;
 
     audioFile: File;
+    loadedAudio: boolean;
 }
 
 type Computed = Pick<MapGettersStructure, 
@@ -122,6 +129,7 @@ type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     syncAudioFile(audioFile: File): void;
     playAudio(): void;
     pauseAudio(): void;
+    stopAudio(): void;
 }
 
 export default Vue.extend({
@@ -135,7 +143,8 @@ export default Vue.extend({
             sendClientId: "",
             isPlaying: false,
 
-            audioFile: null
+            audioFile: null,
+            loadedAudio: false,
         }
     },
     computed: {
@@ -198,22 +207,50 @@ export default Vue.extend({
             });
         },
         onAudioFileChange() {
-            // const { loadAudioFile, syncAudioFile }: Methods = this;
-            // const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
+            const { loadAudioFile, syncAudioFile }: Methods = this;
+            const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
 
-            // const audioFile = audioFileInputEl.files[0];
+            const audioFile = audioFileInputEl.files[0];
+
+            loadAudioFile(audioFile);
+            syncAudioFile(audioFile);
         },
         loadAudioFile(audioFile: File) {
+            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
+            audioPlayerEl.src = URL.createObjectURL(audioFile);
+            audioPlayerEl.load();
+
+            this.loadedAudio = true;
         },
         syncAudioFile(audioFile: File) {
-
+            // TODO: sync to other clients
         },
         playAudio() {
+            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            // TODO: use timestamp to figure out when to play
 
+            if (!audioPlayerEl.src) return;
+
+            audioPlayerEl.play();
+            this.isPlaying = true;
         },
         pauseAudio() {
+            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
+            if (!audioPlayerEl.src) return;
+
+            audioPlayerEl.pause();
+            this.isPlaying = false;
+        },
+        stopAudio() {
+            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+
+            if (!audioPlayerEl.src) return;
+
+            audioPlayerEl.pause();
+            audioPlayerEl.load();
+            this.isPlaying = false;
         }
     }
 });
