@@ -29,4 +29,5 @@ Below are some useful NPM scripts for development
 * `start:[environment]`: starts up the given environment
 * `rm-services:[environment]--[?service]`: removes given services from Docker. if no specific service is provided then all are removed
 * `restart:[environment]--[?service]`: hot restarts the given service. If no specific service is specified then all are restarted
+* `stop:[environment]`: stops the given environment
 * `shell:[service]`: opens an interactive shell into the given running service container

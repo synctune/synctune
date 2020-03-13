@@ -40,6 +40,8 @@
                 </ul>
             </div>
 
+
+            <!-- TODO: remove the say hi stuff -->
             <div>
                 <button
                     @click="sayHi"
@@ -177,10 +179,10 @@ export default Vue.extend({
             deleteRoomManager: Actions.deleteRoomManager
         }),
         sayHi() {
-            const { sendClientId }: Data = this;
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
-            peerManager.sendMessage(sendClientId.trim(), "Hello from the other side!");
+            // const { sendClientId }: Data = this;
+            // const roomManager = this.roomManager as RoomManager;
+            // const peerManager = roomManager.peerManager as PeerManager;
+            // peerManager.sendMessage(sendClientId.trim(), "Hello from the other side!");
         },
         leaveRoom() {
             const roomManager = this.roomManager as RoomManager;
@@ -196,9 +198,9 @@ export default Vue.extend({
             router.push('/');
         },
         setupGeneralRTCListeners(peerManager: PeerManager) {
-            peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
-                console.log("Message from", clientId, sourceEvent.data); // TODO: remove
-            });
+            // peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
+            //     console.log("Message from", clientId, sourceEvent.data); // TODO: remove
+            // });
         },
         setupGeneralSocketListeners(socket: SignallingSocket) {
             socket.on("room-left", () => {
@@ -210,7 +212,7 @@ export default Vue.extend({
             const { loadAudioFile, syncAudioFile }: Methods = this;
             const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
 
-            const audioFile = audioFileInputEl!.files ? audioFileInputEl!.files[0] : null;
+            const audioFile = audioFileInputEl.files ? audioFileInputEl.files[0] : null;
 
             if (audioFile) {
                 loadAudioFile(audioFile);

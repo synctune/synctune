@@ -1,13 +1,22 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import adapter from 'webrtc-adapter';
 import Emittable from "@/events/Emittable";
 import {} from "socket.io-client";
 import RTCDataContainer from "@/rtc/RTCDataContainer";
 import SignallingSocket from '@/socket/SignallingSocket';
+import * as Timesync from "timesync";
+
+type ChannelType = "syncChannel" | "audioChannel";
 
 interface PeerObject {
     peer: RTCPeerConnection;
-    sendChannel: RTCDataChannel;
-    receiveChannel?: RTCDataChannel;
+    syncSendChannel: RTCDataChannel;
+    syncReceiveChannel?: RTCDataChannel;
+    audioSendChannel: RTCDataChannel;
+    audioReceiveChannel?: RTCDataChannel;
+
+    // sendChannel: RTCDataChannel;
+    // receiveChannel?: RTCDataChannel;
 }
 
 interface PeersMap {
@@ -19,15 +28,45 @@ export interface PeerManagerEvent<T> {
     sourceEvent: T;
 }
 
+interface PeerManagerMessageData {
+    type: "timesync" | "audiofile" | "audiolink" | "other";
+    data: any;
+}
+
 export interface PeerManagerEventMap {
-    "rtcreceivechannelbufferedamountlow": PeerManagerEvent<Event>;
-    "rtcreceivechannelclose": PeerManagerEvent<Event>;
-    "rtcreceivechannelerror": PeerManagerEvent<RTCErrorEvent>;
-    "rtcreceivechannelmessage": PeerManagerEvent<MessageEvent>;
-    "rtcreceivechannelopen": PeerManagerEvent<Event>;
+    // "rtcaudioreceivechannelbufferedamountlow": PeerManagerEvent<Event>;
+    // "rtcaudioreceivechannelclose": PeerManagerEvent<Event>;
+    // "rtcaudioreceivechannelerror": PeerManagerEvent<RTCErrorEvent>;
+    // "rtcaudioreceivechannelmessage": PeerManagerEvent<MessageEvent>;
+    // "rtcaudioreceivechannelopen": PeerManagerEvent<Event>;
+
+    // "rtcsyncreceivechannelbufferedamountlow": PeerManagerEvent<Event>;
+    // "rtcsyncreceivechannelclose": PeerManagerEvent<Event>;
+    // "rtcsyncreceivechannelerror": PeerManagerEvent<RTCErrorEvent>;
+    // "rtcsyncreceivechannelmessage": PeerManagerEvent<MessageEvent>;
+    // "rtcsyncreceivechannelopen": PeerManagerEvent<Event>;
+
+    // "rtcreceivechannelbufferedamountlow": PeerManagerEvent<Event>;
+    // "rtcreceivechannelclose": PeerManagerEvent<Event>;
+    // "rtcreceivechannelerror": PeerManagerEvent<RTCErrorEvent>;
+    // "rtcreceivechannelmessage": PeerManagerEvent<MessageEvent>;
+    // "rtcreceivechannelopen": PeerManagerEvent<Event>;
     "rtcconnected": PeerManagerEvent<Event>;
     "rtcdisconnected": PeerManagerEvent<Event>;
     "rtcfailed": PeerManagerEvent<Event>;
+
+    "syncreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
+    "audioreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
+}
+
+const sendChannelMap = {
+    ["syncChannel" as ChannelType]: "syncSendChannel",
+    ["audioChannel" as ChannelType]: "audioSendChannel"
+}
+
+const receiveChannelMap = {
+    ["syncChannel" as ChannelType]: "syncReceiveChannel",
+    ["audioChannel" as ChannelType]: "audioReceiveChannel"
 }
 
 export default class PeerManager extends Emittable {
@@ -35,6 +74,8 @@ export default class PeerManager extends Emittable {
     private room: string;
 
     private rtcPeers: PeersMap;
+
+    private timesync: Timesync;
 
     constructor(socket: SignallingSocket, room: string) {
         super();
@@ -45,6 +86,15 @@ export default class PeerManager extends Emittable {
         this.rtcPeers = {};
         this.listeners = {};
 
+        this.timesync = Timesync.create({
+            peers: [],
+            interval: null, // Disable automatic synchronization
+            delay: 1000,
+            repeat: 5,
+            timeout: 10000
+        });
+
+        this.setupTimesync();
         this.setupSocketListeners(socket);
     }
 
@@ -52,6 +102,36 @@ export default class PeerManager extends Emittable {
     // -----------------------
     // --- Private Helpers ---
     // -----------------------
+
+    /**
+     * Setups up the timesync object and listeners
+     */
+    private setupTimesync() {
+        const timesync = this.timesync;
+
+        // TODO: override send and receive functions
+
+
+        timesync.on("change", (offset) => {
+            console.log('Timesync: New offset', offset);
+        });
+
+        timesync.on("sync", (state) => {
+            console.log(`Timesync: new sync state '${state}'`);
+        });
+
+        timesync.on("error", (error) => {
+            console.log("Timesync: error", error);
+        });
+        
+        console.log("timesync", this.timesync); // TODO: remove
+    }
+
+    // private getChannelEventPrefix(channelName: ChannelNames): "rtcaudio" | "rtcsync" | null {
+    //     if (channelName === ChannelNames.AUDIO_RECEIVE_CHANNEL || channelName === ChannelNames.AUDIO_SEND_CHANNEL) return "rtcaudio";
+    //     if (channelName === ChannelNames.SYNC_RECEIVE_CHANNEL || channelName === ChannelNames.SYNC_SEND_CHANNEL) return "rtcsync";
+    //     return null;
+    // }
 
     /**
      * Sets up listeners to the given socket
@@ -100,6 +180,28 @@ export default class PeerManager extends Emittable {
                 console.error(err);
             }
         });
+
+        socket.on("client-joined", (_, clientId) => {
+            const timesync = this.timesync;
+
+            // Add the client to the peers list
+            const peers = timesync.options.peers as string[];
+            peers.push(clientId);
+
+            // TODO: Synchronize clocks
+        });
+
+        socket.on("client-left", (_, clientId) => {
+            const timesync = this.timesync;
+
+            // Remove the client from the peers list
+            const peers = timesync.options.peers as string[];
+            const idx = peers.indexOf(clientId);
+            if (idx >= 0) peers.splice(idx, 1);
+
+            // TODO: Synchronize clocks
+            
+        });
     }
 
     /**
@@ -135,18 +237,66 @@ export default class PeerManager extends Emittable {
         });
 
         // Setup data channel
-        const sendChannel = pc.createDataChannel("sendDataChannel");
+        // const sendChannel = pc.createDataChannel("sendDataChannel");
 
+        // Setup sync data channel
+        const syncSendChannel = pc.createDataChannel("syncChannel" as ChannelType);
+
+        const audioSendChannel = pc.createDataChannel("audioChannel" as ChannelType);
+        audioSendChannel.binaryType = "arraybuffer";
+
+        // Setup receive channel
         pc.addEventListener("datachannel", (event) => {
+            console.log("Received data channel", event.channel.label); // TODO: remove
+
+            const channelName = event.channel.label as ChannelType;
             const receiveChannel = event.channel;
 
-            this.rtcPeers[clientId].receiveChannel = receiveChannel;
+            // this.rtcPeers[clientId].receiveChannel = receiveChannel;
 
-            receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcreceivechannelopen", clientId));
-            receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcreceivechannelmessage", clientId));
-            receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcreceivechannelclose", clientId));
-            receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcreceivechannelerror", clientId));
-            receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcreceivechannelbufferedamountlow", clientId));
+            // Store receive channel
+            // this.rtcPeers[clientId][channelName] = receiveChannel;
+
+            switch(channelName) {
+                case "audioChannel":
+                    this.rtcPeers[clientId].syncReceiveChannel = receiveChannel;
+                    this.emitEvent("syncreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
+
+                    // receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcsyncreceivechannelopen", clientId));
+                    // receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcsyncreceivechannelmessage", clientId));
+                    // receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcsyncreceivechannelclose", clientId));
+                    // receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcsyncreceivechannelerror", clientId));
+                    // receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcsyncreceivechannelbufferedamountlow", clientId));
+
+                    break;
+                case "audioChannel":
+                    this.rtcPeers[clientId].audioReceiveChannel = receiveChannel;
+                    this.emitEvent("audioreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
+
+                    // receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcaudioreceivechannelopen", clientId));
+                    // receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcaudioreceivechannelmessage", clientId));
+                    // receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcaudioreceivechannelclose", clientId));
+                    // receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcaudioreceivechannelerror", clientId));
+                    // receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcaudioreceivechannelbufferedamountlow", clientId));
+
+                    break;
+            }
+
+            // const prefix = this.getChannelEventPrefix(channelName);
+
+            // if (prefix) {
+            //     receiveChannel.addEventListener("open", this.linkToEventEmitter(prefix + "receivechannelopen", clientId));
+            //     receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcreceivechannelmessage", clientId));
+            //     receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcreceivechannelclose", clientId));
+            //     receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcreceivechannelerror", clientId));
+            //     receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcreceivechannelbufferedamountlow", clientId));
+            // }
+
+            // receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcreceivechannelopen", clientId));
+            // receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcreceivechannelmessage", clientId));
+            // receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcreceivechannelclose", clientId));
+            // receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcreceivechannelerror", clientId));
+            // receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcreceivechannelbufferedamountlow", clientId));
         });
 
         pc.addEventListener("iceconnectionstatechange", (event) => {
@@ -177,7 +327,9 @@ export default class PeerManager extends Emittable {
         // Update the rtc peer map
         this.rtcPeers[clientId] = {
             peer: pc,
-            sendChannel: sendChannel,
+            syncSendChannel: syncSendChannel,
+            audioSendChannel: audioSendChannel
+            // sendChannel: sendChannel,
         };
     }
 
@@ -228,11 +380,16 @@ export default class PeerManager extends Emittable {
 
         if (!peerObj) return;
 
-        console.log("Closing connections for", clientId);
+        console.log("Closing connections for", clientId); // TODO: remove
 
         // Close channels
-        peerObj.sendChannel.close();
-        peerObj.receiveChannel?.close();
+        peerObj.syncSendChannel.close();
+        peerObj.syncReceiveChannel?.close();
+        peerObj.audioSendChannel.close();
+        peerObj.audioReceiveChannel?.close();
+        // TODO: remove
+        // peerObj.sendChannel.close();
+        // peerObj.receiveChannel?.close();
 
         peerObj.peer.close();
     }
@@ -250,18 +407,19 @@ export default class PeerManager extends Emittable {
      * @param clientId The client id
      * @param message The message
      */
-    sendMessage(clientId: string, message: any) {
-        // TODO: check if send channel is ready
-        const sendChannel = this.getSendChannel(clientId, false);
+    // sendMessage(clientId: string, message: any) {
+    //     // TODO: check if send channel is ready
+    //     const sendChannel = this.getSendChannel(clientId, false);
 
-        if (!sendChannel) {
-            // TODO: handle error properly
-            console.error(`Unable to send message to client '${clientId}'`);
-            return;
-        }
+    //     if (!sendChannel) {
+    //         // TODO: handle error properly
+    //         console.error(`Unable to send message to client '${clientId}'`);
+    //         return;
+    //     }
 
-        sendChannel.send(message);
-    }
+    //     sendChannel.send(message);
+        
+    // }
 
     /**
      * Returns if an RTC peer connection object exists with the given client
@@ -286,22 +444,51 @@ export default class PeerManager extends Emittable {
     }
 
     /**
-     * Get the RTC data channel to the given client
+     * Get the RTC send data channel to the given client and type
      * 
      * @param clientId The client id
+     * @param type The channel type
      * @param createIfMissing Create the peer connection if it is missing
      */
-    getSendChannel(clientId: string, createIfMissing = true): RTCDataChannel | null {
+    getSendChannel(clientId: string, type: ChannelType, createIfMissing = true): RTCDataChannel | null {
         const peerObject = this.getPeerObject(clientId, createIfMissing);
         if (!peerObject) return null;
-        return peerObject.sendChannel;
+        const sendChannel = peerObject[sendChannelMap[type] as keyof PeerObject] as RTCDataChannel;
+        return (sendChannel) ? sendChannel : null;
     }
+
+    /**
+     * Get the RTC data receive channel to the given client and type
+     * 
+     * @param clientId The client id
+     * @param type The channel type
+     * @param createIfMissing Create the peer connection if it is missing
+     */
+    getReceiveChannel(clientId: string, type: ChannelType, createIfMissing = true): RTCDataChannel | null {
+        const peerObject = this.getPeerObject(clientId, createIfMissing);
+        if (!peerObject) return null;
+        const receiveChannel = peerObject[receiveChannelMap[type] as keyof PeerObject] as RTCDataChannel;
+        return (receiveChannel) ? receiveChannel : null;
+    }
+
+    // /**
+    //  * Get the RTC data channel to the given client
+    //  * 
+    //  * @param clientId The client id
+    //  * @param createIfMissing Create the peer connection if it is missing
+    //  */
+    // getSendChannel(clientId: string, createIfMissing = true): RTCDataChannel | null {
+    //     const peerObject = this.getPeerObject(clientId, createIfMissing);
+    //     if (!peerObject) return null;
+    //     return peerObject.sendChannel;
+    // }
 
 
     // -------------------------------------
     // --- EventEmitter Method Overrides ---
     // -------------------------------------
 
+    // TODO: remove
     private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
         return (sourceEvent: any) => {
             const event: PeerManagerEvent<any> = { clientId, sourceEvent };

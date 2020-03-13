@@ -11,10 +11,11 @@
         "restart:dev--reverse-proxy": "docker-compose -f docker-compose-dev.yml restart reverse-proxy",
         "restart:dev--signalling-server": "docker-compose -f docker-compose-dev.yml restart signalling-server",
         "restart:dev--client": "docker-compose -f docker-compose-dev.yml restart client",
+        "stop:dev": "docker-compose -f docker-compose-dev.yml down",
 
         "shell:reverse-proxy": "docker exec -it synctune_reverse_proxy sh",
-        "shell:signalling-server": "docker exec -it synctune_signalling_server",
-        "shell:client": "docker exec -it synctune_client"
+        "shell:signalling-server": "docker exec -it synctune_signalling_server sh",
+        "shell:client": "docker exec -it synctune_client sh"
     },
     "repository": {
         "type": "git",

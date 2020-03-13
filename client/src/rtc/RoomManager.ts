@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import adapter from 'webrtc-adapter';
 import Emittable from '@/events/Emittable';
 import PeerManager from "@/rtc/PeerManager";
@@ -116,7 +117,7 @@ export default class RoomManager extends Emittable {
      */
     leaveRoom() {
         if (this._room) {
-            this.socket.emit("room-leave", this._room!);
+            this.socket.emit("room-leave", this._room);
         }
     }
 
