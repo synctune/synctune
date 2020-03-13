@@ -28,9 +28,26 @@ export interface PeerManagerEvent<T> {
     sourceEvent: T;
 }
 
-interface PeerManagerMessageData {
-    type: "timesync" | "audiofile" | "audiolink" | "other";
+// interface PeerManagerMessageData {
+//     type: "timesync" | "audiofile" | "audiolink" | "other";
+//     data: any;
+// }
+
+interface SyncChannelMessage {
+    type: "timesync" | "play" | "stop";
     data: any;
+}
+
+interface JsonRpcSend {
+    "jsonrpc": "2.0";
+    "id": string;
+    "method": "timesync";
+}
+
+interface JsonRpcReceive {
+    "jsonrpc": "2.0";
+    "id": string;
+    "result": number;
 }
 
 export interface PeerManagerEventMap {
@@ -75,7 +92,7 @@ export default class PeerManager extends Emittable {
 
     private rtcPeers: PeersMap;
 
-    private timesync: Timesync;
+    // private timesync: Timesync;
 
     constructor(socket: SignallingSocket, room: string) {
         super();
@@ -86,15 +103,15 @@ export default class PeerManager extends Emittable {
         this.rtcPeers = {};
         this.listeners = {};
 
-        this.timesync = Timesync.create({
-            peers: [],
-            interval: null, // Disable automatic synchronization
-            delay: 1000,
-            repeat: 5,
-            timeout: 10000
-        });
+        // this.timesync = Timesync.create({
+        //     peers: [],
+        //     interval: null, // Disable automatic synchronization
+        //     delay: 1000,
+        //     repeat: 5,
+        //     timeout: 10000
+        // });
 
-        this.setupTimesync();
+        // this.setupTimesync();
         this.setupSocketListeners(socket);
     }
 
@@ -106,26 +123,39 @@ export default class PeerManager extends Emittable {
     /**
      * Setups up the timesync object and listeners
      */
-    private setupTimesync() {
-        const timesync = this.timesync;
+    // private setupTimesync() {
+    //     const timesync = this.timesync;
 
-        // TODO: override send and receive functions
+    //     // Override send function to hook up with our data channel as the transport
+    //     // timesync.send = (to: string, data: JsonRpcSend, timeout: number): Promise<void> => {
+    //     //     return new Promise((resolve, reject) => {
+    //     //         const sendChannel = this.getSendChannel(to, "syncChannel", true);
+    //     //         if (!sendChannel) return reject();
+
+    //     //         const message: SyncChannelMessage = {
+    //     //             type: "timesync",
+    //     //             data: data
+    //     //         };
+
+    //     //         sendChannel.send(JSON.stringify(message));
+    //     //     });
+    //     // };
 
 
-        timesync.on("change", (offset) => {
-            console.log('Timesync: New offset', offset);
-        });
+    //     timesync.on("change", (offset) => {
+    //         console.log('Timesync: New offset', offset);
+    //     });
 
-        timesync.on("sync", (state) => {
-            console.log(`Timesync: new sync state '${state}'`);
-        });
+    //     timesync.on("sync", (state) => {
+    //         console.log(`Timesync: new sync state '${state}'`);
+    //     });
 
-        timesync.on("error", (error) => {
-            console.log("Timesync: error", error);
-        });
+    //     timesync.on("error", (error) => {
+    //         console.log("Timesync: error", error);
+    //     });
         
-        console.log("timesync", this.timesync); // TODO: remove
-    }
+    //     console.log("timesync", this.timesync); // TODO: remove
+    // }
 
     // private getChannelEventPrefix(channelName: ChannelNames): "rtcaudio" | "rtcsync" | null {
     //     if (channelName === ChannelNames.AUDIO_RECEIVE_CHANNEL || channelName === ChannelNames.AUDIO_SEND_CHANNEL) return "rtcaudio";
@@ -140,6 +170,8 @@ export default class PeerManager extends Emittable {
      */
     private setupSocketListeners(socket: SignallingSocket) {
         socket.on("signal-receive", async (room: string, senderId: string, data: RTCDataContainer) => {
+            console.log("Received signal from", senderId); // TODO: remove
+
             // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
             try {
                 const { description, candidate } = data;
@@ -181,27 +213,27 @@ export default class PeerManager extends Emittable {
             }
         });
 
-        socket.on("client-joined", (_, clientId) => {
-            const timesync = this.timesync;
+        // socket.on("client-joined", (_, clientId) => {
+        //     const timesync = this.timesync;
 
-            // Add the client to the peers list
-            const peers = timesync.options.peers as string[];
-            peers.push(clientId);
+        //     // Add the client to the peers list
+        //     const peers = timesync.options.peers as string[];
+        //     peers.push(clientId);
 
-            // TODO: Synchronize clocks
-        });
+        //     // TODO: Synchronize clocks
+        // });
 
-        socket.on("client-left", (_, clientId) => {
-            const timesync = this.timesync;
+        // socket.on("client-left", (_, clientId) => {
+        //     const timesync = this.timesync;
 
-            // Remove the client from the peers list
-            const peers = timesync.options.peers as string[];
-            const idx = peers.indexOf(clientId);
-            if (idx >= 0) peers.splice(idx, 1);
+        //     // Remove the client from the peers list
+        //     const peers = timesync.options.peers as string[];
+        //     const idx = peers.indexOf(clientId);
+        //     if (idx >= 0) peers.splice(idx, 1);
 
-            // TODO: Synchronize clocks
+        //     // TODO: Synchronize clocks
             
-        });
+        // });
     }
 
     /**
@@ -262,6 +294,25 @@ export default class PeerManager extends Emittable {
                     this.rtcPeers[clientId].syncReceiveChannel = receiveChannel;
                     this.emitEvent("syncreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
 
+                    // Add listener that calls timesync.receive whenever it gets data for it
+                    // receiveChannel.addEventListener("message", (event) => {
+                    //     try {
+                    //         const message: SyncChannelMessage = JSON.stringify(event.data) as unknown as SyncChannelMessage;
+                            
+                    //         if (message.type === "timesync") {
+                    //             const data = message.data as JsonRpcReceive;
+
+                    //             console.log(`>> Received timesync message from '${clientId}'`, data);
+
+                    //             // Notify timesync that sync data has been sent to it
+                    //             this.timesync.receive(clientId, data);
+                    //         }
+                    //     } catch(err) {
+                    //         // Ignore any parsing/casting fails, it means that a malformed message was sent
+                    //         console.log("Malformed message was sent", event.data); // TODO: remove
+                    //     }
+                    // });
+
                     // receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcsyncreceivechannelopen", clientId));
                     // receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcsyncreceivechannelmessage", clientId));
                     // receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcsyncreceivechannelclose", clientId));
@@ -299,7 +350,11 @@ export default class PeerManager extends Emittable {
             // receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcreceivechannelbufferedamountlow", clientId));
         });
 
+        console.log("Here", pc);
+
         pc.addEventListener("iceconnectionstatechange", (event) => {
+            console.log("iceconnectionstatechange", pc.iceConnectionState); // TODO: remove
+
             switch(pc.iceConnectionState) {
                 case "new":
                     break;
@@ -361,6 +416,8 @@ export default class PeerManager extends Emittable {
     async connectRTC(clientId: string): Promise<void> {
         // Get peer connection, creating it if need be
         const pc = this.getPeerConnection(clientId, true)!;
+
+        console.log("Connecting to", clientId);
 
         // Create offer
         const offer = await pc.createOffer();
