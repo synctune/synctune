@@ -10,28 +10,29 @@
             <!-- <router-link to="/test-youtube">Test Youtube player</!-->
         </div>
         <router-view />
+
+        <!-- Sticky components -->
+        <room-status />
+        <audio-player />
     </div>
 </template>
 
+<script lang="ts">
+import Vue from 'vue';
+import RoomStatus from "./components/sticky/RoomStatus.vue";
+import AudioPlayer from "./components/sticky/AudioPlayer.vue";
+
+export default Vue.extend({
+    components: {
+        RoomStatus,
+        AudioPlayer
+    }
+});
+</script>
+
 <style lang="scss">
-// #app {
-//     font-family: Avenir, Helvetica, Arial, sans-serif;
-//     -webkit-font-smoothing: antialiased;
-//     -moz-osx-font-smoothing: grayscale;
-//     text-align: center;
-//     color: #2c3e50;
-// }
-
-// #nav {
-//     padding: 30px;
-
-//     a {
-//         font-weight: bold;
-//         color: #2c3e50;
-
-//         &.router-link-exact-active {
-//             color: #42b983;
-//         }
-//     }
-// }
+    #app {
+        height: 100%;
+        position: relative;
+    }
 </style>

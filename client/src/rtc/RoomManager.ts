@@ -23,6 +23,7 @@ interface RoomManagerEventMap {
     "audiometadatasent": AudioFileMetadata;
     "audiochunksent": ArrayBuffer;
     "audiofilesent": Blob;
+    "audiofilesyncing": Blob;
 
     "audiometadatareceived": AudioFileMetadata;
     "audiochunkreceived": ArrayBuffer;
@@ -273,6 +274,8 @@ export default class RoomManager extends Emittable {
             return;
         }
 
+        this.emitEvent("audiofilesyncing", audioFile);
+
         const clients = this.peerManager.clients;
 
         // --- Send the file metadata ---
@@ -359,6 +362,11 @@ export default class RoomManager extends Emittable {
             sendChannel.send(JSON.stringify(message));
         });
 
+        console.log("sending play signal"); // TODO: remove
+
+        // Send play signal to self
+        this.emitEvent("playsignalreceived", startTime);
+
         return startTime;
     }
 
@@ -384,6 +392,9 @@ export default class RoomManager extends Emittable {
             const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
             sendChannel.send(JSON.stringify(message));
         });
+
+        // Send pause signal to self
+        this.emitEvent("pausesignalreceived", now);
     }
 
     /**
@@ -408,6 +419,9 @@ export default class RoomManager extends Emittable {
             const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
             sendChannel.send(JSON.stringify(message));
         });
+
+        // Send stop signal to self
+        this.emitEvent("stopsignalreceived", now);
     }
 
 

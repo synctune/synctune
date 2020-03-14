@@ -9,7 +9,7 @@
         <button 
             class="RoomConnectionForm__create"
             @click="createRoom"
-            :disabled="!validRoomName"
+            :disabled="!validRoomName || isConnected"
         >
             Create Room
         </button>
@@ -17,7 +17,7 @@
         <button 
             class="RoomConnectionForm__join"
             @click="joinRoom"
-            :disabled="!validRoomName"
+            :disabled="!validRoomName || isConnected"
         >
             Join Room
         </button>
@@ -27,14 +27,18 @@
 <script lang="ts">
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import { mapGetters } from "vuex";
+import * as RoomStore from "../store/modules/room";
 
 interface Data {
     roomName: string;
 }
 
-interface Computed {
+type Computed = {
     emptyRoomName(): boolean;
-}
+} & Pick<RoomStore.MapGettersStructure,
+    RoomStore.Getters.isConnected
+>
 
 interface Methods {
     joinRoom(): void;
@@ -48,6 +52,9 @@ export default Vue.extend({
         }
     },
     computed: {
+        ...mapGetters({
+            isConnected: RoomStore.Getters.isConnected
+        }),
         validRoomName() {
             const { roomName }: Data = this;
             const isEmpty = !roomName.trim();

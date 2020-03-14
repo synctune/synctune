@@ -12,7 +12,7 @@
             <div>Is Room Owner: {{ isOwner }}</div>
             <div>ID: {{ id }}</div>
             <div>Sync Offset: {{ syncOffset }}</div>
-            <div>Audio Loaded: {{ loadedAudio }}</div>
+            <div>Audio Loaded: {{ audioLoaded }}</div>
             <div>Audio Playing: {{ isPlaying }}</div>
 
             <br>
@@ -56,19 +56,19 @@
                 >
                 <button
                     @click="playAudio"
-                    :disabled="!isConnected || !isOwner || !loadedAudio || isPlaying"
+                    :disabled="!isConnected || !isOwner || !audioLoaded || isPlaying"
                 >
                     Play
                 </button>
                 <button
                     @click="pauseAudio"
-                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
+                    :disabled="!isConnected || !isOwner || !audioLoaded || !isPlaying"
                 >
                     Pause
                 </button>
                 <button
                     @click="stopAudio"
-                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
+                    :disabled="!isConnected || !isOwner || !audioLoaded || !isPlaying"
                 >
                     Stop
                 </button>
@@ -84,37 +84,41 @@
 
 import Vue from 'vue';
 import { mapState, mapGetters, mapActions } from "vuex";
-import { Getters, MapGettersStructure, Actions, MapActionsStructure } from "../../store/modules/room";
+import * as RoomStore from "../../store/modules/room";
+import * as AudioStore from "../../store/modules/audio";
 import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
 import { HighResolutionTimer } from "../../utilities";
 
-interface FileMetadata {
-
-}
-
 interface Data {
     sendClientId: string;
-    isPlaying: boolean;
 
-    audioFile: File | null;
-    loadedAudio: boolean;
+    // isPlaying: boolean;
+
+    // audioFile: File | null;
+    // loadedAudio: boolean;
 
     syncOffset: number;
 }
 
-type Computed = Pick<MapGettersStructure, 
-        Getters.roomManager 
-        | Getters.isConnected 
-        | Getters.isOwner
-        | Getters.connectedSocketClients
-        | Getters.connectedRTCClients
-        | Getters.id 
-    > & {}
+type Computed = {} &
+    Pick<RoomStore.MapGettersStructure, 
+        RoomStore.Getters.roomManager 
+        | RoomStore.Getters.isConnected 
+        | RoomStore.Getters.isOwner
+        | RoomStore.Getters.connectedSocketClients
+        | RoomStore.Getters.connectedRTCClients
+        | RoomStore.Getters.id 
+    > 
+    & Pick<AudioStore.MapGettersStructure,
+        AudioStore.Getters.isPlaying
+        | AudioStore.Getters.audioFile
+        | AudioStore.Getters.audioLoaded
+    >
 
-type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
+type Methods = Pick<RoomStore.MapActionsStructure, RoomStore.Actions.deleteRoomManager> & {
     leaveRoom(): void;
     onRoomLeft(): void;
     setupGeneralRoomListeners(roomManager: RoomManager): void;
@@ -123,7 +127,7 @@ type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     setupGeneralTimesyncListeners(timesync: Timesync): void;
 
     onAudioFileChange(): void;
-    loadAudioFile(audioFile: File): void;
+    // loadAudioFile(audioFile: File): void;
     syncAudioFile(audioFile: File): void;
     playAudio(): void;
     pauseAudio(): void;
@@ -139,22 +143,25 @@ export default Vue.extend({
     data() {
         return {
             sendClientId: "",
-            isPlaying: false,
+            // isPlaying: false,
 
-            audioFile: null,
-            loadedAudio: false,
+            // audioFile: null,
+            // loadedAudio: false,
 
             syncOffset: 0,
         }
     },
     computed: {
         ...mapGetters({
-            roomManager: Getters.roomManager,
-            isConnected: Getters.isConnected,
-            isOwner: Getters.isOwner,
-            connectedSocketClients: Getters.connectedSocketClients,
-            connectedRTCClients: Getters.connectedRTCClients,
-            id: Getters.id
+            roomManager: RoomStore.Getters.roomManager,
+            isConnected: RoomStore.Getters.isConnected,
+            isOwner: RoomStore.Getters.isOwner,
+            connectedSocketClients: RoomStore.Getters.connectedSocketClients,
+            connectedRTCClients: RoomStore.Getters.connectedRTCClients,
+            id: RoomStore.Getters.id,
+            isPlaying: AudioStore.Getters.isPlaying,
+            audioFile: AudioStore.Getters.audioFile,
+            audioLoaded: AudioStore.Getters.audioLoaded
         })
     },
     mounted() {
@@ -180,7 +187,7 @@ export default Vue.extend({
     },
     methods: {
         ...mapActions({
-            deleteRoomManager: Actions.deleteRoomManager
+            deleteRoomManager: RoomStore.Actions.deleteRoomManager
         }),
         leaveRoom() {
             const roomManager = this.roomManager as RoomManager;
@@ -196,67 +203,67 @@ export default Vue.extend({
             router.push('/');
         },
         setupGeneralRoomListeners(roomManager: RoomManager) {
-            roomManager.addEventListener("audiofilereceived", (audioFile) => {
-                console.log("Received audio file", audioFile);
+            // roomManager.addEventListener("audiofilereceived", (audioFile) => {
+            //     console.log("Received audio file", audioFile);
 
-                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-                audioPlayerEl.src = URL.createObjectURL(audioFile);
-                audioPlayerEl.load();
+            //     audioPlayerEl.src = URL.createObjectURL(audioFile);
+            //     audioPlayerEl.load();
 
-                this.loadedAudio = true;
-            });
+            //     this.loadedAudio = true;
+            // });
 
-            roomManager.addEventListener("playsignalreceived", startTime => {
-                console.log("Start signal received for", startTime);
+            // roomManager.addEventListener("playsignalreceived", startTime => {
+            //     console.log("Start signal received for", startTime);
 
-                const roomManager = this.roomManager as RoomManager;
-                const peerManager = roomManager.peerManager as PeerManager;
-                // const now = peerManager.timesync.now();
-                const now = Date.now();
+            //     const roomManager = this.roomManager as RoomManager;
+            //     const peerManager = roomManager.peerManager as PeerManager;
+            //     // const now = peerManager.timesync.now();
+            //     const now = Date.now();
 
-                // TODO: might have to check for null peer manager
+            //     // TODO: might have to check for null peer manager
 
-                // const delay = startTime - Math.abs(now); // TODO: remove the abs hack
-                // console.log("Timer delay", delay); // TODO: remove
-                // const timer = new HighResolutionTimer(delay, () => {
-                //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-                //     if (!audioPlayerEl.src) return;
+            //     // const delay = startTime - Math.abs(now); // TODO: remove the abs hack
+            //     // console.log("Timer delay", delay); // TODO: remove
+            //     // const timer = new HighResolutionTimer(delay, () => {
+            //     //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            //     //     if (!audioPlayerEl.src) return;
 
-                //     console.log("Playing audio"); // TODO: remove
-                //     audioPlayerEl.play();
-                //     this.isPlaying = true;
-                //     timer.stop();
-                // });
-                // timer.run();
+            //     //     console.log("Playing audio"); // TODO: remove
+            //     //     audioPlayerEl.play();
+            //     //     this.isPlaying = true;
+            //     //     timer.stop();
+            //     // });
+            //     // timer.run();
 
-                // TODO: actually use start time signal instead of just playing when the signal arrives
-                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-                if (!audioPlayerEl.src) return;
+            //     // TODO: actually use start time signal instead of just playing when the signal arrives
+            //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            //     if (!audioPlayerEl.src) return;
 
-                console.log("Playing audio"); // TODO: remove
-                audioPlayerEl.play();
-                this.isPlaying = true;
-            });
+            //     console.log("Playing audio"); // TODO: remove
+            //     audioPlayerEl.play();
+            //     this.isPlaying = true;
+            // });
 
-            roomManager.addEventListener("pausesignalreceived", sentTime => {
-                console.log("Pause signal received, sent at", sentTime);
+            // roomManager.addEventListener("pausesignalreceived", sentTime => {
+            //     console.log("Pause signal received, sent at", sentTime);
 
-                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-                if (!audioPlayerEl.src) return;
+            //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            //     if (!audioPlayerEl.src) return;
 
-                audioPlayerEl.pause();
-            });
+            //     audioPlayerEl.pause();
+            // });
 
-            roomManager.addEventListener("stopsignalreceived", sentTime => {
-                console.log("Stop signal received, sent at", sentTime);
+            // roomManager.addEventListener("stopsignalreceived", sentTime => {
+            //     console.log("Stop signal received, sent at", sentTime);
 
-                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-                if (!audioPlayerEl.src) return;
+            //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            //     if (!audioPlayerEl.src) return;
 
-                audioPlayerEl.pause();
-                audioPlayerEl.load();
-            });
+            //     audioPlayerEl.pause();
+            //     audioPlayerEl.load();
+            // });
         },
         setupGeneralRTCListeners(peerManager: PeerManager) {
             // peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
@@ -275,24 +282,27 @@ export default Vue.extend({
             });
         },
         onAudioFileChange() {
-            const { loadAudioFile, syncAudioFile }: Methods = this;
+            // const { loadAudioFile, syncAudioFile }: Methods = this;
+            const { syncAudioFile, stopAudio }: Methods = this;
             const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
 
             const audioFile = audioFileInputEl.files ? audioFileInputEl.files[0] : null;
 
             if (audioFile) {
-                loadAudioFile(audioFile);
+                stopAudio();
+
+                // loadAudioFile(audioFile);
                 syncAudioFile(audioFile);
             }
         },
-        loadAudioFile(audioFile: File) {
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+        // loadAudioFile(audioFile: File) {
+        //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-            audioPlayerEl.src = URL.createObjectURL(audioFile);
-            audioPlayerEl.load();
+        //     audioPlayerEl.src = URL.createObjectURL(audioFile);
+        //     audioPlayerEl.load();
 
-            this.loadedAudio = true;
-        },
+        //     this.loadedAudio = true;
+        // },
         syncAudioFile(audioFile: File) {
             // TODO: sync to other clients
             const { connectedRTCClients }: Computed = this; 
@@ -303,13 +313,13 @@ export default Vue.extend({
         playAudio() {
             const roomManager = this.roomManager as RoomManager;
             const peerManager = roomManager.peerManager as PeerManager;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            // const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
             // const now = peerManager.timesync.now();
             const now = Date.now();
 
             // TODO: might have to check for null peer manager
 
-            if (!audioPlayerEl.src) return;
+            // if (!audioPlayerEl.src) return;
 
             const startTime = roomManager.sendPlaySignal(100);
 
@@ -324,31 +334,31 @@ export default Vue.extend({
             // timer.run();
 
             // TODO: delay start time instead of just playing right away
-            audioPlayerEl.play();
-            this.isPlaying = true;
+            // audioPlayerEl.play();
+            // this.isPlaying = true;
         },
         pauseAudio() {
             const roomManager = this.roomManager as RoomManager;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            // const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-            if (!audioPlayerEl.src) return;
+            // if (!audioPlayerEl.src) return;
 
             roomManager.sendPauseSignal();
 
-            audioPlayerEl.pause();
-            this.isPlaying = false;
+            // audioPlayerEl.pause();
+            // this.isPlaying = false;
         },
         stopAudio() {
             const roomManager = this.roomManager as RoomManager;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+            // const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-            if (!audioPlayerEl.src) return;
+            // if (!audioPlayerEl.src) return;
 
             roomManager.sendStopSignal();
 
-            audioPlayerEl.pause();
-            audioPlayerEl.load();
-            this.isPlaying = false;
+            // audioPlayerEl.pause();
+            // audioPlayerEl.load();
+            // this.isPlaying = false;
         }
     }
 });

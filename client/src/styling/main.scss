@@ -1,0 +1,19 @@
+* {
+    // Global resets
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+
+    // Definition of 1rem
+    font-size: 62.5%; // 10px
+}
+
+body {
+    height: 100%;
+
+    font-size: 1.5rem;
+}
