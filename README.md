@@ -31,3 +31,10 @@ Below are some useful NPM scripts for development
 * `restart:[environment]--[?service]`: hot restarts the given service. If no specific service is specified then all are restarted
 * `stop:[environment]`: stops the given environment
 * `shell:[service]`: opens an interactive shell into the given running service container
+
+
+### Common Debugging Tips
+
+#### RTC Connections do not Appear
+
+**Solution:** clear the cache (especially on Chrome). Sometimes the Vue dev server messes up the RTC connections by not closing them properly when the hot reload feature runs.
