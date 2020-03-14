@@ -12,6 +12,8 @@
             <div>Is Room Owner: {{ isOwner }}</div>
             <div>ID: {{ id }}</div>
             <div>Sync Offset: {{ syncOffset }}</div>
+            <div>Audio Loaded: {{ loadedAudio }}</div>
+            <div>Audio Playing: {{ isPlaying }}</div>
 
             <br>
 
@@ -39,23 +41,6 @@
                         {{ clientId }}
                     </li>
                 </ul>
-            </div>
-
-
-            <!-- TODO: remove the say hi stuff -->
-            <div>
-                <button
-                    @click="sayHi"
-                    :disabled="!isConnected"
-                >
-                    Say Hi!
-                </button>
-                <input 
-                    type="text" 
-                    placeholder="Send to..." 
-                    v-model="sendClientId"
-                    :disabled="!isConnected"
-                >
             </div>
 
             <br>
@@ -131,7 +116,6 @@ type Computed = Pick<MapGettersStructure,
 
 type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     leaveRoom(): void;
-    sayHi(): void;
     onRoomLeft(): void;
     setupGeneralRoomListeners(roomManager: RoomManager): void;
     setupGeneralRTCListeners(peerManager: PeerManager): void;
@@ -198,12 +182,6 @@ export default Vue.extend({
         ...mapActions({
             deleteRoomManager: Actions.deleteRoomManager
         }),
-        sayHi() {
-            // const { sendClientId }: Data = this;
-            // const roomManager = this.roomManager as RoomManager;
-            // const peerManager = roomManager.peerManager as PeerManager;
-            // peerManager.sendMessage(sendClientId.trim(), "Hello from the other side!");
-        },
         leaveRoom() {
             const roomManager = this.roomManager as RoomManager;
             roomManager.leaveRoom();
