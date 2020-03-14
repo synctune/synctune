@@ -71,7 +71,7 @@ export default class PeerManager extends Emittable {
 
     private rtcPeers: PeersMap;
 
-    private timesync: Timesync;
+    private _timesync: Timesync;
 
     constructor(socket: SignallingSocket, room: string) {
         super();
@@ -82,7 +82,7 @@ export default class PeerManager extends Emittable {
         this.rtcPeers = {};
         this.listeners = {};
 
-        this.timesync = Timesync.create({
+        this._timesync = Timesync.create({
             peers: [],
             interval: null, // Disable automatic synchronization
             delay: 1000,
@@ -90,7 +90,7 @@ export default class PeerManager extends Emittable {
             timeout: 10000
         });
 
-        this.setupTimesync(this.timesync);
+        this.setupTimesync(this._timesync);
         this.setupSocketListeners(socket);
         this.setupPeerManagerListeners(this);
     }
@@ -192,7 +192,7 @@ export default class PeerManager extends Emittable {
     private setupPeerManagerListeners(peerManager: PeerManager) {
         peerManager.addEventListener("rtcconnected", ({ clientId }) => {
             // Sync clocks
-            peerManager.timesync.sync();
+            peerManager._timesync.sync();
         });
     }
 
@@ -253,10 +253,10 @@ export default class PeerManager extends Emittable {
                             if (message.type === "timesync") {
                                 const data = message.data as JsonRpcReceive;
 
-                                console.log(`>> Received timesync message from '${clientId}'`, data);
+                                console.log(`>> Received timesync message from '${clientId}'`, data); // TODO: remove
 
                                 // Notify timesync that sync data has been sent to it
-                                this.timesync.receive(clientId, data);
+                                this._timesync.receive(clientId, data);
                             }
                         } catch(err) {
                             // Ignore any parsing/casting fails, it means that a malformed message was sent
@@ -421,6 +421,13 @@ export default class PeerManager extends Emittable {
         return (receiveChannel) ? receiveChannel : null;
     }
 
+    /**
+     * The timesync object
+     */
+    get timesync(): Timesync {
+        return this._timesync;
+    }
+    
 
     // -------------------------------------
     // --- EventEmitter Method Overrides ---
