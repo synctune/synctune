@@ -108,6 +108,7 @@ import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
+import { HighResolutionTimer } from "../../utilities";
 
 interface FileMetadata {
 
@@ -231,6 +232,39 @@ export default Vue.extend({
 
                 this.loadedAudio = true;
             });
+
+            roomManager.addEventListener("playsignalreceived", startTime => {
+                console.log("Start signal received for", startTime);
+
+                const roomManager = this.roomManager as RoomManager;
+                const peerManager = roomManager.peerManager as PeerManager;
+                // const now = peerManager.timesync.now();
+                const now = Date.now();
+
+                // TODO: might have to check for null peer manager
+
+                const delay = startTime - Math.abs(now); // TODO: remove the abs hack
+                console.log("Timer delay", delay); // TODO: remove
+                const timer = new HighResolutionTimer(delay, () => {
+                    const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+                    if (!audioPlayerEl.src) return;
+
+                    console.log("Playing audio"); // TODO: remove
+                    audioPlayerEl.play();
+                    this.isPlaying = true;
+                    timer.stop();
+                });
+                timer.run();
+            });
+
+            roomManager.addEventListener("stopsignalreceived", sentTime => {
+                console.log("Stop signal received, sent at", sentTime);
+
+                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+                if (!audioPlayerEl.src) return;
+
+                audioPlayerEl.pause();
+            });
         },
         setupGeneralRTCListeners(peerManager: PeerManager) {
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
@@ -275,13 +309,30 @@ export default Vue.extend({
             roomManager.syncAudioFile(audioFile);
         },
         playAudio() {
+            const roomManager = this.roomManager as RoomManager;
+            const peerManager = roomManager.peerManager as PeerManager;
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-            // TODO: use timestamp to figure out when to play
+            // const now = peerManager.timesync.now();
+            const now = Date.now();
+
+            // TODO: might have to check for null peer manager
 
             if (!audioPlayerEl.src) return;
 
-            audioPlayerEl.play();
-            this.isPlaying = true;
+            const startTime = roomManager.sendPlaySignal(100);
+
+            const delay = startTime - Math.abs(now); // TODO: remove the abs hack
+            console.log("Timer delay", delay); // TODO: remove
+            const timer = new HighResolutionTimer(delay, () => {
+                console.log("Playing audio"); // TODO: remove
+                audioPlayerEl.play();
+                this.isPlaying = true;
+                timer.stop();
+            });
+            timer.run();
+
+            // audioPlayerEl.play();
+            // this.isPlaying = true;
         },
         pauseAudio() {
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;

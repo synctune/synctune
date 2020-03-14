@@ -1,6 +1,6 @@
 import adapter from 'webrtc-adapter';
 import Emittable from '@/events/Emittable';
-import PeerManager from "@/rtc/PeerManager";
+import PeerManager, { SyncChannelMessage } from "@/rtc/PeerManager";
 import SignallingSocket from '@/socket/SignallingSocket';
 import KEYS from "@/keys";
 import io from "socket.io-client";
@@ -14,6 +14,8 @@ interface AudioFileMetadata {
     type: string;
 }
 
+type PlaySignalData = number;
+
 interface RoomManagerEventMap {
     "peermanagercreated": PeerManager;
 
@@ -24,6 +26,9 @@ interface RoomManagerEventMap {
     "audiometadatareceived": AudioFileMetadata;
     "audiochunkreceived": ArrayBuffer;
     "audiofilereceived": Blob;
+
+    "playsignalreceived": number;
+    "stopsignalreceived": number;
 
     // TODO: implement this later for the YouTube player
     // "audiourlreceived": string;
@@ -145,6 +150,28 @@ export default class RoomManager extends Emittable {
             // Sync clocks
             peerManager.timesync.sync();
         });
+
+        peerManager.addEventListener("syncreceivechannelcreated", ({ clientId, sourceEvent: syncReceiveChannel }) => {
+            // Setup play/stop signal receive listener
+            if (!this.isOwner) {
+                syncReceiveChannel.addEventListener("message", (event) => {
+                    try {
+                        const message: SyncChannelMessage = JSON.parse(event.data) as unknown as SyncChannelMessage;
+                        
+                        if (message.type === "play") {
+                            const startTime = message.data as PlaySignalData;
+
+                            this.emitEvent("playsignalreceived", startTime);
+                        } else if (message.type === "stop") {
+                            this.emitEvent("stopsignalreceived", peerManager.timesync.now());
+                        }
+                    } catch(err) {
+                        // Ignore any parsing/casting fails, it means that a malformed message was sent
+                        console.log("Malformed message was sent", event.data); // TODO: remove
+                    }
+                });
+            }
+        });
     }
 
 
@@ -215,12 +242,12 @@ export default class RoomManager extends Emittable {
             return;
         }
 
-        if (!this._peerManager) {
+        if (!this.peerManager) {
             console.log("Peer manager not connected"); // TODO: handle
             return;
         }
 
-        const clients = this._peerManager.clients;
+        const clients = this.peerManager.clients;
 
         // --- Send the file metadata ---
         const metadata: AudioFileMetadata = {
@@ -274,6 +301,39 @@ export default class RoomManager extends Emittable {
 
         // Begin reading the audio file
         readSlice(0);
+    }
+
+    /**
+     * Sends the play signal to the clients
+     * 
+     * @param delay How far in the future the start time signal should be set (in milliseconds)
+     * 
+     * @return Returns the start timestamp
+     */
+    sendPlaySignal(delay = 100): number {
+        if (!this.peerManager) {
+            console.log("Peer manager not connected"); // TODO: handle
+            return -1;
+        }
+
+        const timesync = this.peerManager.timesync;
+        // const now = timesync.now();
+        const now = Date.now();
+        const startTime = now + delay;
+
+        const clients = this.peerManager.clients;
+        clients.forEach(clientId => {
+            const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
+
+            const message: SyncChannelMessage = {
+                type: "play",
+                data: startTime
+            };
+
+            sendChannel.send(JSON.stringify(message));
+        });
+
+        return startTime;
     }
 
 

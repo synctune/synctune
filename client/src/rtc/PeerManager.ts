@@ -25,7 +25,7 @@ export interface PeerManagerEvent<T> {
     sourceEvent: T;
 }
 
-interface SyncChannelMessage {
+export interface SyncChannelMessage {
     type: "timesync" | "play" | "stop";
     data: any;
 }
