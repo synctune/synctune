@@ -11,6 +11,7 @@
             <div>RoomManager connected: {{ isConnected }}</div>
             <div>Is Room Owner: {{ isOwner }}</div>
             <div>ID: {{ id }}</div>
+            <div>Sync Offset: {{ syncOffset }}</div>
 
             <br>
 
@@ -98,6 +99,8 @@
 </template>
 
 <script lang="ts">
+/// <reference path="../../timesync.d.ts" />
+
 import Vue from 'vue';
 import { mapState, mapGetters, mapActions } from "vuex";
 import { Getters, MapGettersStructure, Actions, MapActionsStructure } from "../../store/modules/room";
@@ -116,6 +119,8 @@ interface Data {
 
     audioFile: File | null;
     loadedAudio: boolean;
+
+    syncOffset: number;
 }
 
 type Computed = Pick<MapGettersStructure, 
@@ -134,6 +139,7 @@ type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     setupGeneralRoomListeners(roomManager: RoomManager): void;
     setupGeneralRTCListeners(peerManager: PeerManager): void;
     setupGeneralSocketListeners(socket: SignallingSocket): void;
+    setupGeneralTimesyncListeners(timesync: Timesync): void;
 
     onAudioFileChange(): void;
     loadAudioFile(audioFile: File): void;
@@ -156,6 +162,8 @@ export default Vue.extend({
 
             audioFile: null,
             loadedAudio: false,
+
+            syncOffset: 0,
         }
     },
     computed: {
@@ -174,7 +182,11 @@ export default Vue.extend({
         if (!isConnected) {
             console.log("WARNING: Not connected to a room... you shouldn't be in here");
         } else {
-            const { setupGeneralRoomListeners, setupGeneralRTCListeners, setupGeneralSocketListeners }: Methods = this;
+            const { 
+                setupGeneralRoomListeners, 
+                setupGeneralRTCListeners, 
+                setupGeneralSocketListeners, 
+                setupGeneralTimesyncListeners }: Methods = this;
             const roomManager = this.roomManager as RoomManager;
             const peerManager = roomManager.peerManager as PeerManager;
             const signallingSocket = roomManager.signallingSocket as SignallingSocket;
@@ -182,6 +194,7 @@ export default Vue.extend({
             setupGeneralRoomListeners(roomManager);
             setupGeneralRTCListeners(peerManager);
             setupGeneralSocketListeners(signallingSocket);
+            setupGeneralTimesyncListeners(peerManager.timesync);
         }
     },
     methods: {
@@ -228,6 +241,11 @@ export default Vue.extend({
             socket.on("room-left", () => {
                 const { onRoomLeft }: Methods = this;
                 onRoomLeft();
+            });
+        },
+        setupGeneralTimesyncListeners(timesync: Timesync) {
+            timesync.on("change", offset => {
+                this.syncOffset = offset;
             });
         },
         onAudioFileChange() {

@@ -136,6 +136,15 @@ export default class RoomManager extends Emittable {
                 }
             });
         });
+
+        peerManager.addEventListener("rtcconnected", ({ clientId }) => {
+            // Add peer to peer list
+            const peerList = peerManager.timesync.options.peers as string[];
+            peerList.push(clientId);
+
+            // Sync clocks
+            peerManager.timesync.sync();
+        });
     }
 
 
@@ -193,6 +202,11 @@ export default class RoomManager extends Emittable {
         }
     }
 
+    /**
+     * Syncs the audio given audio file to all connected clients
+     * 
+     * @param audioFile The audio file
+     */
     syncAudioFile(audioFile: File) {
         // TODO: reference https://webrtc.github.io/samples/src/content/datachannel/filetransfer/
 

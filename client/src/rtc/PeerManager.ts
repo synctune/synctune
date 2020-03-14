@@ -4,7 +4,7 @@ import {} from "socket.io-client";
 import RTCDataContainer from "@/rtc/RTCDataContainer";
 import SignallingSocket from '@/socket/SignallingSocket';
 import * as Timesync from "timesync";
-import { JsonRpcReceive, JsonRpcSend } from "@/timesync/types";
+import { JsonRpcReceive } from "@/timesync/types";
  
 type ChannelType = "syncChannel" | "audioChannel";
 
@@ -81,7 +81,6 @@ export default class PeerManager extends Emittable {
 
         this.setupTimesync(this._timesync);
         this.setupSocketListeners(socket);
-        this.setupPeerManagerListeners(this);
     }
 
     
@@ -94,7 +93,9 @@ export default class PeerManager extends Emittable {
      */
     private setupTimesync(timesync: Timesync) {
         // Override send function to hook up with our data channel as the transport
-        timesync.send = (to: string, data: JsonRpcSend, timeout: number): Promise<void> => {
+        timesync.send = (to, data, timeout): Promise<void> => {
+            console.log("Timesync: running send");
+
             return new Promise((resolve, reject) => {
                 const sendChannel = this.getSendChannel(to, "syncChannel", true);
                 if (!sendChannel) return reject();
@@ -105,10 +106,30 @@ export default class PeerManager extends Emittable {
                 };
 
                 sendChannel.send(JSON.stringify(message));
+
+                let intervalId: number | null = null;
+                if (timeout) {
+                    intervalId = setInterval(() => {
+                        // console.log("Timesync: Rejecting for timeout"); // TODO: remove
+                        reject();
+                    }, timeout);
+                }
+
+                sendChannel.addEventListener("message", () => {
+                    // console.log("timesync: resolving send message"); // TODO: remove
+                    if (intervalId) clearInterval(intervalId);
+                    resolve();
+                })
+
+                sendChannel.addEventListener("error", (error) => {
+                    // console.log("Timesync: Rejecting for error", error); // TODO: remove
+                    if (intervalId) clearInterval(intervalId);
+                    reject();
+                });
             });
         };
 
-
+        // TODO: remove these
         timesync.on("change", (offset) => {
             console.log('Timesync: New offset', offset);
         });
@@ -121,7 +142,7 @@ export default class PeerManager extends Emittable {
             console.log("Timesync: error", error);
         });
         
-        // console.log("timesync", this.timesync); // TODO: remove
+        console.log("timesync", this.timesync); // TODO: remove
     }
 
     /**
@@ -170,18 +191,6 @@ export default class PeerManager extends Emittable {
                 // TODO: handle error properly
                 console.error(err);
             }
-        });
-    }
-
-    /**
-     * Setups internal peer manager listeners
-     * 
-     * @param peerManager the peer manager (this)
-     */
-    private setupPeerManagerListeners(peerManager: PeerManager) {
-        peerManager.addEventListener("rtcconnected", ({ clientId }) => {
-            // Sync clocks
-            peerManager._timesync.sync();
         });
     }
 
@@ -235,12 +244,12 @@ export default class PeerManager extends Emittable {
                     // Add listener that calls timesync.receive whenever it gets data for it
                     receiveChannel.addEventListener("message", (event) => {
                         try {
-                            const message: SyncChannelMessage = JSON.stringify(event.data) as unknown as SyncChannelMessage;
+                            const message: SyncChannelMessage = JSON.parse(event.data) as unknown as SyncChannelMessage;
                             
                             if (message.type === "timesync") {
                                 const data = message.data as JsonRpcReceive;
 
-                                console.log(`>> Received timesync message from '${clientId}'`, data); // TODO: remove
+                                // console.log(`Timesync: Received timesync message from '${clientId}'`, data); // TODO: remove
 
                                 // Notify timesync that sync data has been sent to it
                                 this._timesync.receive(clientId, data);
@@ -341,7 +350,7 @@ export default class PeerManager extends Emittable {
 
         if (!peerObj) return;
 
-        console.log("Closing connections for", clientId);
+        console.log("Closing connections for", clientId); // TODO: remove
 
         // Close channels
         peerObj.syncSendChannel.close();

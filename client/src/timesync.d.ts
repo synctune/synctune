@@ -30,7 +30,7 @@ declare class Timesync {
 
     sync(): void;
 
-    send: (to: string, data: any, timeout: number) => Promise<unknown>;
+    send: (to: string, data: any, timeout: number | undefined) => Promise<unknown>;
     receive: (from: string, data: any) => void;
 }
 
