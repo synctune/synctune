@@ -5,12 +5,31 @@ import SignallingSocket from '@/socket/SignallingSocket';
 import KEYS from "@/keys";
 import io from "socket.io-client";
 
-// TODO: implement this
+// TODO: implement this?
 type RoomManagerStatus = "connected" | "disconnected";
+
+interface AudioFileMetadata {
+    name: string;
+    size: number;
+    type: string;
+}
 
 interface RoomManagerEventMap {
     "peermanagercreated": PeerManager;
+
+    "audiometadatasent": AudioFileMetadata;
+    "audiochunksent": ArrayBuffer;
+    "audiofilesent": Blob;
+
+    "audiometadatareceived": AudioFileMetadata;
+    "audiochunkreceived": ArrayBuffer;
+    "audiofilereceived": Blob;
+
+    // TODO: implement this later for the YouTube player
+    // "audiourlreceived": string;
 }
+
+const CHUNK_SIZE = 16384;
 
 export default class RoomManager extends Emittable {
     private socket: SignallingSocket;
@@ -20,6 +39,10 @@ export default class RoomManager extends Emittable {
     private _roomOwner: string | null;
 
     private _peerManager: PeerManager | null;
+
+    private _expectedAudioFileSize: number | null;
+    private _receivedChunks: ArrayBuffer[];
+    private _receivedSize: number;
 
     constructor() {
         super();
@@ -34,6 +57,10 @@ export default class RoomManager extends Emittable {
         this.socket = socket;
         this._id = null;
 
+        this._expectedAudioFileSize = null;
+        this._receivedChunks = [];
+        this._receivedSize = 0;
+
         this.setupSignallingSocketListeners(socket);
 
         socket.on("connect", () => {
@@ -43,6 +70,10 @@ export default class RoomManager extends Emittable {
         window.addEventListener("beforeunload", () => {
             // Leave the room
             this.leaveRoom();
+        });
+
+        this.addEventListener("peermanagercreated", (peerManager) => {
+            this.setupPeerManagerListeners(peerManager);
         });
     }
 
@@ -63,6 +94,48 @@ export default class RoomManager extends Emittable {
         this._peerManager = new PeerManager(socket, room);
 
         this.emitEvent("peermanagercreated", this._peerManager);
+    }
+
+    private setupPeerManagerListeners(peerManager: PeerManager) {
+        peerManager.addEventListener("audioreceivechannelcreated", ({ clientId, sourceEvent: audioReceiveChannel}) => {
+            // Setup audio file receiving
+            audioReceiveChannel.addEventListener("message", ({ data }) => {
+                // console.log("Received data", data); // TODO: remove
+
+                if (typeof data === "string") {
+                    try {
+                        const metadata = JSON.parse(data) as unknown as AudioFileMetadata;
+                        this._expectedAudioFileSize = metadata.size;
+
+                        this.emitEvent("audiometadatareceived", metadata);
+
+                    } catch(err) {
+                        console.log("Malformed audio metadata object"); // TODO: handle
+                    }
+                } else if (data instanceof ArrayBuffer) {
+                    // Add to the list of accumulated chunks for the audio file being received
+                    this._receivedChunks.push(data);
+                    this._receivedSize += data.byteLength;
+
+                    this.emitEvent("audiochunkreceived", data);
+
+                    if (!this._expectedAudioFileSize) return;
+
+                    // If we have loaded the entire file
+                    if (this._receivedSize >= this._expectedAudioFileSize) {
+                        // Create the audio file blob and fire the event
+                        const dataBlob = new Blob(this._receivedChunks);
+
+                        // Clear accumulator data
+                        this._expectedAudioFileSize = null;
+                        this._receivedChunks = [];
+                        this._receivedSize = 0;
+
+                        this.emitEvent("audiofilereceived", dataBlob);
+                    }
+                }
+            });
+        });
     }
 
 
@@ -118,6 +191,75 @@ export default class RoomManager extends Emittable {
         if (this._room) {
             this.socket.emit("room-leave", this._room!);
         }
+    }
+
+    syncAudioFile(audioFile: File) {
+        // TODO: reference https://webrtc.github.io/samples/src/content/datachannel/filetransfer/
+
+        if (audioFile.size === 0) {
+            console.log("Cannot send empty file"); // TODO: handle
+            return;
+        }
+
+        if (!this._peerManager) {
+            console.log("Peer manager not connected"); // TODO: handle
+            return;
+        }
+
+        const clients = this._peerManager.clients;
+
+        // --- Send the file metadata ---
+        const metadata: AudioFileMetadata = {
+            name: audioFile.name,
+            size: audioFile.size,
+            type: audioFile.type
+        }
+
+        // Send metadata to each client
+        clients.forEach(clientId => {
+            const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true)!;
+            sendChannel.send(JSON.stringify(metadata));
+
+            // console.log("Sent metadata to", clientId, metadata); // TODO: remove
+        });
+
+        this.emitEvent("audiometadatasent", metadata);
+
+
+        // --- Send the file ---
+        const fileReader = new FileReader();
+        let currOffset = 0;
+
+        function readSlice(offset: number) {
+            const slice = audioFile.slice(currOffset, offset + CHUNK_SIZE);
+            fileReader.readAsArrayBuffer(slice);
+        }
+
+        fileReader.addEventListener("load", event => {
+            const chunk = event.target?.result as ArrayBuffer;
+
+            // Send chunk to each client
+            clients.forEach(clientId => {
+                const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true)!;
+                sendChannel.send(chunk);
+
+                // console.log("Sent chunk to", clientId, chunk); // TODO: remove
+            });
+
+            currOffset += chunk.byteLength;
+
+            this.emitEvent("audiochunksent", chunk);
+
+            // If we still have more file to send, read the next chunk
+            if (currOffset < audioFile.size) {
+                readSlice(currOffset);
+            } else { // The entire file is sent
+                this.emitEvent("audiofilesent", audioFile);
+            }
+        });
+
+        // Begin reading the audio file
+        readSlice(0);
     }
 
 

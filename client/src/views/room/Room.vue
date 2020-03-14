@@ -68,20 +68,26 @@
                 >
                 <button
                     @click="playAudio"
-                    :disabled="!isConnected || !isOwner || !loadedAudio || isPlaying"
+                    :disabled="!isConnected || !loadedAudio || isPlaying"
                 >
+                    <!-- TODO: put back -->
+                    <!-- :disabled="!isConnected || !isOwner || !loadedAudio || isPlaying" -->
                     Play
                 </button>
                 <button
                     @click="pauseAudio"
-                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
+                    :disabled="!isConnected || !loadedAudio || !isPlaying"
                 >
+                    <!-- TODO: put back -->
+                    <!-- :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying" -->
                     Pause
                 </button>
                 <button
                     @click="stopAudio"
-                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
+                    :disabled="!isConnected || !loadedAudio || !isPlaying"
                 >
+                    <!-- TODO: put back -->
+                    <!-- :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying" -->
                     Stop
                 </button>
             </div>
@@ -99,6 +105,10 @@ import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
+
+interface FileMetadata {
+
+}
 
 interface Data {
     sendClientId: string;
@@ -121,6 +131,7 @@ type Methods = Pick<MapActionsStructure, Actions.deleteRoomManager> & {
     leaveRoom(): void;
     sayHi(): void;
     onRoomLeft(): void;
+    setupGeneralRoomListeners(roomManager: RoomManager): void;
     setupGeneralRTCListeners(peerManager: PeerManager): void;
     setupGeneralSocketListeners(socket: SignallingSocket): void;
 
@@ -163,11 +174,12 @@ export default Vue.extend({
         if (!isConnected) {
             console.log("WARNING: Not connected to a room... you shouldn't be in here");
         } else {
-            const { setupGeneralRTCListeners, setupGeneralSocketListeners }: Methods = this;
+            const { setupGeneralRoomListeners, setupGeneralRTCListeners, setupGeneralSocketListeners }: Methods = this;
             const roomManager = this.roomManager as RoomManager;
             const peerManager = roomManager.peerManager as PeerManager;
             const signallingSocket = roomManager.signallingSocket as SignallingSocket;
 
+            setupGeneralRoomListeners(roomManager);
             setupGeneralRTCListeners(peerManager);
             setupGeneralSocketListeners(signallingSocket);
         }
@@ -195,10 +207,59 @@ export default Vue.extend({
             // Go back to home page
             router.push('/');
         },
+        setupGeneralRoomListeners(roomManager: RoomManager) {
+            roomManager.addEventListener("audiofilereceived", (audioFile) => {
+                console.log("Received audio file", audioFile);
+
+                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+
+                audioPlayerEl.src = URL.createObjectURL(audioFile);
+                audioPlayerEl.load();
+
+                this.loadedAudio = true;
+            });
+        },
         setupGeneralRTCListeners(peerManager: PeerManager) {
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
                 console.log("Message from", clientId, sourceEvent.data); // TODO: remove
             });
+
+            // Setup audio data receive channel listener
+            // peerManager.addEventListener("audioreceivechannelcreated", ({ clientId, sourceEvent: audioReceiveChannel }) => {
+            //     audioReceiveChannel.addEventListener("message", ({ data }) => {
+            //         console.log("Received data", data);
+
+            //         if (data instanceof String) {
+            //             console.log("Received string");
+            //         } else if (data instanceof ArrayBuffer) {
+            //             // const dataBuff = data as ArrayBuffer;
+            //             // const blob = new Blob([data]);
+
+            //             // const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+
+            //             // audioPlayerEl.src = URL.createObjectURL(blob);
+            //             // audioPlayerEl.load();
+
+            //             // this.loadedAudio = true;
+
+            //             console.log("Received array buffer from", clientId);
+            //         }
+            //         // else if (data instanceof Blob) {
+            //         //     const blob = data as Blob;
+
+            //         //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+
+            //         //     audioPlayerEl.src = URL.createObjectURL(blob);
+            //         //     audioPlayerEl.load();
+
+            //         //     this.loadedAudio = true;
+
+            //         //     console.log("Received audio file from", clientId);
+            //         // }
+
+            //         // TODO: handle other cases like ArrayBuffer
+            //     });
+            // });
         },
         setupGeneralSocketListeners(socket: SignallingSocket) {
             socket.on("room-left", () => {
@@ -227,6 +288,53 @@ export default Vue.extend({
         },
         syncAudioFile(audioFile: File) {
             // TODO: sync to other clients
+            const { connectedRTCClients }: Computed = this; 
+            const roomManager = this.roomManager as RoomManager;
+
+            roomManager.syncAudioFile(audioFile);
+
+
+            // const peerManager = roomManager.peerManager as PeerManager;
+
+            // connectedRTCClients.forEach(async clientId => {
+            //     // TODO: reference https://webrtc.github.io/samples/src/content/datachannel/filetransfer/
+                
+            //     const fileReader = new FileReader();
+
+            //     const chunkSize = 16384;
+            //     let currOffset = 0;
+
+            //     function readSlice(offset: number) {
+            //         const slice = audioFile.slice(currOffset, offset + chunkSize);
+            //         fileReader.readAsArrayBuffer(slice);
+            //     }
+
+            //     fileReader.addEventListener("load", event => {
+            //         const arrayBuffer = event.target.result as ArrayBuffer;
+            //         const sendChannel = peerManager.getSendChannel(clientId, "audioChannel", true);
+            //         sendChannel.send(arrayBuffer);
+
+            //         currOffset += arrayBuffer.byteLength;
+                    
+            //         if (currOffset < audioFile.size) {
+            //             readSlice(currOffset);
+            //         }
+
+            //         console.log("Sent array buffer to", clientId, arrayBuffer); // TODO: remove
+            //     });
+
+            //     readSlice(0);
+
+            //     // fileReader.readAsArrayBuffer(audioFile);
+
+
+            //     // const audioFileArrayBuffer = await new Response(audioFile).arrayBuffer();
+
+            //     // const sendChannel = peerManager.getSendChannel(clientId, "audioChannel", true);
+            //     // sendChannel.send(audioFileArrayBuffer);
+
+            //     // console.log("Sent audio file to", clientId, audioFileArrayBuffer); // TODO: remove
+            // });
         },
         playAudio() {
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;

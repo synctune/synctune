@@ -4,7 +4,8 @@ import {} from "socket.io-client";
 import RTCDataContainer from "@/rtc/RTCDataContainer";
 import SignallingSocket from '@/socket/SignallingSocket';
 import * as Timesync from "timesync";
-
+import { JsonRpcReceive, JsonRpcSend } from "@/timesync/types";
+ 
 type ChannelType = "syncChannel" | "audioChannel";
 
 interface PeerObject {
@@ -27,18 +28,6 @@ export interface PeerManagerEvent<T> {
 interface SyncChannelMessage {
     type: "timesync" | "play" | "stop";
     data: any;
-}
-
-interface JsonRpcSend {
-    "jsonrpc": "2.0";
-    "id": string;
-    "method": "timesync";
-}
-
-interface JsonRpcReceive {
-    "jsonrpc": "2.0";
-    "id": string;
-    "result": number;
 }
 
 export interface PeerManagerEventMap {
@@ -228,9 +217,7 @@ export default class PeerManager extends Emittable {
             this.socket.emit("signal-send", this.room, clientId, { candidate: candidateCleaned });
         });
 
-        // Setup data channel
-        // const sendChannel = pc.createDataChannel("sendDataChannel");
-
+        // Setup data channels
         const syncSendChannel = pc.createDataChannel("syncChannel" as ChannelType);
 
         const audioSendChannel = pc.createDataChannel("audioChannel" as ChannelType);
@@ -266,6 +253,7 @@ export default class PeerManager extends Emittable {
 
                     break;
                 case "audioChannel":
+                    receiveChannel.binaryType = "arraybuffer";
                     this.rtcPeers[clientId].audioReceiveChannel = receiveChannel;
                     this.emitEvent("audioreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
 
@@ -427,7 +415,14 @@ export default class PeerManager extends Emittable {
     get timesync(): Timesync {
         return this._timesync;
     }
-    
+
+    /**
+     * The ids of all the connected RTC clients
+     */
+    get clients(): string[] {
+        return Object.keys(this.rtcPeers);
+    }
+
 
     // -------------------------------------
     // --- EventEmitter Method Overrides ---
