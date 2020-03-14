@@ -100,19 +100,38 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
     // --- Setup PeerManager listeners, when it is added ---
     roomManager.addEventListener("peermanagercreated", (peerManager) => {
         peerManager.addEventListener("rtcconnected", ({ clientId }) => {
+            console.log("RTC Connected", clientId);
             state.connectedRTCClients.push(clientId);
             Vue.set(state, "connectedRTCClients", state.connectedRTCClients);
         });
 
         peerManager.addEventListener("rtcdisconnected", ({ clientId }) => {
+            console.log("RTC Disconnected", clientId);
             const idx = state.connectedRTCClients.indexOf(clientId);
             if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
         });
 
-        peerManager.addEventListener("rtcreceivechannelclose", ({ clientId }) => {
-            const idx = state.connectedRTCClients.indexOf(clientId);
-            if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
-        });
+        // peerManager.addEventListener("syncreceivechannelcreated", ({ clientId, sourceEvent: receiveChannel }) => {
+        //     receiveChannel.addEventListener("close", () => {
+        //         console.log("Close 1");
+        //         const idx = state.connectedRTCClients.indexOf(clientId);
+        //         if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
+        //     });
+        // });
+
+        // peerManager.addEventListener("audioreceivechannelcreated", ({ clientId, sourceEvent: receiveChannel }) => {
+        //     receiveChannel.addEventListener("close", () => {
+        //         console.log("Close 2");
+        //         const idx = state.connectedRTCClients.indexOf(clientId);
+        //         if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
+        //     });
+        // });
+
+        // TODO: remove
+        // peerManager.addEventListener("rtcreceivechannelclose", ({ clientId }) => {
+        //     const idx = state.connectedRTCClients.indexOf(clientId);
+        //     if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
+        // });
     });
 }
 

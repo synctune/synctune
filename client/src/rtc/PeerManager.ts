@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import adapter from 'webrtc-adapter';
 import Emittable from "@/events/Emittable";
 import {} from "socket.io-client";
@@ -31,11 +32,6 @@ export interface SyncChannelMessage {
 }
 
 export interface PeerManagerEventMap {
-    "rtcreceivechannelbufferedamountlow": PeerManagerEvent<Event>;
-    "rtcreceivechannelclose": PeerManagerEvent<Event>;
-    "rtcreceivechannelerror": PeerManagerEvent<RTCErrorEvent>;
-    "rtcreceivechannelmessage": PeerManagerEvent<MessageEvent>;
-    "rtcreceivechannelopen": PeerManagerEvent<Event>;
     "rtcconnected": PeerManagerEvent<Event>;
     "rtcdisconnected": PeerManagerEvent<Event>;
     "rtcfailed": PeerManagerEvent<Event>;
@@ -152,6 +148,8 @@ export default class PeerManager extends Emittable {
      */
     private setupSocketListeners(socket: SignallingSocket) {
         socket.on("signal-receive", async (room: string, senderId: string, data: RTCDataContainer) => {
+            console.log("Received signal from", senderId); // TODO: remove
+
             // TODO: credit this: https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
             try {
                 const { description, candidate } = data;
@@ -232,9 +230,12 @@ export default class PeerManager extends Emittable {
         const audioSendChannel = pc.createDataChannel("audioChannel" as ChannelType);
         audioSendChannel.binaryType = "arraybuffer";
 
+        // Setup receive channel
         pc.addEventListener("datachannel", (event) => {
+            console.log("Received data channel", event.channel.label); // TODO: remove
+
+            const channelName = event.channel.label as ChannelType;
             const receiveChannel = event.channel;
-            const channelName = receiveChannel.label as ChannelType;
 
             switch(channelName) {
                 case "syncChannel":
@@ -270,7 +271,11 @@ export default class PeerManager extends Emittable {
             }
         });
 
+        console.log("Here", pc);
+
         pc.addEventListener("iceconnectionstatechange", (event) => {
+            console.log("iceconnectionstatechange", pc.iceConnectionState); // TODO: remove
+
             switch(pc.iceConnectionState) {
                 case "new":
                     break;
@@ -331,6 +336,8 @@ export default class PeerManager extends Emittable {
     async connectRTC(clientId: string): Promise<void> {
         // Get peer connection, creating it if need be
         const pc = this.getPeerConnection(clientId, true)!;
+
+        console.log("Connecting to", clientId);
 
         // Create offer
         const offer = await pc.createOffer();

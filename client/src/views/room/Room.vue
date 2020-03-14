@@ -41,6 +41,8 @@
                 </ul>
             </div>
 
+
+            <!-- TODO: remove the say hi stuff -->
             <div>
                 <button
                     @click="sayHi"
@@ -267,9 +269,9 @@ export default Vue.extend({
             });
         },
         setupGeneralRTCListeners(peerManager: PeerManager) {
-            peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
-                console.log("Message from", clientId, sourceEvent.data); // TODO: remove
-            });
+            // peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
+            //     console.log("Message from", clientId, sourceEvent.data); // TODO: remove
+            // });
         },
         setupGeneralSocketListeners(socket: SignallingSocket) {
             socket.on("room-left", () => {
@@ -286,7 +288,7 @@ export default Vue.extend({
             const { loadAudioFile, syncAudioFile }: Methods = this;
             const audioFileInputEl = this.$refs.audioFileInputEl as HTMLInputElement;
 
-            const audioFile = audioFileInputEl!.files ? audioFileInputEl!.files[0] : null;
+            const audioFile = audioFileInputEl.files ? audioFileInputEl.files[0] : null;
 
             if (audioFile) {
                 loadAudioFile(audioFile);

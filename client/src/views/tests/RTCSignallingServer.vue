@@ -75,6 +75,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import adapter from 'webrtc-adapter';
 // import io from "socket.io-client";
 import PeerManager from "../../rtc/PeerManager";

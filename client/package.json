@@ -10,6 +10,7 @@
     "dependencies": {
         "core-js": "^3.6.4",
         "socket.io-client": "^2.3.0",
+        "timesync": "^1.0.5",
         "vue": "^2.6.11",
         "vue-router": "^3.1.5",
         "vue-youtube-embed": "^2.2.2",
