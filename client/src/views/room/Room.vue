@@ -177,10 +177,10 @@ export default Vue.extend({
             deleteRoomManager: Actions.deleteRoomManager
         }),
         sayHi() {
-            const { sendClientId }: Data = this;
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
-            peerManager.sendMessage(sendClientId.trim(), "Hello from the other side!");
+            // const { sendClientId }: Data = this;
+            // const roomManager = this.roomManager as RoomManager;
+            // const peerManager = roomManager.peerManager as PeerManager;
+            // peerManager.sendMessage(sendClientId.trim(), "Hello from the other side!");
         },
         leaveRoom() {
             const roomManager = this.roomManager as RoomManager;
