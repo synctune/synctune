@@ -223,43 +223,6 @@ export default Vue.extend({
             peerManager.addEventListener("rtcreceivechannelmessage", ({ clientId, sourceEvent }) => {
                 console.log("Message from", clientId, sourceEvent.data); // TODO: remove
             });
-
-            // Setup audio data receive channel listener
-            // peerManager.addEventListener("audioreceivechannelcreated", ({ clientId, sourceEvent: audioReceiveChannel }) => {
-            //     audioReceiveChannel.addEventListener("message", ({ data }) => {
-            //         console.log("Received data", data);
-
-            //         if (data instanceof String) {
-            //             console.log("Received string");
-            //         } else if (data instanceof ArrayBuffer) {
-            //             // const dataBuff = data as ArrayBuffer;
-            //             // const blob = new Blob([data]);
-
-            //             // const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-
-            //             // audioPlayerEl.src = URL.createObjectURL(blob);
-            //             // audioPlayerEl.load();
-
-            //             // this.loadedAudio = true;
-
-            //             console.log("Received array buffer from", clientId);
-            //         }
-            //         // else if (data instanceof Blob) {
-            //         //     const blob = data as Blob;
-
-            //         //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-
-            //         //     audioPlayerEl.src = URL.createObjectURL(blob);
-            //         //     audioPlayerEl.load();
-
-            //         //     this.loadedAudio = true;
-
-            //         //     console.log("Received audio file from", clientId);
-            //         // }
-
-            //         // TODO: handle other cases like ArrayBuffer
-            //     });
-            // });
         },
         setupGeneralSocketListeners(socket: SignallingSocket) {
             socket.on("room-left", () => {
@@ -292,49 +255,6 @@ export default Vue.extend({
             const roomManager = this.roomManager as RoomManager;
 
             roomManager.syncAudioFile(audioFile);
-
-
-            // const peerManager = roomManager.peerManager as PeerManager;
-
-            // connectedRTCClients.forEach(async clientId => {
-            //     // TODO: reference https://webrtc.github.io/samples/src/content/datachannel/filetransfer/
-                
-            //     const fileReader = new FileReader();
-
-            //     const chunkSize = 16384;
-            //     let currOffset = 0;
-
-            //     function readSlice(offset: number) {
-            //         const slice = audioFile.slice(currOffset, offset + chunkSize);
-            //         fileReader.readAsArrayBuffer(slice);
-            //     }
-
-            //     fileReader.addEventListener("load", event => {
-            //         const arrayBuffer = event.target.result as ArrayBuffer;
-            //         const sendChannel = peerManager.getSendChannel(clientId, "audioChannel", true);
-            //         sendChannel.send(arrayBuffer);
-
-            //         currOffset += arrayBuffer.byteLength;
-                    
-            //         if (currOffset < audioFile.size) {
-            //             readSlice(currOffset);
-            //         }
-
-            //         console.log("Sent array buffer to", clientId, arrayBuffer); // TODO: remove
-            //     });
-
-            //     readSlice(0);
-
-            //     // fileReader.readAsArrayBuffer(audioFile);
-
-
-            //     // const audioFileArrayBuffer = await new Response(audioFile).arrayBuffer();
-
-            //     // const sendChannel = peerManager.getSendChannel(clientId, "audioChannel", true);
-            //     // sendChannel.send(audioFileArrayBuffer);
-
-            //     // console.log("Sent audio file to", clientId, audioFileArrayBuffer); // TODO: remove
-            // });
         },
         playAudio() {
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
