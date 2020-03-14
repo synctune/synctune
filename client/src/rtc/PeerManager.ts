@@ -13,9 +13,6 @@ interface PeerObject {
     syncReceiveChannel?: RTCDataChannel;
     audioSendChannel: RTCDataChannel;
     audioReceiveChannel?: RTCDataChannel;
-
-    // sendChannel: RTCDataChannel;
-    // receiveChannel?: RTCDataChannel;
 }
 
 interface PeersMap {
@@ -135,7 +132,7 @@ export default class PeerManager extends Emittable {
             console.log("Timesync: error", error);
         });
         
-        console.log("timesync", this.timesync); // TODO: remove
+        // console.log("timesync", this.timesync); // TODO: remove
     }
 
     /**
@@ -243,14 +240,6 @@ export default class PeerManager extends Emittable {
             const receiveChannel = event.channel;
             const channelName = receiveChannel.label as ChannelType;
 
-            // this.rtcPeers[clientId].receiveChannel = receiveChannel;
-
-            // receiveChannel.addEventListener("open", this.linkToEventEmitter("rtcreceivechannelopen", clientId));
-            // receiveChannel.addEventListener("message", this.linkToEventEmitter("rtcreceivechannelmessage", clientId));
-            // receiveChannel.addEventListener("close", this.linkToEventEmitter("rtcreceivechannelclose", clientId));
-            // receiveChannel.addEventListener("error", this.linkToEventEmitter("rtcreceivechannelerror", clientId));
-            // receiveChannel.addEventListener("bufferedamountlow", this.linkToEventEmitter("rtcreceivechannelbufferedamountlow", clientId));
-
             switch(channelName) {
                 case "syncChannel":
                     this.rtcPeers[clientId].syncReceiveChannel = receiveChannel;
@@ -314,8 +303,6 @@ export default class PeerManager extends Emittable {
             peer: pc,
             syncSendChannel: syncSendChannel,
             audioSendChannel: audioSendChannel
-
-            // sendChannel: sendChannel,
         };
     }
 
@@ -371,8 +358,8 @@ export default class PeerManager extends Emittable {
         // Close channels
         peerObj.syncSendChannel.close();
         peerObj.syncReceiveChannel?.close();
-        // peerObj.sendChannel.close();
-        // peerObj.receiveChannel?.close();
+        peerObj.audioSendChannel.close();
+        peerObj.audioReceiveChannel?.close();
 
         peerObj.peer.close();
     }
@@ -383,25 +370,6 @@ export default class PeerManager extends Emittable {
     disconnectAll(): void {
         Object.keys(this.rtcPeers).forEach(clientId => this.disconnectRTC(clientId));
     }
-
-    /**
-     * Sends a message to the client
-     * 
-     * @param clientId The client id
-     * @param message The message
-     */
-    // sendMessage(clientId: string, message: any) {
-    //     // TODO: check if send channel is ready
-    //     const sendChannel = this.getSendChannel(clientId, false);
-
-    //     if (!sendChannel) {
-    //         // TODO: handle error properly
-    //         console.error(`Unable to send message to client '${clientId}'`);
-    //         return;
-    //     }
-
-    //     sendChannel.send(message);
-    // }
 
     /**
      * Returns if an RTC peer connection object exists with the given client
@@ -424,18 +392,6 @@ export default class PeerManager extends Emittable {
         if (!peerObject) return null;
         return peerObject.peer; // ? is called "optional-chaining"
     }
-
-    /**
-     * Get the RTC data channel to the given client
-     * 
-     * @param clientId The client id
-     * @param createIfMissing Create the peer connection if it is missing
-     */
-    // getSendChannel(clientId: string, createIfMissing = true): RTCDataChannel | null {
-    //     const peerObject = this.getPeerObject(clientId, createIfMissing);
-    //     if (!peerObject) return null;
-    //     return peerObject.sendChannel;
-    // }
 
     /**
      * Get the RTC send data channel to the given client and type
@@ -469,13 +425,6 @@ export default class PeerManager extends Emittable {
     // -------------------------------------
     // --- EventEmitter Method Overrides ---
     // -------------------------------------
-
-    private linkToEventEmitter<K extends keyof PeerManagerEventMap>(eventName: K, clientId: string) {
-        return (sourceEvent: any) => {
-            const event: PeerManagerEvent<any> = { clientId, sourceEvent };
-            this.emitEvent(eventName, event);
-        }
-    }
 
     protected emitEvent<K extends keyof PeerManagerEventMap>(eventName: K, event: PeerManagerEventMap[K]) {
         super.emitEvent(eventName, event);
