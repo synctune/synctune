@@ -27,7 +27,7 @@ export interface PeerManagerEvent<T> {
 }
 
 export interface SyncChannelMessage {
-    type: "timesync" | "play" | "stop";
+    type: "timesync" | "audiofilereceived" | "play" | "pause" | "stop";
     data: any;
 }
 

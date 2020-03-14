@@ -29,7 +29,10 @@ interface RoomManagerEventMap {
     "audiofilereceived": Blob;
 
     "playsignalreceived": number;
+    "pausesignalreceived": number;
     "stopsignalreceived": number;
+
+    "clientreceivedaudiofile": string;
 
     // TODO: implement this later for the YouTube player
     // "audiourlreceived": string;
@@ -138,6 +141,17 @@ export default class RoomManager extends Emittable {
                         this._receivedSize = 0;
 
                         this.emitEvent("audiofilereceived", dataBlob);
+
+                        peerManager.clients.forEach(ownerId => {
+                            const syncSendChannel = peerManager.getSendChannel(ownerId, "syncChannel", true)!;
+
+                            const message: SyncChannelMessage = {
+                                type: "audiofilereceived",
+                                data: clientId
+                            }
+
+                            syncSendChannel.send(JSON.stringify(message));
+                        });
                     }
                 }
             });
@@ -158,13 +172,24 @@ export default class RoomManager extends Emittable {
                 syncReceiveChannel.addEventListener("message", (event) => {
                     try {
                         const message: SyncChannelMessage = JSON.parse(event.data) as unknown as SyncChannelMessage;
-                        
-                        if (message.type === "play") {
-                            const startTime = message.data as PlaySignalData;
 
-                            this.emitEvent("playsignalreceived", startTime);
-                        } else if (message.type === "stop") {
-                            this.emitEvent("stopsignalreceived", peerManager.timesync.now());
+                        switch(message.type) {
+                            case "play":
+                                const startTime = message.data as PlaySignalData;
+                                this.emitEvent("playsignalreceived", startTime);
+                                break;
+                            case "pause":
+                                const pauseSentTime = message.data as number;
+                                this.emitEvent("pausesignalreceived", pauseSentTime);
+                                break;
+                            case "stop":
+                                const stopSentTime = message.data as number;
+                                this.emitEvent("stopsignalreceived", stopSentTime);
+                                break;
+                            case "audiofilereceived":
+                                const receivedClientId = message.data as string;
+                                this.emitEvent("clientreceivedaudiofile", receivedClientId);
+                                break;
                         }
                     } catch(err) {
                         // Ignore any parsing/casting fails, it means that a malformed message was sent
@@ -317,24 +342,72 @@ export default class RoomManager extends Emittable {
             return -1;
         }
 
-        const timesync = this.peerManager.timesync;
+        // const timesync = this.peerManager.timesync;
         // const now = timesync.now();
+        // TODO: use synced time
         const now = Date.now();
         const startTime = now + delay;
+
+        const message: SyncChannelMessage = {
+            type: "play",
+            data: startTime
+        };
 
         const clients = this.peerManager.clients;
         clients.forEach(clientId => {
             const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
-
-            const message: SyncChannelMessage = {
-                type: "play",
-                data: startTime
-            };
-
             sendChannel.send(JSON.stringify(message));
         });
 
         return startTime;
+    }
+
+    /**
+     * Sends the pause signal to all connected clients
+     */
+    sendPauseSignal() {
+        if (!this.peerManager) {
+            console.log("Peer manager not connected"); // TODO: handle
+            return -1;
+        }
+
+        // TODO: use synced time
+        const now = Date.now();
+
+        const message: SyncChannelMessage = {
+            type: "pause",
+            data: now
+        };
+
+        const clients = this.peerManager.clients;
+        clients.forEach(clientId => {
+            const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
+            sendChannel.send(JSON.stringify(message));
+        });
+    }
+
+    /**
+     * Sends the stop signal to all connected clients
+     */
+    sendStopSignal() {
+        if (!this.peerManager) {
+            console.log("Peer manager not connected"); // TODO: handle
+            return -1;
+        }
+
+        // TODO: use synced time
+        const now = Date.now();
+
+        const message: SyncChannelMessage = {
+            type: "stop",
+            data: now
+        };
+
+        const clients = this.peerManager.clients;
+        clients.forEach(clientId => {
+            const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
+            sendChannel.send(JSON.stringify(message));
+        });
     }
 
 

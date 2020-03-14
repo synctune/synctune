@@ -71,26 +71,20 @@
                 >
                 <button
                     @click="playAudio"
-                    :disabled="!isConnected || !loadedAudio || isPlaying"
+                    :disabled="!isConnected || !isOwner || !loadedAudio || isPlaying"
                 >
-                    <!-- TODO: put back -->
-                    <!-- :disabled="!isConnected || !isOwner || !loadedAudio || isPlaying" -->
                     Play
                 </button>
                 <button
                     @click="pauseAudio"
-                    :disabled="!isConnected || !loadedAudio || !isPlaying"
+                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
                 >
-                    <!-- TODO: put back -->
-                    <!-- :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying" -->
                     Pause
                 </button>
                 <button
                     @click="stopAudio"
-                    :disabled="!isConnected || !loadedAudio || !isPlaying"
+                    :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying"
                 >
-                    <!-- TODO: put back -->
-                    <!-- :disabled="!isConnected || !isOwner || !loadedAudio || !isPlaying" -->
                     Stop
                 </button>
             </div>
@@ -245,18 +239,35 @@ export default Vue.extend({
 
                 // TODO: might have to check for null peer manager
 
-                const delay = startTime - Math.abs(now); // TODO: remove the abs hack
-                console.log("Timer delay", delay); // TODO: remove
-                const timer = new HighResolutionTimer(delay, () => {
-                    const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-                    if (!audioPlayerEl.src) return;
+                // const delay = startTime - Math.abs(now); // TODO: remove the abs hack
+                // console.log("Timer delay", delay); // TODO: remove
+                // const timer = new HighResolutionTimer(delay, () => {
+                //     const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+                //     if (!audioPlayerEl.src) return;
 
-                    console.log("Playing audio"); // TODO: remove
-                    audioPlayerEl.play();
-                    this.isPlaying = true;
-                    timer.stop();
-                });
-                timer.run();
+                //     console.log("Playing audio"); // TODO: remove
+                //     audioPlayerEl.play();
+                //     this.isPlaying = true;
+                //     timer.stop();
+                // });
+                // timer.run();
+
+                // TODO: actually use start time signal instead of just playing when the signal arrives
+                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+                if (!audioPlayerEl.src) return;
+
+                console.log("Playing audio"); // TODO: remove
+                audioPlayerEl.play();
+                this.isPlaying = true;
+            });
+
+            roomManager.addEventListener("pausesignalreceived", sentTime => {
+                console.log("Pause signal received, sent at", sentTime);
+
+                const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+                if (!audioPlayerEl.src) return;
+
+                audioPlayerEl.pause();
             });
 
             roomManager.addEventListener("stopsignalreceived", sentTime => {
@@ -266,6 +277,7 @@ export default Vue.extend({
                 if (!audioPlayerEl.src) return;
 
                 audioPlayerEl.pause();
+                audioPlayerEl.load();
             });
         },
         setupGeneralRTCListeners(peerManager: PeerManager) {
@@ -323,31 +335,38 @@ export default Vue.extend({
 
             const startTime = roomManager.sendPlaySignal(100);
 
-            const delay = startTime - Math.abs(now); // TODO: remove the abs hack
-            console.log("Timer delay", delay); // TODO: remove
-            const timer = new HighResolutionTimer(delay, () => {
-                console.log("Playing audio"); // TODO: remove
-                audioPlayerEl.play();
-                this.isPlaying = true;
-                timer.stop();
-            });
-            timer.run();
+            // const delay = startTime - Math.abs(now); // TODO: remove the abs hack
+            // console.log("Timer delay", delay); // TODO: remove
+            // const timer = new HighResolutionTimer(delay, () => {
+            //     console.log("Playing audio"); // TODO: remove
+            //     audioPlayerEl.play();
+            //     this.isPlaying = true;
+            //     timer.stop();
+            // });
+            // timer.run();
 
-            // audioPlayerEl.play();
-            // this.isPlaying = true;
+            // TODO: delay start time instead of just playing right away
+            audioPlayerEl.play();
+            this.isPlaying = true;
         },
         pauseAudio() {
+            const roomManager = this.roomManager as RoomManager;
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
             if (!audioPlayerEl.src) return;
+
+            roomManager.sendPauseSignal();
 
             audioPlayerEl.pause();
             this.isPlaying = false;
         },
         stopAudio() {
+            const roomManager = this.roomManager as RoomManager;
             const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
             if (!audioPlayerEl.src) return;
+
+            roomManager.sendStopSignal();
 
             audioPlayerEl.pause();
             audioPlayerEl.load();
