@@ -46,6 +46,20 @@
             <br>
 
             <div>
+                Synced Clients
+                <ul>
+                    <li
+                        :key="`syncedClient-${clientId}`"
+                        v-for="(clientId) in syncedClients"
+                    >
+                        {{ clientId }}
+                    </li>
+                </ul>
+            </div>
+
+            <br>
+
+            <div>
                 <div>Play audio file</div>
                 <input 
                     ref="audioFileInputEl"
@@ -110,6 +124,7 @@ type Computed = {} &
         AudioStore.Getters.isPlaying
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
+        | AudioStore.Getters.syncedClients
     >
 
 type Methods = {
@@ -145,7 +160,8 @@ export default Vue.extend({
             id: RoomStore.Getters.id,
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
-            audioLoaded: AudioStore.Getters.audioLoaded
+            audioLoaded: AudioStore.Getters.audioLoaded,
+            syncedClients: AudioStore.Getters.syncedClients
         })
     },
     mounted() {
@@ -197,7 +213,7 @@ export default Vue.extend({
             const peerManager = roomManager.peerManager as PeerManager;
             
             // TODO: figure out proper delay timing
-            const startTime = roomManager.sendPlaySignal(100);
+            const startTime = roomManager.sendPlaySignal(0, 100);
         },
         pauseAudio() {
             const roomManager = this.roomManager as RoomManager;

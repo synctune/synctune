@@ -33,7 +33,7 @@ export interface SyncChannelMessage {
 
 export interface PeerManagerEventMap {
     "rtcconnected": PeerManagerEvent<Event>;
-    "rtcdisconnected": PeerManagerEvent<Event>;
+    "rtcdisconnected": PeerManagerEvent<Event | null>;
     "rtcfailed": PeerManagerEvent<Event>;
 
     "syncreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
@@ -93,35 +93,36 @@ export default class PeerManager extends Emittable {
             console.log("Timesync: running send");
 
             return new Promise((resolve, reject) => {
-                const sendChannel = this.getSendChannel(to, "syncChannel", true);
-                if (!sendChannel) return reject();
+                const sendChannel = this.getSendChannel(to, "syncChannel", false);
+                if (!sendChannel) {
+                    console.log("Timesync: Send rejected, no send channel"); // TODO: remove
+                    return reject();
+                }
 
                 const message: SyncChannelMessage = {
                     type: "timesync",
                     data: data
                 };
 
-                sendChannel.send(JSON.stringify(message));
-
                 let intervalId: number | null = null;
                 if (timeout) {
                     intervalId = setInterval(() => {
-                        // console.log("Timesync: Rejecting for timeout"); // TODO: remove
+                        console.log("Timesync: Rejected for timeout"); // TODO: remove
                         reject();
                     }, timeout);
                 }
 
-                sendChannel.addEventListener("message", () => {
-                    // console.log("timesync: resolving send message"); // TODO: remove
+                try {
+                    sendChannel.send(JSON.stringify(message));
+
+                    console.log("Timesync: resolving send message"); // TODO: remove
                     if (intervalId) clearInterval(intervalId);
                     resolve();
-                })
-
-                sendChannel.addEventListener("error", (error) => {
-                    // console.log("Timesync: Rejecting for error", error); // TODO: remove
+                } catch(err) {
+                    console.log("Timesync: Rejecting for error", err); // TODO: remove
                     if (intervalId) clearInterval(intervalId);
                     reject();
-                });
+                }
             });
         };
 
@@ -271,8 +272,6 @@ export default class PeerManager extends Emittable {
             }
         });
 
-        console.log("Here", pc);
-
         pc.addEventListener("iceconnectionstatechange", (event) => {
             console.log("iceconnectionstatechange", pc.iceConnectionState); // TODO: remove
 
@@ -283,6 +282,7 @@ export default class PeerManager extends Emittable {
                     break;
                 case "connected":
                     this.emitEvent("rtcconnected", { clientId, sourceEvent: event });
+                    console.log("rtcconnected", pc, audioSendChannel); // TODO: remove
                     break;
                 case "completed":
                     break;
@@ -337,8 +337,6 @@ export default class PeerManager extends Emittable {
         // Get peer connection, creating it if need be
         const pc = this.getPeerConnection(clientId, true)!;
 
-        console.log("Connecting to", clientId);
-
         // Create offer
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -357,8 +355,6 @@ export default class PeerManager extends Emittable {
 
         if (!peerObj) return;
 
-        console.log("Closing connections for", clientId); // TODO: remove
-
         // Close channels
         peerObj.syncSendChannel.close();
         peerObj.syncReceiveChannel?.close();
@@ -366,6 +362,9 @@ export default class PeerManager extends Emittable {
         peerObj.audioReceiveChannel?.close();
 
         peerObj.peer.close();
+
+        this.cleanupClosedPeer(clientId);
+        this.emitEvent("rtcdisconnected", { clientId, sourceEvent: null });
     }
 
     /**

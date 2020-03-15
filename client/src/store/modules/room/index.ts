@@ -110,26 +110,6 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
             const idx = state.connectedRTCClients.indexOf(clientId);
             if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
         });
-
-        peerManager.addEventListener("syncreceivechannelcreated", ({ clientId, sourceEvent: receiveChannel }) => {
-            receiveChannel.addEventListener("close", () => {
-                const idx = state.connectedRTCClients.indexOf(clientId);
-                if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
-            });
-        });
-
-        peerManager.addEventListener("audioreceivechannelcreated", ({ clientId, sourceEvent: receiveChannel }) => {
-            receiveChannel.addEventListener("close", () => {
-                const idx = state.connectedRTCClients.indexOf(clientId);
-                if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
-            });
-        });
-
-        // TODO: remove
-        // peerManager.addEventListener("rtcreceivechannelclose", ({ clientId }) => {
-        //     const idx = state.connectedRTCClients.indexOf(clientId);
-        //     if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
-        // });
     });
 }
 

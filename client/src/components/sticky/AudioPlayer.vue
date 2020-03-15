@@ -8,6 +8,7 @@ import { mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import RoomManager from '../../rtc/RoomManager';
+import SignallingSocket from '../../socket/SignallingSocket';
 
 type Computed = {}
     & Pick<RoomStore.MapGettersStructure,
@@ -18,19 +19,24 @@ type Computed = {}
         AudioStore.Getters.isPlaying 
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
+        | AudioStore.Getters.syncedClients
     >;
 
 type Methods = {
     setupRoomManagerListeners(roomManager: RoomManager): void;
     loadAudioFile(audioFile: Blob): void;
     unloadAudioFile(): void;
-    playAudio(startTime: number): void;
+    playAudio(startLocation: number, startTime: number): void;
     pauseAudio(): void;
     stopAudio(): void;
+    clientSynced(clientId: string): void;
+    clientLeft(clientId: string): void;
+    resetSyncList(): void;
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
     | AudioStore.Actions.setAudioFile
     | AudioStore.Actions.setAudioLoaded
+    | AudioStore.Actions.setSyncedClients
 >;
 
 
@@ -41,19 +47,30 @@ export default Vue.extend({
             isConnected: RoomStore.Getters.isConnected,
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
-            audioLoaded: AudioStore.Getters.audioLoaded
+            audioLoaded: AudioStore.Getters.audioLoaded,
+            syncedClients: AudioStore.Getters.syncedClients
         })
     },
     methods: {
         ...mapActions({
             setIsPlaying: AudioStore.Actions.setIsPlaying,
             setAudioFile: AudioStore.Actions.setAudioFile,
-            setAudioLoaded: AudioStore.Actions.setAudioLoaded
+            setAudioLoaded: AudioStore.Actions.setAudioLoaded,
+            setSyncedClients: AudioStore.Actions.setSyncedClients
         }),
         setupRoomManagerListeners(roomManager: RoomManager) {
-            const { loadAudioFile }: Methods = this;
+            const { 
+                loadAudioFile, 
+                unloadAudioFile, 
+                playAudio, 
+                pauseAudio, 
+                stopAudio,
+                clientSynced, 
+                resetSyncList, 
+                clientLeft }: Methods = this;
 
             roomManager.addEventListener("audiofilesyncing", (audioFile) => {
+                resetSyncList();
                 loadAudioFile(audioFile);
             });
 
@@ -61,19 +78,33 @@ export default Vue.extend({
                 loadAudioFile(audioFile);
             });
 
-            roomManager.addEventListener("playsignalreceived", (startTime) => {
-                const { playAudio }: Methods = this;
-                playAudio(startTime);
+            roomManager.addEventListener("playsignalreceived", (data) => {
+                playAudio(data.startLocation, data.startTime);
             });
 
             roomManager.addEventListener("pausesignalreceived", (sentTime) => {
-                const { pauseAudio }: Methods = this;
                 pauseAudio();
             });
 
             roomManager.addEventListener("stopsignalreceived", (sentTime) => {
-                const { stopAudio }: Methods = this;
                 stopAudio();
+            });
+
+            if (roomManager.isOwner) {
+                roomManager.addEventListener("clientreceivedaudiofile", clientId => {
+                    clientSynced(clientId);
+                });
+            }
+
+            const signallingSocket = roomManager.signallingSocket as SignallingSocket;
+            signallingSocket.on("room-left", () => {
+                stopAudio();
+                resetSyncList();
+                unloadAudioFile();
+            });
+
+            signallingSocket.on("client-left", (_, clientId: string) => {
+                clientLeft(clientId);
             });
         },
         loadAudioFile(audioFile: Blob) {
@@ -101,7 +132,7 @@ export default Vue.extend({
             setAudioLoaded({ loaded: false });
             setIsPlaying({ playing: false });
         },
-        playAudio(startTime: number) {
+        playAudio(startLocation: number, startTime: number) {
             // TODO: delay the start time using the synchronized time
             // TODO: handle if audio has not been loaded yet
 
@@ -115,6 +146,7 @@ export default Vue.extend({
             }
 
             console.log("Playing audio"); // TODO: remove
+            audioPlayerEl.currentTime = startLocation;
             audioPlayerEl.play();
             setIsPlaying({ playing: true });
         },
@@ -134,8 +166,28 @@ export default Vue.extend({
             if (!audioPlayerEl.src) return;
 
             audioPlayerEl.pause();
-            audioPlayerEl.load();
+            audioPlayerEl.currentTime = 0;
             setIsPlaying({ playing: false });
+        },
+        clientSynced(clientId: string) {
+            const { syncedClients }: Computed = this;
+            const { setSyncedClients }: Methods = this;
+            setSyncedClients({ syncedClients: [...syncedClients, clientId] });
+        },
+        clientLeft(clientId: string) {
+            const { syncedClients }: Computed = this;
+            const { setSyncedClients }: Methods = this;
+
+            const idx = syncedClients.indexOf(clientId);
+            if (idx >= 0) {
+                const newSyncList = [...syncedClients];
+                newSyncList.splice(idx, 1);
+                setSyncedClients({ syncedClients: newSyncList });
+            }
+        },
+        resetSyncList() {
+            const { setSyncedClients }: Methods = this;
+            setSyncedClients({ syncedClients: [] });
         }
     },
     watch: {
