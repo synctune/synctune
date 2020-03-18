@@ -96,12 +96,12 @@ export default class RoomManager extends Emittable {
     // -----------------------
 
     private setupSignallingSocketListeners(socket: SignallingSocket) {
-        socket.on("room-left", (room, kicked) => {
+        socket.on("room-left", () => {
             // Disconnect all peers
             this._peerManager?.disconnectAll();
         });
 
-        socket.on("client-left", (room, clientId) => {
+        socket.on("client-left", (_, clientId) => {
             // Disconnect the client's RTC connection
             this._peerManager?.disconnectRTC(clientId);
         });
@@ -115,7 +115,7 @@ export default class RoomManager extends Emittable {
     }
 
     private setupPeerManagerListeners(peerManager: PeerManager) {
-        peerManager.addEventListener("audioreceivechannelcreated", ({ clientId: senderId, sourceEvent: audioReceiveChannel}) => {
+        peerManager.addEventListener("audioreceivechannelcreated", ({ sourceEvent: audioReceiveChannel}) => {
             // Setup audio file receiving
             audioReceiveChannel.addEventListener("message", ({ data }) => {
                 // console.log("Received data", data); // TODO: remove
@@ -152,7 +152,7 @@ export default class RoomManager extends Emittable {
                         this.emitEvent("audiofilereceived", dataBlob);
 
                         peerManager.clients.forEach(ownerId => {
-                            const syncSendChannel = peerManager.getSendChannel(ownerId, "syncChannel", true)!;
+                            const syncSendChannel = peerManager.getSendChannel(ownerId, "syncChannel", true);
 
                             console.log("Sending audiofilereceived to", ownerId); // TODO: remove
 
@@ -161,7 +161,7 @@ export default class RoomManager extends Emittable {
                                 data: this._id
                             }
 
-                            syncSendChannel.send(JSON.stringify(message));
+                            syncSendChannel!.send(JSON.stringify(message));
                         });
                     }
                 }
@@ -177,7 +177,7 @@ export default class RoomManager extends Emittable {
             peerManager.timesync.sync();
         });
 
-        peerManager.addEventListener("syncreceivechannelcreated", ({ clientId, sourceEvent: syncReceiveChannel }) => {
+        peerManager.addEventListener("syncreceivechannelcreated", ({ sourceEvent: syncReceiveChannel }) => {
             // Setup play/stop signal receive listener
             syncReceiveChannel.addEventListener("message", (event) => {
                 try {
@@ -295,9 +295,9 @@ export default class RoomManager extends Emittable {
 
         // Send metadata to each client
         clients.forEach(clientId => {
-            const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true)!;
+            const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true);
             console.log("metadata: send channel", sendChannel); // TODO: remove
-            sendChannel.send(JSON.stringify(metadata));
+            sendChannel!.send(JSON.stringify(metadata));
 
             // console.log("Sent metadata to", clientId, metadata); // TODO: remove
         });
