@@ -29,6 +29,8 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": ["warn"],
         "no-empty-function": "off",
         "@typescript-eslint/no-empty-function": "warn",
-        "@typescript-eslint/triple-slash-reference": "warn"
+        "@typescript-eslint/triple-slash-reference": "warn",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
     }
 };

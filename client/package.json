@@ -14,6 +14,7 @@
         "overlayscrollbars-vue": "^0.2.0",
         "promise": "^8.1.0",
         "socket.io-client": "^2.3.0",
+        "themer": "github:alex-greff/themer#a16f85b9f15519a6b9a3fea1e208fd90990464bf",
         "timesync": "^1.0.5",
         "vue": "^2.6.11",
         "vue-material-design-icons": "^4.4.0",
@@ -24,6 +25,7 @@
         "webrtc-adapter": "^7.5.0"
     },
     "devDependencies": {
+        "@types/gsap": "^1.20.2",
         "@types/overlayscrollbars": "^1.9.0",
         "@types/socket.io-client": "^1.4.32",
         "@typescript-eslint/eslint-plugin": "^2.18.0",
