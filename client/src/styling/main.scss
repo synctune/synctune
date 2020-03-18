@@ -1,3 +1,6 @@
+// make color-link is globally available everywhere
+@import "~themer/tools/sass/index.scss"; 
+
 * {
     // Global resets
     margin: 0;
