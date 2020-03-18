@@ -3,30 +3,48 @@ import { Schema, Mixins } from "themer";
 
 export const schema: Schema = {
     GLOBAL: {
-        background_color: {
-            $mixins: ['primary_modifier', 'secondary_modifier']
+        background: {
+            $mixins: ['primary_modifier', 'secondary_modifier', 'disabled_modifier']
         },
-        text_color: {
-            $mixins: ['primary_modifier', 'secondary_modifier']
+        text: {
+            $mixins: ['primary_modifier', 'secondary_modifier', 'disabled_modifier']
         },
-        text_color_inverted: {
-            $mixins: ['primary_modifier', 'secondary_modifier']
+        text_inverted: {
+            $mixins: ['primary_modifier', 'secondary_modifier', 'disabled_modifier']
         },
-        accent_color: {
+        accent: {
+            $mixins: ['primary_modifier', 'secondary_modifier', 'tertiary_modifier', 'disabled_modifier']
+        },
+        selected: {
             $mixins: ['primary_modifier', 'secondary_modifier', 'tertiary_modifier']
         },
-        background_gradient_color: {
+        background_gradient: {
             $mixins: ['start_modifier', 'end_modifier']
         },
-        gradient_color: {
+        gradient: {
             $mixins: ['start_modifier', 'end_modifier']
         },
-        error_color: {
+        gradient_selected: {
+            $mixins: ['start_modifier', 'end_modifier']
+        },
+        gradient_disabled: {
+            $mixins: ['start_modifier', 'end_modifier']
+        },
+        error: {
             $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
         }
     },
     // Components
     AudioVisualizer: {
+        $inherits: "GLOBAL"
+    },
+    Container: {
+        $inherits: "GLOBAL"
+    },
+    ButtonPrimary: {
+        $inherits: "GLOBAL"
+    },
+    ButtonSecondary: {
         $inherits: "GLOBAL"
     }
 };
@@ -53,6 +71,12 @@ export const mixins: Mixins = {
     },
     quaternary_modifier: {
         quaternary: {
+            $type: "color",
+            $required: true
+        }
+    },
+    disabled_modifier: {
+        disabled: {
             $type: "color",
             $required: true
         }
