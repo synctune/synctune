@@ -64,19 +64,21 @@ export default Vue.extend({
 
             background-color: color-link("ButtonSecondary", "accent", "secondary");
 
-            border-radius: $radius-amount;
-
             transition: transform $modifer-duration, background-color $modifer-duration, box-shadow $modifer-duration;
         }
 
         & .ButtonSecondary__accent-left {
             left: 0;
 
+            border-radius: $radius-amount 0 0 $radius-amount;
+
             box-shadow: -2px 0px 4px 0px color-link("ButtonSecondary", "accent", "secondary", 0.4);
         }
 
         & .ButtonSecondary__accent-right {
             right: 0;
+            
+            border-radius: 0 $radius-amount $radius-amount 0;
             
             box-shadow: 2px 0px 4px 0px color-link("ButtonSecondary", "accent", "secondary", 0.4);
         }

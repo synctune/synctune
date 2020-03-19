@@ -1,17 +1,20 @@
 <template>
     <div 
         :class="[
-            'Container__accent', 
-            accentClass, 
-            verticalAccents ? 'vertical-accents' : 'horizontal-accents']"
-        :style="[accentStyle]"
-        :id="[accentId]"
+            'Container', 
+            verticalAccents ? 'vertical-accents' : 'horizontal-accents'
+        ]"
     >
         <div 
-            :class="['Container', baseClass]"
-            :style="[baseStyle]"
-            :id="[baseId]"
+            :class="['Container__container', baseClass]"
+            :style="baseStyle"
+            :id="baseId"
         >
+            <div 
+                :class="['Container__accent', accentClass]"
+                :style="accentStyle"
+                :id="accentId"
+            ></div>
             <slot></slot>
         </div>
     </div>
@@ -22,17 +25,9 @@ import Vue from 'vue';
 
 export default Vue.extend({
     props: {
-        accentClass: {
-            type: String,
-            default: null
-        },
-        accentStyle: {
-            type: Object,
-            default: null
-        },
-        accentId: {
-            type: String,
-            default: null
+        verticalAccents: {
+            type: Boolean,
+            default: true
         },
         baseClass: {
             type: String,
@@ -46,9 +41,17 @@ export default Vue.extend({
             type: String,
             default: null
         },
-        verticalAccents: {
-            type: Boolean,
-            default: true
+        accentClass: {
+            type: String,
+            default: null
+        },
+        accentStyle: {
+            type: Object,
+            default: null
+        },
+        accentId: {
+            type: String,
+            default: null
         }
     }
 });
@@ -57,32 +60,46 @@ export default Vue.extend({
 <style lang="scss" scoped>
     $radius-amount: 0.7rem;
 
-    .Container__accent {
-        $accent-size: 0.7rem;
-
-        background-color: color-link("Container", "accent", "primary");
-
-        border-radius: $radius-amount;
-
-        box-shadow: 0px 4px 10px -2px rgba(0,0,0,0.25);
-
-        &.vertical-accents {
-            padding: $accent-size 0 $accent-size 0;
-        }
-
-        &.horizontal-accents {
-            padding: 0 $accent-size 0 $accent-size;
-        }
-    }
-
     .Container {
+        $accent-size: 0.7rem;
+        $radius-amount: 0.7rem;
         $padding-amount: 0.5rem;
         $padding-amount-sides: 0.5rem;
 
-        background-color: color-link("Container", "background", "primary");
+        position: relative;
 
-        border-radius: $radius-amount;
+        z-index: 1;
 
-        padding: $padding-amount $padding-amount-sides $padding-amount $padding-amount-sides;
+        & .Container__container {
+            background-color: color-link("Container", "background", "primary");
+            border-radius: $radius-amount;
+            padding: $padding-amount $padding-amount-sides $padding-amount $padding-amount-sides;
+        }
+
+        & .Container__accent {
+            background-color: color-link("Container", "accent", "primary");
+            border-radius: $radius-amount;
+            box-shadow: 0px 4px 10px -2px rgba(0,0,0,0.25);
+
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+
+            z-index: -1;
+        }
+
+        &.vertical-accents {
+            & .Container__container {
+                margin: 0 $accent-size 0 $accent-size;
+            }
+        }
+
+        &.horizontal-accents {
+            & .Container__container {
+                margin: $accent-size 0 $accent-size 0;
+            }
+        }
     }
 </style>
