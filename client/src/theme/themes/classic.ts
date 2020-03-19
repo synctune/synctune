@@ -21,6 +21,7 @@ const PINK_2 = "#FFADFC";
 const PINK_3 = "#F9D6FF";
 const PINK_4 = "#FC7AFF";
 const PINK_5 = "#F9EFFD";
+const PINK_6 = "#EA98FF";
 
 const BLUE_1 = "#87FFF8";
 const BLUE_2 = "#86DDD7";
@@ -97,6 +98,11 @@ export default {
                 tertiary: PINK_5,
                 disabled: Color(PINK_1).lighten(0.05).round().toString()
             },
+        },
+        Home: {
+            accent: {
+                tertiary: PINK_6
+            }
         }
     }
 }

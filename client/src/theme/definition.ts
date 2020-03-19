@@ -46,7 +46,26 @@ export const schema: Schema = {
     },
     ButtonSecondary: {
         $inherits: "GLOBAL"
-    }
+    },
+    RoomConnectionForm: {
+        $inherits: "GLOBAL"
+    },
+    RoomConnectionHandler: {
+        $inherits: "GLOBAL"
+    },
+    // Views
+    Home: {
+        $inherits: "GLOBAL"
+    },
+    Room: {
+        $inherits: "GLOBAL"
+    },
+    RoomCreate: {
+        $inherits: "GLOBAL"
+    },
+    RoomJoin: {
+        $inherits: "GLOBAL"
+    },
 };
 
 export const mixins: Mixins = {
