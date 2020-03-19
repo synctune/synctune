@@ -11,6 +11,7 @@
 
         <input-field 
             class="RoomConnectRoom__name"
+            placeholder="Enter Room Name"
             v-model="roomName"
         />
 
