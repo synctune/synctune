@@ -23,7 +23,7 @@ module.exports = {
             // pass options to sass-loader
             sass: {
                 // Make the SCSS functions/mixins imported in main.scss available to all Vue components
-                prependData: `@import "@/styling/main.scss";`
+                prependData: `@import "@/styling/global.scss";`
             },
         }
     }
