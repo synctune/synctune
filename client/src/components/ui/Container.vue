@@ -71,16 +71,15 @@ export default Vue.extend({
 
         border-radius: $radius-amount;
         box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.25);
-        overflow: auto;
 
         z-index: 1;
+
+        display: inline-block;
 
         & .Container__container {
             background-color: color-link("Container", "background", "primary");
             border-radius: $radius-amount;
             padding: $padding-amount $padding-amount-sides $padding-amount $padding-amount-sides;
-
-            height: 100%;
         }
 
         & .Container__accent {
