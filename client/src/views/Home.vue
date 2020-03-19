@@ -1,21 +1,8 @@
 <template>
-    <div class="home">
-        <room-connection-form />
-
-        <br>
-
-        <container :vertical-accents="false">
-            Hi
-            <br>
-            Hi
-            <br>
-            Hi
-            <br>
-            Hi
-            <br>
-            Hi
-            <br>
-        </container>
+    <div id="Home">
+        <room-connection-form 
+            id="Home__room-connection-form"
+        />
     </div>
 </template>
 
@@ -31,3 +18,15 @@ export default {
     }
 };
 </script>
+
+<style lang="scss" scoped>
+    #Home {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        #Home__room-connection-form {
+
+        }
+    }
+</style>
