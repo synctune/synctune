@@ -105,5 +105,8 @@ export default Vue.extend({
     #App {
         height: 100%;
         position: relative;
+
+        display: flex;
+        flex-direction: column;
     }
 </style>

@@ -3,7 +3,7 @@
         class="RoomConnection__super-container"
         base-class="RoomConnectionForm"
         accent-class="RoomConnectionForm__accent"
-        :vertical-accent="true"
+        :vertical-accents="false"
     >
         <div class="RoomConnection__get-started">
             Get Started
@@ -107,13 +107,16 @@ export default Vue.extend({
 
     // Note this is a trick to increase specificity
     /deep/ .RoomConnectionForm.RoomConnectionForm {
+        $padding-top: 5rem;
+        $padding-sides: 1rem;
+        
         background-color: color-link("RoomConnectionForm", "background", "secondary");
 
         display: flex;
         flex-direction: column;
         align-items: center;
 
-        padding: 1.5rem 1rem 1.5rem 1rem;
+        padding: $padding-top $padding-sides;
 
         & .RoomConnection__get-started {
             font-size: 3.5rem;
@@ -134,6 +137,12 @@ export default Vue.extend({
 
         & .RoomConnectionForm__join {
             margin-bottom: 1.5rem;
+        }
+
+        @include respond(phone) {
+            $padding-top: 3rem;
+            $padding-sides: 1rem;
+            padding: $padding-top $padding-sides;
         }
     }
 </style>
