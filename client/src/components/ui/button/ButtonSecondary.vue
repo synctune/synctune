@@ -2,6 +2,7 @@
     <button-base
         class="ButtonSecondary"
         tag="button"
+        @click="$emit('click', $event)"
         v-bind="$attrs"
     >
         <div class="ButtonSecondary__accent ButtonSecondary__accent-left"></div>

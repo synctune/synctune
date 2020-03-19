@@ -2,6 +2,7 @@
     <button-base 
         class="ButtonPrimary"
         tag="button"
+        @click="$emit('click', $event)"
         v-bind="$attrs"
     >
         <div class="ButtonPrimary__disabled-overlay"></div>
