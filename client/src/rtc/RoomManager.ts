@@ -37,9 +37,6 @@ interface RoomManagerEventMap {
     "stopsignalreceived": number;
 
     "clientreceivedaudiofile": string;
-
-    // TODO: implement this later for the YouTube player
-    // "audiourlreceived": string;
 }
 
 const CHUNK_SIZE = 16384;
