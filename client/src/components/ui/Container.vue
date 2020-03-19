@@ -6,15 +6,16 @@
         ]"
     >
         <div 
+            :class="['Container__accent', accentClass]"
+            :style="accentStyle"
+            :id="accentId"
+        ></div>
+
+        <div 
             :class="['Container__container', baseClass]"
             :style="baseStyle"
             :id="baseId"
         >
-            <div 
-                :class="['Container__accent', accentClass]"
-                :style="accentStyle"
-                :id="accentId"
-            ></div>
             <slot></slot>
         </div>
     </div>
@@ -68,18 +69,22 @@ export default Vue.extend({
 
         position: relative;
 
+        box-shadow: 0px 4px 10px -2px rgba(0,0,0,0.25);
+        overflow: auto;
+
         z-index: 1;
 
         & .Container__container {
             background-color: color-link("Container", "background", "primary");
             border-radius: $radius-amount;
             padding: $padding-amount $padding-amount-sides $padding-amount $padding-amount-sides;
+
+            height: 100%;
         }
 
         & .Container__accent {
             background-color: color-link("Container", "accent", "primary");
             border-radius: $radius-amount;
-            box-shadow: 0px 4px 10px -2px rgba(0,0,0,0.25);
 
             position: absolute;
             top: 0;
