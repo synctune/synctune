@@ -3,8 +3,22 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 
+import VNotification from "vue-notification";
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue';
+
+import * as IconRegister from "./registers/IconRegister";
+
+// Global style sheet
 import "@/styling/main.scss";
 
+// Register all the used icons
+IconRegister.register();
+
+// Overlay scrollbars
+Vue.component('overlay-scrollbar', OverlayScrollbarsComponent);
+
+// Vue notification
+Vue.use(VNotification);
 
 Vue.config.productionTip = false;
 

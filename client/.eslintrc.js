@@ -22,6 +22,7 @@ module.exports = {
             "ignores": []
         }],
         "vue/no-unused-vars": "warn",
+        "vue/no-unused-components": "warn",
         indent: ["error", 4, { "SwitchCase": 1 }],
         "no-empty-function": ["error", { "allow": ["functions"] }],
         "@typescript-eslint/no-empty-function": ["error", { "allow": ["functions"] }],
@@ -29,6 +30,8 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": ["warn"],
         "no-empty-function": "off",
         "@typescript-eslint/no-empty-function": "warn",
-        "@typescript-eslint/triple-slash-reference": "warn"
+        "@typescript-eslint/triple-slash-reference": "warn",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
     }
 };

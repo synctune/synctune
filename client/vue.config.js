@@ -17,5 +17,14 @@ module.exports = {
             format: 'minimal', // options are minimal, compact, expanded, verbose
             },
         ]);
+    },
+    css: {
+        loaderOptions: {
+            // pass options to sass-loader
+            sass: {
+                // Make the SCSS functions/mixins imported in main.scss available to all Vue components
+                prependData: `@import "@/styling/global.scss";`
+            },
+        }
     }
 }
