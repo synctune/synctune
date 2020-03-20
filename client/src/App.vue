@@ -13,7 +13,10 @@
             <router-link to="/test-rtc-signalling-server">Test RTC Signalling Server</router-link> | -->
             <!-- <router-link to="/test-youtube">Test Youtube player</!-->
         </div>
-        <router-view />
+
+        <transition name="fade" mode="out-in">
+            <router-view />
+        </transition>
 
         <!-- Sticky components -->
         <room-status />
@@ -53,7 +56,7 @@ export default Vue.extend({
     components: {
         ThemeProvider,
         RoomStatus,
-        AudioPlayer
+        AudioPlayer,
     },
     data() {
         return {
@@ -101,12 +104,19 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     #App {
         height: 100%;
         position: relative;
 
         display: flex;
         flex-direction: column;
+
+        $cutoff-point: 60%;
+        background: color-link("App", "background_gradient", "start");
+        background: linear-gradient(color-link("App", "background_gradient", "start") 0%, color-link("App", "background_gradient", "start") $cutoff-point, color-link("App", "background_gradient", "end"));
     }
+
+    // Transition effects
+    @include transition-effect(fade, 0.3s);
 </style>

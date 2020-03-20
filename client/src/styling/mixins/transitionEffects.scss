@@ -1,0 +1,11 @@
+@mixin transition-effect($transition, $duration: 0.3s) {
+    @if $transition == fade {
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity $duration !important;
+        }
+    
+        .fade-enter, .fade-leave-to {
+            opacity: 0;
+        }
+    }
+}

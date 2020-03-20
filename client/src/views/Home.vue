@@ -1,5 +1,10 @@
 <template>
     <div id="Home">
+        <div 
+            id="Home__crowd-image"
+            :style="crowdImageStyles"
+        ></div>
+
         <div id="Home__logo">
             <div id="Home__app-name">
                 <span id="Home__name-light">Sync&nbsp;</span>
@@ -29,6 +34,13 @@ export default {
     components: {
         RoomConnectionForm,
         Container
+    },
+    computed: {
+        crowdImageStyles() {
+            return {
+                backgroundImage: `url(${require("@/assets/crowd.png")})`
+            }
+        }
     }
 };
 </script>
@@ -41,6 +53,42 @@ export default {
         justify-content: space-evenly;
 
         flex-grow: 1;
+
+        & #Home__crowd-image {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            background-position: bottom center;
+            background-repeat: no-repeat;
+            background-size: 100%, 40rem;
+
+            animation-name: image-hue-anim;
+            animation-duration: 30s;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+
+            transition: filter 0.5s;
+
+            pointer-events: none;
+
+            @keyframes image-hue-anim {
+                $opacity-amount: 80%;
+
+                0% {
+                    filter: hue-rotate(0deg) opacity($opacity-amount);
+                }
+                50% {
+                    filter: hue-rotate(360deg) opacity($opacity-amount);
+                }
+                100% {
+                    filter: hue-rotate(0deg), opacity($opacity-amount);
+                }
+            }
+        }
 
         & #Home__logo {
             padding: 0 1.5rem;
