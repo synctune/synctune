@@ -11,7 +11,6 @@
             <!-- <router-link to="/test-rtc-camera-local">Test RTC Camera Local</router-link> |
             <router-link to="/test-rtc-audio-file-local">Test RTC Audio File Local</router-link> |
             <router-link to="/test-rtc-signalling-server">Test RTC Signalling Server</router-link> | -->
-            <!-- <router-link to="/test-youtube">Test Youtube player</!-->
         </div>
 
         <transition name="fade" mode="out-in">

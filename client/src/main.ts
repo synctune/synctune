@@ -2,7 +2,7 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import VueYouTubeEmbed from "vue-youtube-embed";
+
 import VNotification from "vue-notification";
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue';
 
@@ -19,8 +19,6 @@ Vue.component('overlay-scrollbar', OverlayScrollbarsComponent);
 
 // Vue notification
 Vue.use(VNotification);
-
-Vue.use(VueYouTubeEmbed, { global: false });
 
 Vue.config.productionTip = false;
 
