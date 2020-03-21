@@ -7,7 +7,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc",
         "dev": "nodemon --legacy-watch app.ts",
-        "prod": "NODE_ENV=production node ./build/server.js"
+        "prod": "NODE_ENV=production node ./build/app.js"
     },
     "author": "",
     "license": "ISC",

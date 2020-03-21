@@ -9,7 +9,7 @@ import KEYS from "../../keys";
 // TODO: add validation to all socket.on params
 
 export default (server: Server) => {
-    const io = SocketIO(server, { path: KEYS.SOCKET_IO_PATH });
+    const io = SocketIO(server, { path: `/${KEYS.SOCKET_IO_PATH}` });
 
     const roomTracker = new RoomTracker();
 

@@ -13,6 +13,17 @@
         "restart:dev--client": "docker-compose -f docker-compose-dev.yml restart client",
         "stop:dev": "docker-compose -f docker-compose-dev.yml down",
 
+        "rm-services:prod": "docker-compose -f docker-compose.yml rm -f reverse-proxy signalling-server client",
+        "rm-services:prod--reverse-proxy": "docker-compose -f docker-compose.yml rm -f reverse-proxy",
+        "rm-services:prod--signalling-server": "docker-compose -f docker-compose.yml rm -f signalling-server",
+        "rm-services:prod--client": "docker-compose -f docker-compose.yml rm -f client",
+        "start:prod": "docker-compose -f docker-compose.yml up --build",
+        "restart:prod": "docker-compose -f docker-compose.yml restart reverse-proxy signalling-server client",
+        "restart:prod--reverse-proxy": "docker-compose -f docker-compose.yml restart reverse-proxy",
+        "restart:prod--signalling-server": "docker-compose -f docker-compose.yml restart signalling-server",
+        "restart:prod--client": "docker-compose -f docker-compose.yml restart client",
+        "stop:prod": "docker-compose -f docker-compose.yml down",
+
         "shell:reverse-proxy": "docker exec -it synctune_reverse_proxy sh",
         "shell:signalling-server": "docker exec -it synctune_signalling_server sh",
         "shell:client": "docker exec -it synctune_client sh"
