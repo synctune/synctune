@@ -168,6 +168,7 @@ export default Vue.extend({
 
             audioPlayerEl.pause();
             audioPlayerEl.currentTime = 0;
+            audioPlayerEl.load();
             setIsPlaying({ playing: false });
         },
         clientSynced(clientId: string) {
