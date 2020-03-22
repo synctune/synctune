@@ -30,6 +30,7 @@ services:
             context: ./client
         environment: 
             - VUE_APP_SIGNALLING_SERVER_SOCKET_IO_PATH=signalling-server/socket.io
+            - VUE_APP_SIGNALLING_SERVER_URI=/
         networks: 
             - app-network
         hostname: client
