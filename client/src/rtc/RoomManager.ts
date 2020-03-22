@@ -58,7 +58,7 @@ export default class RoomManager extends Emittable {
         super();
 
         // Create a socket connection
-        const socket = io(`/`, { path: `/${KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH}` });
+        const socket = io(KEYS.SIGNALLING_SERVER_URI, { path: `/${KEYS.SIGNALLING_SERVER_SOCKET_IO_PATH}` });
 
         this._room = null;
         this._roomOwner = null;
