@@ -149,8 +149,10 @@ export default Vue.extend({
 
                     // Send ready to play signal
                     const roomManager = this.roomManager as RoomManager;
-                    const peerManager = roomManager.peerManager as PeerManager;
-                    peerManager!.sendReadyToPlaySignal(roomManager.id);
+                    if (!roomManager.isOwner) {
+                        const peerManager = roomManager.peerManager as PeerManager;
+                        peerManager!.sendReadyToPlaySignal(roomManager.id);
+                    }
                 });
             });
         },
@@ -210,7 +212,11 @@ export default Vue.extend({
 
             if (audioSource) {
                 audioSource.disconnect();
-                audioSource.stop(0);
+                // To handle if we never started the audio
+                // e.g. disconnecting from room without ever playing audio
+                try {
+                    audioSource.stop(0);
+                } catch(err){}
                 this.audioSource = null;
             }
 
