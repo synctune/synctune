@@ -430,7 +430,7 @@ export default class RoomManager extends Emittable {
             data: now
         };
 
-        console.log("Peermanager", this.peerManager);
+        console.log("Peermanager", this.peerManager); // TODO: remove
 
         const clients = this.peerManager.clients;
         clients.forEach(clientId => {

@@ -32,6 +32,7 @@ type Methods = {
     clientSynced(clientId: string): void;
     clientLeft(clientId: string): void;
     resetSyncList(): void;
+    onCanPlayThrough(): void;
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
     | AudioStore.Actions.setAudioFile
@@ -108,7 +109,7 @@ export default Vue.extend({
             });
         },
         loadAudioFile(audioFile: Blob) {
-            const { setAudioFile, setAudioLoaded, setIsPlaying }: Methods = this;
+            const { setAudioFile, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
 
             setAudioFile({ audioFile });
 
@@ -117,16 +118,16 @@ export default Vue.extend({
             setAudioLoaded({ loaded: false });
             setIsPlaying({ playing: false });
 
-            audioPlayerEl.addEventListener("canplaythrough", () => {
-                console.log("canplaythrough audio file"); // TODO: remove
-                setAudioLoaded({ loaded: true });
-            });
+            audioPlayerEl.addEventListener("canplaythrough", onCanPlayThrough);
 
             audioPlayerEl.src = URL.createObjectURL(audioFile);
             audioPlayerEl.load();
         },
         unloadAudioFile() {
-            const { setAudioFile, setAudioLoaded, setIsPlaying }: Methods = this;
+            const { setAudioFile, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
+            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+
+            audioPlayerEl.removeEventListener("canplaythrough", onCanPlayThrough);
 
             setAudioFile({ audioFile: null });
             setAudioLoaded({ loaded: false });
@@ -188,6 +189,11 @@ export default Vue.extend({
         resetSyncList() {
             const { setSyncedClients }: Methods = this;
             setSyncedClients({ syncedClients: [] });
+        },
+        onCanPlayThrough() {
+            const { setAudioLoaded }: Methods = this;
+            console.log("canplaythrough audio file"); // TODO: remove
+            setAudioLoaded({ loaded: true });
         }
     },
     watch: {

@@ -100,13 +100,13 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
     // --- Setup PeerManager listeners, when it is added ---
     roomManager.addEventListener("peermanagercreated", (peerManager) => {
         peerManager.addEventListener("rtcconnected", ({ clientId }) => {
-            console.log("RTC Connected", clientId);
+            console.log("RTC Connected", clientId); // TODO: remove
             state.connectedRTCClients.push(clientId);
             Vue.set(state, "connectedRTCClients", state.connectedRTCClients);
         });
 
         peerManager.addEventListener("rtcdisconnected", ({ clientId }) => {
-            console.log("RTC Disconnected", clientId);
+            console.log("RTC Disconnected", clientId); // TODO: remove
             const idx = state.connectedRTCClients.indexOf(clientId);
             if (idx >= 0) Vue.delete(state.connectedRTCClients, idx);
         });

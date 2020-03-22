@@ -1,6 +1,5 @@
 import Vue from "vue";
 import { Module, GetterTree, MutationTree, ActionTree } from "vuex";
-import RoomManager from '@/rtc/RoomManager';
 import { RootState } from "../../index";
 
 // -------------------------
