@@ -13,7 +13,7 @@
   # Default build command.
   command = "npm run build"
 
-  environment = { VUE_APP_SIGNALLING_SERVER_SOCKET_IO_PATH = "signalling-server/socket.io", VUE_APP_SIGNALLING_SERVER_URI= "104.197.75.203/"}
+  environment = { VUE_APP_SIGNALLING_SERVER_SOCKET_IO_PATH = "signalling-server/socket.io", VUE_APP_SIGNALLING_SERVER_URI= "http://104.197.75.203/"}
 
 # The following redirect is intended for use with most SPAs that handle
 # routing internally.
