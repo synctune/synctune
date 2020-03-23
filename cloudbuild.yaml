@@ -8,5 +8,13 @@ steps:
               "./signalling-server",
           ]
     - name: "gcr.io/cloud-builders/gcloud"
-      args: ["compute", "instances", "reset", "signalling"]
+      args:
+          [
+              "compute",
+              "instances",
+              "reset",
+              "signalling",
+              "--zone",
+              "us-central1-a",
+          ]
 images: ["gcr.io/$PROJECT_ID/signalling-server"]
