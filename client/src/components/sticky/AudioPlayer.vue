@@ -1,5 +1,5 @@
 <template>
-    <audio id="AudioPlayer" ref="audioPlayerEl"></audio>
+    <div id="AudioPlayer"></div>
 </template>
 
 <script lang="ts">
@@ -9,6 +9,15 @@ import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import RoomManager from '../../rtc/RoomManager';
 import SignallingSocket from '../../socket/SignallingSocket';
+import PeerManager from '../../rtc/PeerManager';
+
+type Data = {
+    audioContext: AudioContext;
+    audioSource: AudioBufferSourceNode | null;
+    audioBuffer: AudioBuffer | null;
+    startedAt: number;
+    pausedAt: number;
+}
 
 type Computed = {}
     & Pick<RoomStore.MapGettersStructure,
@@ -42,6 +51,15 @@ type Methods = {
 
 
 export default Vue.extend({
+    data() {
+        return {
+            audioContext: new AudioContext(),
+            audioSource: null,
+            audioBuffer: null,
+            startedAt: 0,
+            pausedAt: 0
+        }
+    },
     computed: {
         ...mapGetters({
             roomManager: RoomStore.Getters.roomManager,
@@ -92,7 +110,7 @@ export default Vue.extend({
             });
 
             if (roomManager.isOwner) {
-                roomManager.addEventListener("clientreceivedaudiofile", clientId => {
+                roomManager.addEventListener("clientreadytoplay", clientId => {
                     clientSynced(clientId);
                 });
             }
@@ -109,65 +127,101 @@ export default Vue.extend({
             });
         },
         loadAudioFile(audioFile: Blob) {
+            const { audioContext }: Data = this;
             const { setAudioFile, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
 
             setAudioFile({ audioFile });
 
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
-
             setAudioLoaded({ loaded: false });
             setIsPlaying({ playing: false });
+            this.startedAt = 0;
+            this.pausedAt = 0;
 
-            audioPlayerEl.addEventListener("canplaythrough", onCanPlayThrough);
+            const fileReader = new FileReader();
+            fileReader.readAsArrayBuffer(audioFile);
 
-            audioPlayerEl.src = URL.createObjectURL(audioFile);
-            audioPlayerEl.load();
+            fileReader.addEventListener("load", (event) => {
+                const arrBuffer = event.target?.result as ArrayBuffer;
+
+                audioContext.decodeAudioData(arrBuffer, (audioBuffer) => {
+                    this.audioBuffer = audioBuffer;
+                    setAudioLoaded({ loaded: true });
+
+                    // Send ready to play signal
+                    const roomManager = this.roomManager as RoomManager;
+                    if (!roomManager.isOwner) {
+                        const peerManager = roomManager.peerManager as PeerManager;
+                        peerManager!.sendReadyToPlaySignal(roomManager.id);
+                    }
+                });
+            });
         },
         unloadAudioFile() {
+            const { audioContext, audioSource }: Data = this;
             const { setAudioFile, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-            audioPlayerEl.removeEventListener("canplaythrough", onCanPlayThrough);
+            if (audioSource) {
+                audioSource.disconnect();
+                this.audioSource = null;
+            }
 
             setAudioFile({ audioFile: null });
             setAudioLoaded({ loaded: false });
             setIsPlaying({ playing: false });
+            this.startedAt = 0;
+            this.pausedAt = 0;
         },
-        playAudio(startLocation: number, startTime: number) {
+        async playAudio(startLocation: number, startTime: number) {
             // TODO: delay the start time using the synchronized time
             // TODO: handle if audio has not been loaded yet
 
+            const { audioContext, audioBuffer, pausedAt }: Data = this;
             const { audioLoaded }: Computed = this;
             const { setIsPlaying }: Methods = this;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-            if (!audioPlayerEl.src) return;
             if (!audioLoaded) {
-                console.warn("Audio file not loaded fully yet, audio will not play instantly"); // TODO: remove
+                console.warn("Unable to play, audio file not loaded"); // TODO: remove
+                return;
             }
 
-            console.log("Playing audio"); // TODO: remove
-            audioPlayerEl.currentTime = startLocation;
-            audioPlayerEl.play();
+            const audioSource = audioContext.createBufferSource();
+            audioSource.buffer = audioBuffer;
+            audioSource.connect(audioContext.destination);
+
+            this.audioSource = audioSource;
+            const offset = pausedAt;
+
+            audioSource.start(0, offset);
+
+            this.startedAt = audioContext.currentTime - offset;
+            this.pausedAt = 0;
+
             setIsPlaying({ playing: true });
         },
-        pauseAudio() {
-            const { setIsPlaying }: Methods = this;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
+        async pauseAudio() {
+            const { audioSource, audioContext, startedAt }: Data = this;
+            const { setIsPlaying, stopAudio }: Methods = this;
 
-            if (!audioPlayerEl.src) return;
-
-            audioPlayerEl.pause();
-            setIsPlaying({ playing: false });
+            const elapsedTime = audioContext.currentTime - startedAt;
+            stopAudio();
+            this.pausedAt = elapsedTime;
         },
         stopAudio() {
+            const { audioSource }: Data = this;
             const { setIsPlaying }: Methods = this;
-            const audioPlayerEl = this.$refs.audioPlayerEl as HTMLAudioElement;
 
-            if (!audioPlayerEl.src) return;
+            if (audioSource) {
+                audioSource.disconnect();
+                // To handle if we never started the audio
+                // e.g. disconnecting from room without ever playing audio
+                try {
+                    audioSource.stop(0);
+                } catch(err){}
+                this.audioSource = null;
+            }
 
-            audioPlayerEl.pause();
-            audioPlayerEl.currentTime = 0;
+            this.startedAt = 0;
+            this.pausedAt = 0;
             setIsPlaying({ playing: false });
         },
         clientSynced(clientId: string) {
@@ -190,7 +244,7 @@ export default Vue.extend({
             const { setSyncedClients }: Methods = this;
             setSyncedClients({ syncedClients: [] });
         },
-        onCanPlayThrough() {
+        onCanPlayThrough() { // TODO: remove
             const { setAudioLoaded }: Methods = this;
             console.log("canplaythrough audio file"); // TODO: remove
             setAudioLoaded({ loaded: true });

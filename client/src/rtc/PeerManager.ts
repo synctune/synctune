@@ -27,7 +27,7 @@ export interface PeerManagerEvent<T> {
 }
 
 export interface SyncChannelMessage {
-    type: "timesync" | "audiofilereceived" | "play" | "pause" | "stop";
+    type: "timesync" | "audiofilereceived" | "readytoplay" | "play" | "pause" | "stop";
     data: any;
 }
 
@@ -422,6 +422,46 @@ export default class PeerManager extends Emittable {
         if (!peerObject) return null;
         const receiveChannel = peerObject[receiveChannelMap[type] as keyof PeerObject] as RTCDataChannel;
         return (receiveChannel) ? receiveChannel : null;
+    }
+
+    /**
+     * Sends the audiofilereceived signal to all RTC connections
+     * 
+     * @param selfId The id of self
+     */
+    sendAudioFileReceivedSignal(selfId: string) {
+        this.clients.forEach(otherId => {
+            const syncSendChannel = this.getSendChannel(otherId, "syncChannel", true);
+
+            console.log("Sending audiofilereceived to", otherId); // TODO: remove
+
+            const message: SyncChannelMessage = {
+                type: "audiofilereceived",
+                data: selfId
+            }
+
+            syncSendChannel!.send(JSON.stringify(message));
+        });
+    }
+
+    /**
+     * Sends the readytoplay signal to all RTC connections
+     * 
+     * @param selfId The id of self
+     */
+    sendReadyToPlaySignal(selfId: string) {
+        this.clients.forEach(otherId => {
+            const syncSendChannel = this.getSendChannel(otherId, "syncChannel", true);
+
+            console.log("Sending readytoplay to", otherId); // TODO: remove
+
+            const message: SyncChannelMessage = {
+                type: "readytoplay",
+                data: selfId
+            }
+
+            syncSendChannel!.send(JSON.stringify(message));
+        });
     }
 
     /**

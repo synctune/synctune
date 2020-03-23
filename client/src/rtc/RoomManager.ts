@@ -37,6 +37,7 @@ interface RoomManagerEventMap {
     "stopsignalreceived": number;
 
     "clientreceivedaudiofile": string;
+    "clientreadytoplay": string;
 }
 
 const CHUNK_SIZE = 16384;
@@ -148,18 +149,7 @@ export default class RoomManager extends Emittable {
 
                         this.emitEvent("audiofilereceived", dataBlob);
 
-                        peerManager.clients.forEach(ownerId => {
-                            const syncSendChannel = peerManager.getSendChannel(ownerId, "syncChannel", true);
-
-                            console.log("Sending audiofilereceived to", ownerId); // TODO: remove
-
-                            const message: SyncChannelMessage = {
-                                type: "audiofilereceived",
-                                data: this._id
-                            }
-
-                            syncSendChannel!.send(JSON.stringify(message));
-                        });
+                        peerManager.sendAudioFileReceivedSignal(this._id!);
                     }
                 }
             });
@@ -171,7 +161,7 @@ export default class RoomManager extends Emittable {
             peerList.push(clientId);
 
             // Sync clocks
-            peerManager.timesync.sync();
+            // peerManager.timesync.sync(); // TODO: do something about that
         });
 
         peerManager.addEventListener("syncreceivechannelcreated", ({ sourceEvent: syncReceiveChannel }) => {
@@ -194,8 +184,12 @@ export default class RoomManager extends Emittable {
                             this.emitEvent("stopsignalreceived", stopSentTime);
                             break;
                         case "audiofilereceived":
-                            const receivedClientId = message.data as string;
-                            this.emitEvent("clientreceivedaudiofile", receivedClientId);
+                            const afrReceivedClientId = message.data as string;
+                            this.emitEvent("clientreceivedaudiofile", afrReceivedClientId);
+                            break;
+                        case "readytoplay":
+                            const rtpReceivedClientId = message.data as string;
+                            this.emitEvent("clientreadytoplay", rtpReceivedClientId);
                             break;
                     }
                 } catch(err) {
@@ -430,7 +424,7 @@ export default class RoomManager extends Emittable {
             data: now
         };
 
-        console.log("Peermanager", this.peerManager); // TODO: remove
+        // console.log("Peermanager", this.peerManager); // TODO: remove
 
         const clients = this.peerManager.clients;
         clients.forEach(clientId => {

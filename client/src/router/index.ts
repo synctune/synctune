@@ -1,6 +1,10 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
+
 import Home from "../views/Home.vue";
+import Room from "../views/room/Room.vue";
+import RoomJoin from "../views/room/RoomJoin.vue";
+import RoomCreate from "../views/room/RoomCreate.vue";
 
 Vue.use(VueRouter);
 
@@ -13,20 +17,23 @@ const routes: RouteConfig[] = [
     {
         path: "/room",
         name: "room",
-        component: () =>
-            import(/* webpackChunkName: "Room" */ "../views/room/Room.vue")
+        component: Room
+        // component: () =>
+        //     import(/* webpackChunkName: "Room" */ "../views/room/Room.vue")
     },
     {
         path: "/room/join/:id",
         name: "room-join",
-        component: () => 
-            import(/* webpackChunkName: "Room" */ "../views/room/RoomJoin.vue")
+        component: RoomJoin
+        // component: () => 
+        //     import(/* webpackChunkName: "Room" */ "../views/room/RoomJoin.vue")
     },
     {
         path: "/room/create/:id",
         name: "room-create",
-        component: () => 
-            import(/* webpackChunkName: "Room" */ "../views/room/RoomCreate.vue")
+        component: RoomCreate
+        // component: () => 
+        //     import(/* webpackChunkName: "Room" */ "../views/room/RoomCreate.vue")
     },
     // TODO: remove these tests routes
     // Test routes
