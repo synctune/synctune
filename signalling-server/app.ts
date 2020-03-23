@@ -9,3 +9,5 @@ server.listen(PORT);
 
 // Setup signalling server
 signalling(server);
+
+app.get("test", (req, res) => res.end("It works!"));
