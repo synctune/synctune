@@ -102,7 +102,7 @@ import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
-import RoomManager from '../../rtc/RoomManager';
+import RoomManager, { AudioFileMetadata } from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
 import { HighResolutionTimer } from "../../utilities";
 
@@ -206,7 +206,13 @@ export default Vue.extend({
         syncAudioFile(audioFile: File) {
             const roomManager = this.roomManager as RoomManager;
 
-            roomManager.syncAudioFile(audioFile);
+            const metadata: AudioFileMetadata = {
+                name: audioFile.name,
+                size: audioFile.size,
+                type: audioFile.type
+            };
+
+            roomManager.syncAudioFile(audioFile, metadata);
         },
         playAudio() {
             const roomManager = this.roomManager as RoomManager;

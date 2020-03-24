@@ -36,8 +36,9 @@ export interface PeerManagerEventMap {
     "rtcdisconnected": PeerManagerEvent<Event | null>;
     "rtcfailed": PeerManagerEvent<Event>;
 
-    "syncreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
-    "audioreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
+    "syncreceivechannelready": PeerManagerEvent<RTCDataChannel>;
+    "audioreceivechannelready": PeerManagerEvent<RTCDataChannel>;
+    "datachannelsready": PeerManagerEvent<null>;
 }
 
 const sendChannelMap = {
@@ -231,6 +232,8 @@ export default class PeerManager extends Emittable {
         const audioSendChannel = pc.createDataChannel("audioChannel" as ChannelType);
         audioSendChannel.binaryType = "arraybuffer";
 
+        let numChannelsReady = 0;
+
         // Setup receive channel
         pc.addEventListener("datachannel", (event) => {
             console.log("Received data channel", event.channel.label); // TODO: remove
@@ -241,7 +244,8 @@ export default class PeerManager extends Emittable {
             switch(channelName) {
                 case "syncChannel":
                     this.rtcPeers[clientId].syncReceiveChannel = receiveChannel;
-                    this.emitEvent("syncreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
+                    this.emitEvent("syncreceivechannelready", { clientId, sourceEvent: receiveChannel });
+                    numChannelsReady++;
 
                     // Add listener that calls timesync.receive whenever it gets data for it
                     receiveChannel.addEventListener("message", (event) => {
@@ -266,9 +270,15 @@ export default class PeerManager extends Emittable {
                 case "audioChannel":
                     receiveChannel.binaryType = "arraybuffer";
                     this.rtcPeers[clientId].audioReceiveChannel = receiveChannel;
-                    this.emitEvent("audioreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
+                    this.emitEvent("audioreceivechannelready", { clientId, sourceEvent: receiveChannel });
+                    numChannelsReady++;
 
                     break;
+            }
+
+            // If both the data channels are ready
+            if (numChannelsReady === 2) {
+                this.emitEvent("datachannelsready", { clientId, sourceEvent: null });
             }
         });
 

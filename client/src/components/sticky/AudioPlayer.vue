@@ -10,6 +10,7 @@ import * as AudioStore from "../../store/modules/audio";
 import RoomManager from '../../rtc/RoomManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import PeerManager from '../../rtc/PeerManager';
+import CancellationToken from "../../utilities/CancellationToken";
 
 type Data = {
     audioContext: AudioContext;
@@ -17,6 +18,7 @@ type Data = {
     audioBuffer: AudioBuffer | null;
     startedAt: number;
     pausedAt: number;
+    audioLoadCancellationToken: CancellationToken | null;
 }
 
 type Computed = {}
@@ -45,6 +47,7 @@ type Methods = {
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
     | AudioStore.Actions.setAudioFile
+    | AudioStore.Actions.setAudioFileMetadata
     | AudioStore.Actions.setAudioLoaded
     | AudioStore.Actions.setSyncedClients
 >;
@@ -57,7 +60,8 @@ export default Vue.extend({
             audioSource: null,
             audioBuffer: null,
             startedAt: 0,
-            pausedAt: 0
+            pausedAt: 0,
+            audioLoadCancellationToken: null
         }
     },
     computed: {
@@ -74,12 +78,14 @@ export default Vue.extend({
         ...mapActions({
             setIsPlaying: AudioStore.Actions.setIsPlaying,
             setAudioFile: AudioStore.Actions.setAudioFile,
+            setAudioFileMetadata: AudioStore.Actions.setAudioFileMetadata,
             setAudioLoaded: AudioStore.Actions.setAudioLoaded,
             setSyncedClients: AudioStore.Actions.setSyncedClients
         }),
         setupRoomManagerListeners(roomManager: RoomManager) {
             const { 
                 loadAudioFile, 
+                setAudioFileMetadata,
                 unloadAudioFile, 
                 playAudio, 
                 pauseAudio, 
@@ -88,7 +94,14 @@ export default Vue.extend({
                 resetSyncList, 
                 clientLeft }: Methods = this;
 
+            roomManager.addEventListener("audiometadatasent", (metadata) => {
+                setAudioFileMetadata({ audioFileMetadata: metadata });
+            });
+
             roomManager.addEventListener("audiofilesyncing", (audioFile) => {
+                // Unload existing audiofile, if one is loaded
+                unloadAudioFile();
+
                 resetSyncList();
                 loadAudioFile(audioFile);
             });
@@ -127,7 +140,7 @@ export default Vue.extend({
             });
         },
         loadAudioFile(audioFile: Blob) {
-            const { audioContext }: Data = this;
+            const { audioContext, audioLoadCancellationToken }: Data = this;
             const { setAudioFile, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
 
             setAudioFile({ audioFile });
@@ -137,6 +150,15 @@ export default Vue.extend({
             this.startedAt = 0;
             this.pausedAt = 0;
 
+            // If there is another audio file already loading, then attempt to cancel it
+            if (audioLoadCancellationToken) {
+                audioLoadCancellationToken.requestCancellation();
+            }
+
+            // Setup our own cancellation token and override the old one
+            const cancellationToken = new CancellationToken();
+            this.audioLoadCancellationToken = cancellationToken;
+
             const fileReader = new FileReader();
             fileReader.readAsArrayBuffer(audioFile);
 
@@ -144,6 +166,13 @@ export default Vue.extend({
                 const arrBuffer = event.target?.result as ArrayBuffer;
 
                 audioContext.decodeAudioData(arrBuffer, (audioBuffer) => {
+                    // If a cancellation was requested, then oblige and don't load the audio
+                    if (cancellationToken.requestedCancellation) {
+                        console.log("CANCELLATION REQUESTED, CANCELLING"); // TODO: remove
+                        cancellationToken.completedCancellation();
+                        return;
+                    }
+
                     this.audioBuffer = audioBuffer;
                     setAudioLoaded({ loaded: true });
 
@@ -151,14 +180,14 @@ export default Vue.extend({
                     const roomManager = this.roomManager as RoomManager;
                     if (!roomManager.isOwner) {
                         const peerManager = roomManager.peerManager as PeerManager;
-                        peerManager!.sendReadyToPlaySignal(roomManager.id);
+                        peerManager!.sendReadyToPlaySignal(roomManager.id!);
                     }
                 });
             });
         },
         unloadAudioFile() {
             const { audioContext, audioSource }: Data = this;
-            const { setAudioFile, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
+            const { setAudioFile, setAudioFileMetadata, setAudioLoaded, setIsPlaying, onCanPlayThrough }: Methods = this;
 
             if (audioSource) {
                 audioSource.disconnect();
@@ -166,6 +195,7 @@ export default Vue.extend({
             }
 
             setAudioFile({ audioFile: null });
+            setAudioFileMetadata({ audioFileMetadata: null });
             setAudioLoaded({ loaded: false });
             setIsPlaying({ playing: false });
             this.startedAt = 0;

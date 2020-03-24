@@ -9,7 +9,7 @@ import io from "socket.io-client";
 // TODO: implement this?
 type RoomManagerStatus = "connected" | "disconnected";
 
-interface AudioFileMetadata {
+export interface AudioFileMetadata {
     name: string;
     size: number;
     type: string;
@@ -113,7 +113,7 @@ export default class RoomManager extends Emittable {
     }
 
     private setupPeerManagerListeners(peerManager: PeerManager) {
-        peerManager.addEventListener("audioreceivechannelcreated", ({ sourceEvent: audioReceiveChannel}) => {
+        peerManager.addEventListener("audioreceivechannelready", ({ sourceEvent: audioReceiveChannel}) => {
             // Setup audio file receiving
             audioReceiveChannel.addEventListener("message", ({ data }) => {
                 // console.log("Received data", data); // TODO: remove
@@ -121,7 +121,11 @@ export default class RoomManager extends Emittable {
                 if (typeof data === "string") {
                     try {
                         const metadata = JSON.parse(data) as unknown as AudioFileMetadata;
+
+                        // Initialize accumulator data
                         this._expectedAudioFileSize = metadata.size;
+                        this._receivedChunks = [];
+                        this._receivedSize = 0;
 
                         this.emitEvent("audiometadatareceived", metadata);
 
@@ -164,7 +168,7 @@ export default class RoomManager extends Emittable {
             // peerManager.timesync.sync(); // TODO: do something about that
         });
 
-        peerManager.addEventListener("syncreceivechannelcreated", ({ sourceEvent: syncReceiveChannel }) => {
+        peerManager.addEventListener("syncreceivechannelready", ({ sourceEvent: syncReceiveChannel }) => {
             // Setup play/stop signal receive listener
             syncReceiveChannel.addEventListener("message", (event) => {
                 try {
@@ -258,9 +262,11 @@ export default class RoomManager extends Emittable {
     /**
      * Syncs the audio given audio file to all connected clients
      * 
-     * @param audioFile The audio file
+     * @param audioFile The audio file blob.
+     * @param metadata The metadata for the audio file.
+     * @param clients The target clients to sync the audio file to. If not given then all clients are synced.
      */
-    syncAudioFile(audioFile: File) {
+    syncAudioFile(audioFile: Blob, metadata: AudioFileMetadata, clients?: string[]) {
         // TODO: reference https://webrtc.github.io/samples/src/content/datachannel/filetransfer/
 
         if (audioFile.size === 0) {
@@ -275,17 +281,17 @@ export default class RoomManager extends Emittable {
 
         this.emitEvent("audiofilesyncing", audioFile);
 
-        const clients = this.peerManager.clients;
+        const targetClients = (clients) ? clients : this.peerManager.clients;
 
         // --- Send the file metadata ---
-        const metadata: AudioFileMetadata = {
-            name: audioFile.name,
-            size: audioFile.size,
-            type: audioFile.type
-        }
+        // const metadata: AudioFileMetadata = {
+        //     name: audioFile.name,
+        //     size: audioFile.size,
+        //     type: audioFile.type
+        // }
 
         // Send metadata to each client
-        clients.forEach(clientId => {
+        targetClients.forEach(clientId => {
             const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true);
             console.log("metadata: send channel", sendChannel); // TODO: remove
             sendChannel!.send(JSON.stringify(metadata));
@@ -309,7 +315,7 @@ export default class RoomManager extends Emittable {
             const chunk = event.target?.result as ArrayBuffer;
 
             // Send chunk to each client
-            clients.forEach(clientId => {
+            targetClients.forEach(clientId => {
                 const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true)!;
                 sendChannel.send(chunk);
 
@@ -324,6 +330,7 @@ export default class RoomManager extends Emittable {
             if (currOffset < audioFile.size) {
                 readSlice(currOffset);
             } else { // The entire file is sent
+                console.log("Audio file sent"); // TODO: remove
                 this.emitEvent("audiofilesent", audioFile);
             }
         });
