@@ -59,6 +59,14 @@
 
             <br>
 
+            <!-- TODO: remove -->
+            <button
+                @click="syncClocks"
+            >Sync Clocks</button>
+
+            <br>
+            <br>
+
             <div>
                 <div>Play audio file</div>
                 <input 
@@ -136,6 +144,8 @@ type Methods = {
     playAudio(): void;
     pauseAudio(): void;
     stopAudio(): void;
+
+    syncClocks(): void; // TODO: remove
 }
 
 export default Vue.extend({
@@ -228,6 +238,13 @@ export default Vue.extend({
         stopAudio() {
             const roomManager = this.roomManager as RoomManager;
             roomManager.sendStopSignal();
+        },
+        syncClocks() { // TODO: remove
+            const roomManager = this.roomManager as RoomManager;
+            const peerManager = roomManager.peerManager as PeerManager;
+            const timesync = peerManager.timesync;
+
+            timesync.sync();
         }
     }
 });

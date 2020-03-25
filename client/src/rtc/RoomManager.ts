@@ -160,12 +160,26 @@ export default class RoomManager extends Emittable {
         });
 
         peerManager.addEventListener("rtcconnected", ({ clientId }) => {
+            // TODO: remove
+        });
+
+        peerManager.addEventListener("syncreceivechannelready", ({ clientId }) => {
+            console.log("Sync channel ready with", clientId); // TODO: remove
+
             // Add peer to peer list
             const peerList = peerManager.timesync.options.peers as string[];
             peerList.push(clientId);
 
-            // Sync clocks
-            // peerManager.timesync.sync(); // TODO: do something about that
+            console.log("Added peer", clientId, "to timesync"); // TODO: remove
+            console.log(peerManager.timesync);
+
+            // TODO: fix this so we don't have delay the call like this
+            setTimeout(() => {
+                // Sync clocks
+                peerManager.timesync.sync(); // TODO: do something about that
+            }, 3000);
+
+            // peerManager.timesync.sync();
         });
 
         peerManager.addEventListener("syncreceivechannelready", ({ sourceEvent: syncReceiveChannel }) => {
@@ -353,10 +367,10 @@ export default class RoomManager extends Emittable {
             return -1;
         }
 
-        // const timesync = this.peerManager.timesync;
-        // const now = timesync.now();
+        const timesync = this.peerManager.timesync;
+        const now = timesync.now();
         // TODO: use synced time
-        const now = Date.now();
+        // const now = Date.now();
         const startTime = now + delay;
 
         const data: PlaySignalData = {

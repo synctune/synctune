@@ -1,3 +1,9 @@
+import _CancellationToken from "./CancellationToken";
+import _HighResolutionTimeout from "./HighResolutionTimeout";
+
+export const CancellationToken = _CancellationToken;
+export const HighResolutionTimeout = _HighResolutionTimeout;
+
 // -----------------------------------------------
 // --- Helpers for the helpers (helperception) ---
 // -----------------------------------------------

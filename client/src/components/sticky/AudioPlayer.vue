@@ -11,6 +11,7 @@ import RoomManager from '../../rtc/RoomManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import PeerManager from '../../rtc/PeerManager';
 import CancellationToken from "../../utilities/CancellationToken";
+import HighResolutionTimeout from '../../utilities/HighResolutionTimeout';
 
 type Data = {
     audioContext: AudioContext;
@@ -207,6 +208,8 @@ export default Vue.extend({
 
             const { audioContext, audioBuffer, pausedAt }: Data = this;
             const { audioLoaded }: Computed = this;
+            const roomManager = this.roomManager as RoomManager;
+            const peerManager = roomManager.peerManager as PeerManager;
             const { setIsPlaying }: Methods = this;
 
             if (!audioLoaded) {
@@ -214,19 +217,55 @@ export default Vue.extend({
                 return;
             }
 
+            if (!peerManager) {
+                console.log("Peermanager not connected"); // TODO: remove
+                return;
+            }
+
+            const timesync = peerManager.timesync;
+
             const audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
             audioSource.connect(audioContext.destination);
 
             this.audioSource = audioSource;
-            const offset = pausedAt;
+            let offset = pausedAt;
 
-            audioSource.start(0, offset);
+            // TODO: put this in
+            // Ignore saved location
+            // if (!roomManager.isOwner) {
+            //     offset = startLocation;
+            // }
 
-            this.startedAt = audioContext.currentTime - offset;
-            this.pausedAt = 0;
+            const startAudio = () => {
+                audioSource.start(0, offset);
 
-            setIsPlaying({ playing: true });
+                this.startedAt = audioContext.currentTime - offset;
+                this.pausedAt = 0;
+
+                setIsPlaying({ playing: true });
+            }
+
+            const startDelay = startTime - timesync.now();
+            // If we received a start time that already passed
+            if (startDelay <= 0) {
+                // We need to attempt to make up for it by seeking forward by 
+                // however much time we missed
+                offset += -1 * startDelay;
+
+                startAudio();
+            } 
+            // Otherwise we need to wait until the our time reaches the start time
+            else {
+                const timeout = new HighResolutionTimeout(startDelay, () => {
+                    console.log(">> Playing audio")
+                    startAudio();
+                });
+                timeout.start();
+
+                // TODO: get the high-precision timer working
+                // setTimeout(startAudio, startDelay);
+            }
         },
         async pauseAudio() {
             const { audioSource, audioContext, startedAt }: Data = this;
