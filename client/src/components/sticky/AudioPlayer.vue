@@ -20,6 +20,7 @@ type Data = {
     // startedAt: number;
     // pausedAt: number;
     audioLoadCancellationToken: CancellationToken | null;
+    firstPlay: boolean;
 }
 
 type Computed = {}
@@ -45,8 +46,9 @@ type Methods = {
     stopAudio(): void;
     clientSynced(clientId: string): void;
     clientLeft(clientId: string): void;
-    resetSyncList(): void;
+    removeClientsFromSyncList(clients?: string[]): void;
     onCanPlayThrough(): void;
+    doPreloadFakeout(): void;
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
     | AudioStore.Actions.setAudioFile
@@ -66,7 +68,8 @@ export default Vue.extend({
             audioBuffer: null,
             // startedAt: 0,
             // pausedAt: 0,
-            audioLoadCancellationToken: null
+            audioLoadCancellationToken: null,
+            firstPlay: true
         }
     },
     computed: {
@@ -100,18 +103,18 @@ export default Vue.extend({
                 pauseAudio, 
                 stopAudio,
                 clientSynced, 
-                resetSyncList, 
+                removeClientsFromSyncList, 
                 clientLeft }: Methods = this;
 
             roomManager.addEventListener("audiometadatasent", (metadata) => {
                 setAudioFileMetadata({ audioFileMetadata: metadata });
             });
 
-            roomManager.addEventListener("audiofilesyncing", (audioFile) => {
+            roomManager.addEventListener("audiofilesyncing", ({ audioFile, clients }) => {
                 // Unload existing audiofile, if one is loaded
                 unloadAudioFile();
 
-                resetSyncList();
+                removeClientsFromSyncList(clients);
                 loadAudioFile(audioFile);
             });
 
@@ -140,7 +143,7 @@ export default Vue.extend({
             const signallingSocket = roomManager.signallingSocket as SignallingSocket;
             signallingSocket.on("room-left", () => {
                 stopAudio();
-                resetSyncList();
+                removeClientsFromSyncList();
                 unloadAudioFile();
             });
 
@@ -149,14 +152,15 @@ export default Vue.extend({
             });
         },
         loadAudioFile(audioFile: Blob) {
-            const { audioContext, audioLoadCancellationToken }: Data = this;
+            const { audioContext, audioLoadCancellationToken, firstPlay }: Data = this;
             const { 
                 setAudioFile, 
                 setAudioLoaded, 
                 setIsPlaying, 
                 onCanPlayThrough,
                 setStartedAt,
-                setPausedAt }: Methods = this;
+                setPausedAt,
+                doPreloadFakeout }: Methods = this;
 
             setAudioFile({ audioFile });
 
@@ -193,6 +197,14 @@ export default Vue.extend({
                     this.audioBuffer = audioBuffer;
                     setAudioLoaded({ loaded: true });
 
+                    // If this is our first time playing, quickly play and stop the audio
+                    // This is meant to stop a bug where a massive amount of delay occurs when
+                    // playing an audio clip for the first time
+                    if (firstPlay) {
+                        doPreloadFakeout();
+                        this.firstPlay = false;
+                    }
+
                     // Send ready to play signal
                     const roomManager = this.roomManager as RoomManager;
                     if (!roomManager.isOwner) {
@@ -204,7 +216,8 @@ export default Vue.extend({
         },
         unloadAudioFile() {
             const { audioContext, audioSource }: Data = this;
-            const { setAudioFile, 
+            const { 
+                setAudioFile, 
                 setAudioFileMetadata, 
                 setAudioLoaded, 
                 setIsPlaying, 
@@ -341,14 +354,28 @@ export default Vue.extend({
                 setSyncedClients({ syncedClients: newSyncList });
             }
         },
-        resetSyncList() {
+        removeClientsFromSyncList(clients?: string[]) {
+            const { syncedClients }: Computed = this;
             const { setSyncedClients }: Methods = this;
-            setSyncedClients({ syncedClients: [] });
+
+            // Remove all clients, if none are specified
+            const newSyncedClients = (clients) ? syncedClients.filter((clientID) => !clients.includes(clientID)) : [];
+        
+            setSyncedClients({ syncedClients: newSyncedClients });
         },
         onCanPlayThrough() { // TODO: remove
             const { setAudioLoaded }: Methods = this;
             console.log("canplaythrough audio file"); // TODO: remove
             setAudioLoaded({ loaded: true });
+        },
+        doPreloadFakeout() {
+            const { audioBuffer, audioContext }: Data = this;
+
+            const audioSource = audioContext.createBufferSource();
+            audioSource.buffer = audioBuffer;
+            audioSource.connect(audioContext.destination);
+            audioSource.start();
+            audioSource.stop();
         }
     },
     watch: {

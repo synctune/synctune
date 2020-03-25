@@ -20,13 +20,18 @@ interface PlaySignalData {
     startTime: number;
 }
 
+interface SyncingData {
+    audioFile: Blob;
+    clients: string[];
+}
+
 interface RoomManagerEventMap {
     "peermanagercreated": PeerManager;
 
     "audiometadatasent": AudioFileMetadata;
     "audiochunksent": ArrayBuffer;
     "audiofilesent": Blob;
-    "audiofilesyncing": Blob;
+    "audiofilesyncing": SyncingData;
 
     "audiometadatareceived": AudioFileMetadata;
     "audiochunkreceived": ArrayBuffer;
@@ -293,9 +298,14 @@ export default class RoomManager extends Emittable {
             return;
         }
 
-        this.emitEvent("audiofilesyncing", audioFile);
-
         const targetClients = (clients) ? clients : this.peerManager.clients;
+
+        const data: SyncingData = {
+            audioFile: audioFile,
+            clients: targetClients
+        };
+
+        this.emitEvent("audiofilesyncing", data);
 
         // --- Send the file metadata ---
         // const metadata: AudioFileMetadata = {
