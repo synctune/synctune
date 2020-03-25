@@ -371,6 +371,8 @@ export default class PeerManager extends Emittable {
     disconnectRTC(clientId: string): void {
         const peerObj = this.getPeerObject(clientId, false);
 
+        console.log("Disconnecting RTC with client", clientId, peerObj);
+
         if (!peerObj) return;
 
         // Close channels

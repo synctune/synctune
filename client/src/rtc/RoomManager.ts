@@ -174,10 +174,10 @@ export default class RoomManager extends Emittable {
             console.log(peerManager.timesync);
 
             // TODO: fix this so we don't have delay the call like this
-            setTimeout(() => {
-                // Sync clocks
-                peerManager.timesync.sync(); // TODO: do something about that
-            }, 3000);
+            // setTimeout(() => {
+            //     // Sync clocks
+            //     peerManager.timesync.sync(); // TODO: do something about that
+            // }, 3000);
 
             // peerManager.timesync.sync();
         });

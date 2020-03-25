@@ -27,12 +27,22 @@ interface SyncClientsPayload {
     syncedClients: string[];
 }
 
+interface StartedAtPayload {
+    startedAt: number;
+}
+
+interface PausedAtPayload {
+    pausedAt: number;
+}
+
 export interface AudioState {
     isPlaying: boolean;
     audioFile: Blob | null;
     audioFileMetadata: AudioFileMetadata | null;
     audioLoaded: boolean;
     syncedClients: string[];
+    startedAt: number;
+    pausedAt: number;
 }
 
 export enum Getters {
@@ -40,7 +50,9 @@ export enum Getters {
     audioFile = "audioFile",
     audioFileMetadata = "audioFileMetadata",
     audioLoaded = "audioLoaded",
-    syncedClients = "syncedClients"
+    syncedClients = "syncedClients",
+    startedAt = "startedAt",
+    pausedAt = "pausedAt"
 }
 
 export enum Mutations {
@@ -48,7 +60,9 @@ export enum Mutations {
     setAudioFile = "setAudioFile",
     setAudioFileMetadata = "setAudioFileMetadata",
     setAudioLoaded = "setAudioLoaded",
-    setSyncedClients = "setSyncedClients"
+    setSyncedClients = "setSyncedClients",
+    setStartedAt = "setStartedAt",
+    setPausedAt = "setPausedAt"
 }
 
 export enum Actions {
@@ -56,7 +70,9 @@ export enum Actions {
     setAudioFile = "setAudioFile",
     setAudioFileMetadata = "setAudioFileMetadata",
     setAudioLoaded = "setAudioLoaded",
-    setSyncedClients = "setSyncedClients"
+    setSyncedClients = "setSyncedClients",
+    setStartedAt = "setStartedAt",
+    setPausedAt = "setPausedAt"
 }
 
 export interface MapGettersStructure {
@@ -65,6 +81,8 @@ export interface MapGettersStructure {
     [Getters.audioFileMetadata]: AudioFileMetadata | null;
     [Getters.audioLoaded]: boolean;
     [Getters.syncedClients]: string[];
+    [Getters.startedAt]: number;
+    [Getters.pausedAt]: number;
 }
 
 export interface MapMutationsStructure {
@@ -73,6 +91,8 @@ export interface MapMutationsStructure {
     [Mutations.setAudioFileMetadata](payload: AudioFileMetadataPayload): void;
     [Mutations.setAudioLoaded](payload: AudioLoadedPayload): void;
     [Mutations.setSyncedClients](payload: SyncClientsPayload): void;
+    [Mutations.setStartedAt](payload: StartedAtPayload): void;
+    [Mutations.setPausedAt](payload: PausedAtPayload): void;
 }
 
 export interface MapActionsStructure {
@@ -81,6 +101,8 @@ export interface MapActionsStructure {
     [Actions.setAudioFileMetadata](payload: AudioFileMetadataPayload): void;
     [Actions.setAudioLoaded](payload: AudioLoadedPayload): void;
     [Actions.setSyncedClients](payload: SyncClientsPayload): void;
+    [Actions.setStartedAt](payload: StartedAtPayload): void;
+    [Actions.setPausedAt](payload: PausedAtPayload): void;
 }
 
 // -------------------
@@ -94,7 +116,9 @@ const state: AudioState = {
     audioFile: null,
     audioFileMetadata: null,
     audioLoaded: false,
-    syncedClients: []
+    syncedClients: [],
+    startedAt: 0,
+    pausedAt: 0
 };
 
 const getters: GetterTree<AudioState, RootState> = {
@@ -112,6 +136,12 @@ const getters: GetterTree<AudioState, RootState> = {
     },
     [Getters.syncedClients](state): string[] {
         return [...state.syncedClients];
+    },
+    [Getters.startedAt](state): number {
+        return state.startedAt;
+    },
+    [Getters.pausedAt](state): number {
+        return state.pausedAt;
     }
 };
 
@@ -130,7 +160,13 @@ const mutations: MutationTree<AudioState> = {
     },
     [Mutations.setSyncedClients](state, { syncedClients }: SyncClientsPayload) {
         Vue.set(state, "syncedClients", syncedClients);
-    }
+    },
+    [Mutations.setStartedAt](state, { startedAt }: StartedAtPayload) {
+        Vue.set(state, "startedAt", startedAt);
+    },
+    [Mutations.setPausedAt](state, { pausedAt }: PausedAtPayload) {
+        Vue.set(state, "pausedAt", pausedAt);
+    },
 };
 
 const actions: ActionTree<AudioState, RootState> = {
@@ -148,7 +184,13 @@ const actions: ActionTree<AudioState, RootState> = {
     }, 
     [Actions.setSyncedClients]({ commit }, payload: SyncClientsPayload) {
         commit(Mutations.setSyncedClients, payload);
-    }
+    },
+    [Actions.setStartedAt]({ commit }, payload: StartedAtPayload) {
+        commit(Mutations.setStartedAt, payload);
+    },
+    [Actions.setPausedAt]({ commit }, payload: PausedAtPayload) {
+        commit(Mutations.setPausedAt, payload);
+    },
 };
 
 const storeModule: Module<AudioState, RootState> = {

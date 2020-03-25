@@ -112,7 +112,6 @@ import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager, { AudioFileMetadata } from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
-import { HighResolutionTimer } from "../../utilities";
 
 interface Data {
     sendClientId: string;
@@ -133,6 +132,7 @@ type Computed = {} &
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
         | AudioStore.Getters.syncedClients
+        | AudioStore.Getters.pausedAt
     >
 
 type Methods = {
@@ -171,7 +171,8 @@ export default Vue.extend({
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
-            syncedClients: AudioStore.Getters.syncedClients
+            syncedClients: AudioStore.Getters.syncedClients,
+            pausedAt: AudioStore.Getters.pausedAt,
         })
     },
     mounted() {
@@ -225,11 +226,14 @@ export default Vue.extend({
             roomManager.syncAudioFile(audioFile, metadata);
         },
         playAudio() {
+            const { pausedAt }: Computed = this;
             const roomManager = this.roomManager as RoomManager;
             const peerManager = roomManager.peerManager as PeerManager;
             
             // TODO: figure out proper delay timing
-            const startTime = roomManager.sendPlaySignal(0, 100);
+            // Note: pausedAt will be 0 if we never paused before
+            console.log("Playing at", pausedAt);
+            const startTime = roomManager.sendPlaySignal(pausedAt, 100); 
         },
         pauseAudio() {
             const roomManager = this.roomManager as RoomManager;
