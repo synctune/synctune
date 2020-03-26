@@ -41,5 +41,9 @@ services:
             - app-network
         hostname: client
         container_name: synctune_client
+    redis:
+        image: redis
+        networks: 
+            - app-network
 networks:
     app-network:
