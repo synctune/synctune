@@ -62,18 +62,17 @@ export default class ConnectionManager extends Emittable {
     private _roomName: string | null;
     private _roomOwner: string | null;
 
-    constructor() {
+    constructor(id: string) {
         super();
 
         // TODO: put these out to keys
         const options: Peer.PeerJSOption = {
             host: '/',
-            path: "/room-server",
-            // key: "synctune",
+            path: "room-server",
             port: 3050,
         };
 
-        const peer = new Peer(undefined, options);
+        const peer = new Peer(id, options);
         this._peer = peer;
 
         this._id = peer.id;

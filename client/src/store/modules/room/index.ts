@@ -3,6 +3,7 @@ import { Module, GetterTree, MutationTree, ActionTree } from "vuex";
 import RoomManager from '@/rtc/RoomManager';
 import { RootState } from "../../index";
 import ConnectionManager from '@/rtc/ConnectionManager';
+import { uuid } from "uuidv4";
 
 // -------------------------
 // --- Type Declarations ---
@@ -158,7 +159,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
 const namespaced = false;
 
 const state: RoomState = {
-    connectionManager: new ConnectionManager(),
+    connectionManager: new ConnectionManager(uuid()),
     connectedSocketClients: [],
     connectedRTCClients: []
 };
