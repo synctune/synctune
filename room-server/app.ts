@@ -1,5 +1,5 @@
 import * as http from "http";
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { ExpressPeerServer } from "peer";
 import {
     getRoomOwnerPeerId,
