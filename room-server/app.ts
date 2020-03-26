@@ -12,7 +12,7 @@ import KEYS from "./keys";
 
 const app = express();
 const server = http.createServer(app);
-app.use(bodyParser);
+app.use(bodyParser.json());
 
 const peerServer = ExpressPeerServer(server, {
     proxied: true,
