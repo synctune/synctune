@@ -1,4 +1,5 @@
 # SyncTune
+
 A music synchronization web application.
 
 ## Development
@@ -18,20 +19,22 @@ Then connect to `localhost:3050`
 Below are some useful NPM scripts for development
 
 #### Environments
-* `dev`: the development environment
+
+-   `dev`: the development environment
 
 #### Services
-* `reverse-proxy`: the reverse-proxy container using Nginx
-* `client`: the Vue frontend SPA container
-* `signalling-server`: the Node JS signalling server container
+
+-   `reverse-proxy`: the reverse-proxy container using Nginx
+-   `client`: the Vue frontend SPA container
+-   `room-server`: the Node JS signalling server container
 
 #### Commands
-* `start:[environment]`: starts up the given environment
-* `rm-services:[environment]--[?service]`: removes given services from Docker. if no specific service is provided then all are removed
-* `restart:[environment]--[?service]`: hot restarts the given service. If no specific service is specified then all are restarted
-* `stop:[environment]`: stops the given environment
-* `shell:[service]`: opens an interactive shell into the given running service container
 
+-   `start:[environment]`: starts up the given environment
+-   `rm-services:[environment]--[?service]`: removes given services from Docker. if no specific service is provided then all are removed
+-   `restart:[environment]--[?service]`: hot restarts the given service. If no specific service is specified then all are restarted
+-   `stop:[environment]`: stops the given environment
+-   `shell:[service]`: opens an interactive shell into the given running service container
 
 ### Common Debugging Tips
 

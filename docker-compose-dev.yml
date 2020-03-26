@@ -1,49 +1,49 @@
 version: "3.2"
-services: 
-    reverse-proxy: 
+services:
+    reverse-proxy:
         restart: always
-        build: 
+        build:
             dockerfile: Dockerfile.dev
             context: ./reverse-proxy
-        ports: 
+        ports:
             - "3050:80"
         networks:
             - app-network
         hostname: reverse-proxy
         container_name: synctune_reverse_proxy
-        depends_on: 
-            - "signalling-server"
+        depends_on:
+            - "room-server"
             - "client"
-    signalling-server:
-        build: 
+    room-server:
+        build:
             dockerfile: Dockerfile.dev
-            context: ./signalling-server
-        volumes: 
+            context: ./room-server
+        volumes:
             - /app/node_modules
-            - ./signalling-server:/app
-        environment: 
+            - ./room-server:/app
+        environment:
             - SOCKET_IO_PATH=socket.io
         networks:
             - app-network
-        hostname: signalling-server
-        container_name: synctune_signalling_server
+        hostname: room-server
+        container_name: synctune_room_server
     client:
-        build: 
+        build:
             dockerfile: Dockerfile.dev
             context: ./client
-        volumes: 
+        volumes:
             - /app/node_modules
             - ./client:/app
-        environment: 
+        environment:
             - CHOKIDAR_USEPOLLING=true
-            - VUE_APP_SIGNALLING_SERVER_SOCKET_IO_PATH=signalling-server/socket.io
-        networks: 
+            - VUE_APP_ROOM_SERVER_SOCKET_IO_PATH=room-server/socket.io
+        networks:
             - app-network
         hostname: client
         container_name: synctune_client
     redis:
         image: redis
-        networks: 
+        networks:
             - app-network
 networks:
     app-network:
