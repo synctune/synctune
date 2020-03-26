@@ -151,7 +151,7 @@ export default Vue.extend({
                     const roomManager = this.roomManager as RoomManager;
                     if (!roomManager.isOwner) {
                         const peerManager = roomManager.peerManager as PeerManager;
-                        peerManager!.sendReadyToPlaySignal(roomManager.id);
+                        peerManager!.sendReadyToPlaySignal(roomManager.id!);
                     }
                 });
             });
