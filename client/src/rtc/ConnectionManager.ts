@@ -12,12 +12,12 @@ interface GetRoomResponse {
     ownerId: string;
 }
 
-interface RoomData {
+export interface RoomData {
     roomName: string;
     ownerId: string;
 }
 
-interface RoomJoinedData extends RoomData {
+export interface RoomJoinedData extends RoomData {
     clients: string[];
 }
 
@@ -67,9 +67,12 @@ export default class ConnectionManager extends Emittable {
 
         // TODO: put these out to keys
         const options: Peer.PeerJSOption = {
-            host: '/',
-            path: "room-server",
-            port: 3050,
+            // host: '/',
+            // path: "room-server",
+            // port: 3050,
+            host: KEYS.PEERJS_HOST,
+            path: KEYS.PEERJS_PATH,
+            port: KEYS.PEERJS_PORT
         };
 
         const peer = new Peer(id, options);

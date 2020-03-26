@@ -11,6 +11,7 @@ import { Getters, Actions, MapGettersStructure, MapActionsStructure } from "../s
 import RoomManager from '../rtc/RoomManager';
 import VueRouter, { Route } from 'vue-router';
 import SignallingSocket from '../socket/SignallingSocket';
+import ConnectionManager, { RoomData } from '../rtc/ConnectionManager';
 
 type Props = {
     mode: "join" | "create";
@@ -22,10 +23,10 @@ type Data = {
 
 type ModeProp = "join" | "create";
 
-type Computed = Pick<MapGettersStructure, Getters.roomManager | Getters.isConnected> & {}
+type Computed = Pick<MapGettersStructure, Getters.isConnected | Getters.connectionManager> & {}
 
 type Methods = Pick<MapActionsStructure, Actions.setRoomManager | Actions.deleteRoomManager> & {
-    onSuccess(room: string): void;
+    onSuccess(room: RoomData): void;
     onFail(room: string): void;
 }
 
@@ -45,8 +46,9 @@ export default Vue.extend({
     },
     computed: {
         ...mapGetters({
-            roomManager: Getters.roomManager,
-            isConnected: Getters.isConnected,
+            // roomManager: Getters.roomManager,
+            // isConnected: Getters.isConnected,
+            connectionManager: Getters.connectionManager
         })
     },
     methods: {
@@ -75,14 +77,15 @@ export default Vue.extend({
         const { setRoomManager, deleteRoomManager, onSuccess, onFail }: Methods = this;
         const { mode }: Props = this;
 
-        let roomManager = this.roomManager as RoomManager;
+        // let roomManager = this.roomManager as RoomManager;
+        const connectionManager = this.connectionManager as ConnectionManager;
         const route = this.$route as Route;
         const router = this.$router as VueRouter;
 
         const targetRoom = route.params["id"];
         this.roomName = (targetRoom) ? targetRoom : "";
 
-        if (isConnected && roomManager?.room !== targetRoom) {
+        if (isConnected && connectionManager.room !== targetRoom) {
             // TODO: show an actual dialog box
             const goAnyways = confirm("Warning: already connected to a room! Are you sure you want to leave this room?");
 
@@ -92,38 +95,50 @@ export default Vue.extend({
             }
         }
 
+        connectionManager.leaveRoom();
+
         // Disconnect and remove current room manager, if it exists
-        if (roomManager) {
-            roomManager.leaveRoom();
-            deleteRoomManager();
-        }
+        // if (roomManager) {
+        //     roomManager.leaveRoom();
+        //     deleteRoomManager();
+        // }
 
         // Create a new room manager
-        roomManager = new RoomManager();
+        // roomManager = new RoomManager();
 
         // Join the room
         if (mode === "join") {
-            const signallingSocket = roomManager.signallingSocket as SignallingSocket;
+            // const signallingSocket = roomManager.signallingSocket as SignallingSocket;
 
-            // Setup event handlers
-            signallingSocket.on("room-not-exists", onFail);
-            signallingSocket.on("room-joined", onSuccess);
+            // // Setup event handlers
+            // signallingSocket.on("room-not-exists", onFail);
+            // signallingSocket.on("room-joined", onSuccess);
 
-            roomManager.joinRoom(targetRoom);
+            // roomManager.joinRoom(targetRoom);
+
+            connectionManager.joinRoom(targetRoom);
+
+            connectionManager.addEventListener("room-not-exists", onFail);
+            connectionManager.addEventListener("room-joined", onSuccess);
         } 
         // Create room
         else if (mode === "create") {
-            const signallingSocket = roomManager.signallingSocket as SignallingSocket;
+            // const signallingSocket = roomManager.signallingSocket as SignallingSocket;
 
-            // Setup event handlers
-            signallingSocket.on("room-exists", onFail);
-            signallingSocket.on("room-created", onSuccess);
+            // // Setup event handlers
+            // signallingSocket.on("room-exists", onFail);
+            // signallingSocket.on("room-created", onSuccess);
 
-            roomManager.createRoom(targetRoom);
+            // roomManager.createRoom(targetRoom);
+
+            connectionManager.createRoom(targetRoom);
+
+            connectionManager.addEventListener("room-already-exists", onFail);
+            connectionManager.addEventListener("room-created", onSuccess);
         }
 
         // Update store with the new room manager
-        setRoomManager({ roomManager });
+        // setRoomManager({ roomManager });
     }
 });
 </script>
