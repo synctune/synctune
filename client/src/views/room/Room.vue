@@ -59,6 +59,14 @@
 
             <br>
 
+            <!-- TODO: remove -->
+            <button
+                @click="syncClocks"
+            >Sync Clocks</button>
+
+            <br>
+            <br>
+
             <div>
                 <div>Play audio file</div>
                 <input 
@@ -102,9 +110,8 @@ import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
-import RoomManager from '../../rtc/RoomManager';
+import RoomManager, { AudioFileMetadata } from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
-import { HighResolutionTimer } from "../../utilities";
 
 interface Data {
     sendClientId: string;
@@ -125,6 +132,7 @@ type Computed = {} &
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
         | AudioStore.Getters.syncedClients
+        | AudioStore.Getters.pausedAt
     >
 
 type Methods = {
@@ -136,6 +144,8 @@ type Methods = {
     playAudio(): void;
     pauseAudio(): void;
     stopAudio(): void;
+
+    syncClocks(): void; // TODO: remove
 }
 
 export default Vue.extend({
@@ -161,7 +171,8 @@ export default Vue.extend({
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
-            syncedClients: AudioStore.Getters.syncedClients
+            syncedClients: AudioStore.Getters.syncedClients,
+            pausedAt: AudioStore.Getters.pausedAt,
         })
     },
     mounted() {
@@ -206,14 +217,23 @@ export default Vue.extend({
         syncAudioFile(audioFile: File) {
             const roomManager = this.roomManager as RoomManager;
 
-            roomManager.syncAudioFile(audioFile);
+            const metadata: AudioFileMetadata = {
+                name: audioFile.name,
+                size: audioFile.size,
+                type: audioFile.type
+            };
+
+            roomManager.syncAudioFile(audioFile, metadata);
         },
         playAudio() {
+            const { pausedAt }: Computed = this;
             const roomManager = this.roomManager as RoomManager;
             const peerManager = roomManager.peerManager as PeerManager;
             
             // TODO: figure out proper delay timing
-            const startTime = roomManager.sendPlaySignal(0, 100);
+            // Note: pausedAt will be 0 if we never paused before
+            console.log("Playing at", pausedAt);
+            const startTime = roomManager.sendPlaySignal(pausedAt, 100); 
         },
         pauseAudio() {
             const roomManager = this.roomManager as RoomManager;
@@ -222,6 +242,13 @@ export default Vue.extend({
         stopAudio() {
             const roomManager = this.roomManager as RoomManager;
             roomManager.sendStopSignal();
+        },
+        syncClocks() { // TODO: remove
+            const roomManager = this.roomManager as RoomManager;
+            const peerManager = roomManager.peerManager as PeerManager;
+            const timesync = peerManager.timesync;
+
+            timesync.sync();
         }
     }
 });

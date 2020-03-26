@@ -36,8 +36,9 @@ export interface PeerManagerEventMap {
     "rtcdisconnected": PeerManagerEvent<Event | null>;
     "rtcfailed": PeerManagerEvent<Event>;
 
-    "syncreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
-    "audioreceivechannelcreated": PeerManagerEvent<RTCDataChannel>;
+    "syncreceivechannelready": PeerManagerEvent<RTCDataChannel>;
+    "audioreceivechannelready": PeerManagerEvent<RTCDataChannel>;
+    "datachannelsready": PeerManagerEvent<null>;
 }
 
 const sendChannelMap = {
@@ -115,7 +116,7 @@ export default class PeerManager extends Emittable {
                 try {
                     sendChannel.send(JSON.stringify(message));
 
-                    console.log("Timesync: resolving send message"); // TODO: remove
+                    console.log("Timesync: resolving send message", data); // TODO: remove
                     if (intervalId) clearInterval(intervalId);
                     resolve();
                 } catch(err) {
@@ -128,15 +129,15 @@ export default class PeerManager extends Emittable {
 
         // TODO: remove these
         timesync.on("change", (offset) => {
-            console.log('Timesync: New offset', offset);
+            console.log('Timesync: New offset', offset); // TODO: remove
         });
 
         timesync.on("sync", (state) => {
-            console.log(`Timesync: new sync state '${state}'`);
+            console.log(`Timesync: new sync state '${state}'`); // TODO: remove
         });
 
         timesync.on("error", (error) => {
-            console.log("Timesync: error", error);
+            console.log("Timesync: error", error); // TODO: remove
         });
         
         console.log("timesync", this.timesync); // TODO: remove
@@ -231,6 +232,8 @@ export default class PeerManager extends Emittable {
         const audioSendChannel = pc.createDataChannel("audioChannel" as ChannelType);
         audioSendChannel.binaryType = "arraybuffer";
 
+        let numChannelsReady = 0;
+
         // Setup receive channel
         pc.addEventListener("datachannel", (event) => {
             console.log("Received data channel", event.channel.label); // TODO: remove
@@ -241,7 +244,10 @@ export default class PeerManager extends Emittable {
             switch(channelName) {
                 case "syncChannel":
                     this.rtcPeers[clientId].syncReceiveChannel = receiveChannel;
-                    this.emitEvent("syncreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
+
+                    receiveChannel.addEventListener("open", () => {
+                        this.emitEvent("syncreceivechannelready", { clientId, sourceEvent: receiveChannel });
+                    });
 
                     // Add listener that calls timesync.receive whenever it gets data for it
                     receiveChannel.addEventListener("message", (event) => {
@@ -251,7 +257,7 @@ export default class PeerManager extends Emittable {
                             if (message.type === "timesync") {
                                 const data = message.data as JsonRpcReceive;
 
-                                // console.log(`Timesync: Received timesync message from '${clientId}'`, data); // TODO: remove
+                                console.log(`Timesync: Received timesync message from '${clientId}'`, data); // TODO: remove
 
                                 // Notify timesync that sync data has been sent to it
                                 this._timesync.receive(clientId, data);
@@ -266,10 +272,22 @@ export default class PeerManager extends Emittable {
                 case "audioChannel":
                     receiveChannel.binaryType = "arraybuffer";
                     this.rtcPeers[clientId].audioReceiveChannel = receiveChannel;
-                    this.emitEvent("audioreceivechannelcreated", { clientId, sourceEvent: receiveChannel });
+
+                    receiveChannel.addEventListener("open", () => {
+                        this.emitEvent("audioreceivechannelready", { clientId, sourceEvent: receiveChannel });
+                    });
 
                     break;
             }
+
+            receiveChannel.addEventListener("open", () => {
+                numChannelsReady++;
+
+                // If both the data channels are ready
+                if (numChannelsReady === 2) {
+                    this.emitEvent("datachannelsready", { clientId, sourceEvent: null });
+                }
+            });
         });
 
         pc.addEventListener("iceconnectionstatechange", (event) => {
@@ -353,6 +371,8 @@ export default class PeerManager extends Emittable {
     disconnectRTC(clientId: string): void {
         const peerObj = this.getPeerObject(clientId, false);
 
+        console.log("Disconnecting RTC with client", clientId, peerObj);
+
         if (!peerObj) return;
 
         // Close channels
@@ -432,6 +452,11 @@ export default class PeerManager extends Emittable {
     sendAudioFileReceivedSignal(selfId: string) {
         this.clients.forEach(otherId => {
             const syncSendChannel = this.getSendChannel(otherId, "syncChannel", true);
+
+            if (!syncSendChannel) {
+                console.log("Unable to send audio receive signal to", otherId); // TODO: remove
+                return;
+            }
 
             console.log("Sending audiofilereceived to", otherId); // TODO: remove
 
