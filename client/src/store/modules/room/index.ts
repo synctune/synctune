@@ -2,13 +2,19 @@ import Vue from "vue";
 import { Module, GetterTree, MutationTree, ActionTree } from "vuex";
 import RoomManager from '@/rtc/RoomManager';
 import { RootState } from "../../index";
+import ConnectionManager from '@/rtc/ConnectionManager';
 
 // -------------------------
 // --- Type Declarations ---
 // -------------------------
 
+// TODO: remove room manager stuff
+// TODO: rename connectedSocketClients to connectedClients
+// TODO: remove connectedRTCClients stuff
+
 export interface RoomState {
     roomManager?: RoomManager;
+    connectionManager: ConnectionManager;
     connectedSocketClients: string[];
     connectedRTCClients: string[];
 }
@@ -23,7 +29,8 @@ export enum Getters {
     isOwner = "isOwner",
     connectedSocketClients = "connectedSocketClients",
     connectedRTCClients = "connectedRTCClients",
-    id = "id"
+    id = "id",
+    connectionManager = "connectionManager"
 }
 
 export enum Mutations {
@@ -43,6 +50,7 @@ export interface MapGettersStructure {
     [Getters.connectedSocketClients]: string[];
     [Getters.connectedRTCClients]: string[];
     [Getters.id]: string | null;
+    [Getters.connectionManager]: ConnectionManager;
 }
 
 export interface MapMutationsStructure {
@@ -113,6 +121,35 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
     });
 }
 
+function setupConnectionManagerListeners(state: RoomState, connectionManager: ConnectionManager) {
+    connectionManager.addEventListener("client-joined", ({ clientId }) => {
+        // Add client to connected clients list
+        if (state.connectedSocketClients.indexOf(clientId) < 0) {
+            state.connectedSocketClients.push(clientId);
+            Vue.set(state, "connectedSocketClients", state.connectedSocketClients);
+        }
+    });
+
+    connectionManager.addEventListener("client-left", ({ clientId }) => {
+        // Remove client from the clients list
+        const idx = state.connectedSocketClients.indexOf(clientId);
+        if (idx >= 0) Vue.delete(state.connectedSocketClients, idx);
+    });
+
+    connectionManager.addEventListener("room-created", () => {
+        // Add self
+        Vue.set(state, "connectedSocketClients", [connectionManager.id]);
+    });
+
+    connectionManager.addEventListener("room-joined", ({ clients }) => {
+        // Add other already connected clients + self
+        Vue.set(state, "connectedSocketClients", [...clients, connectionManager.id]);
+    });
+
+    connectionManager.addEventListener("room-left", () => {
+        Vue.set(state, "connectedSocketClients", []);
+    });
+}
 
 // ------------------
 // --- Room Store ---
@@ -121,9 +158,12 @@ function setupRoomManagerListeners(state: RoomState, roomManager: RoomManager) {
 const namespaced = false;
 
 const state: RoomState = {
+    connectionManager: new ConnectionManager(),
     connectedSocketClients: [],
     connectedRTCClients: []
 };
+
+setupConnectionManagerListeners(state, state.connectionManager);
 
 const getters: GetterTree<RoomState, RootState> = {
     [Getters.roomManager](state): RoomManager | null {
@@ -143,6 +183,9 @@ const getters: GetterTree<RoomState, RootState> = {
     },
     [Getters.id](state): string | null {
         return (state.roomManager) ? state.roomManager.id : null;
+    },
+    [Getters.connectionManager](state): ConnectionManager {
+        return state.connectionManager;
     }
 };
 
@@ -153,10 +196,10 @@ const mutations: MutationTree<RoomState> = {
         state.roomManager?.clearListeners();
 
         // Reset the state
-        resetState(state);
+        // resetState(state);
 
         // Setup listeners for the new room manager
-        setupRoomManagerListeners(state, roomManager);
+        // setupRoomManagerListeners(state, roomManager);
 
         // Set the new room manager
         Vue.set(state, "roomManager", roomManager);
@@ -167,7 +210,7 @@ const mutations: MutationTree<RoomState> = {
         state.roomManager?.clearListeners();
 
         // Reset the state
-        resetState(state);
+        // resetState(state);
     }
 };
 
