@@ -1,16 +1,18 @@
 import * as http from "http";
 import express from "express";
+import bodyParser from "body-parser";
 import { ExpressPeerServer } from "peer";
 import {
     getRoomOwnerPeerId,
     createRoom,
     closeRoom
 } from "./src/routes/RoomRoute";
-import session from "express-session"
-import KEYS from "./keys"
+import session from "express-session";
+import KEYS from "./keys";
 
 const app = express();
 const server = http.createServer(app);
+app.use(bodyParser);
 
 const peerServer = ExpressPeerServer(server, {
     proxied: true,
@@ -19,12 +21,14 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use("/peerjs", peerServer);
 
-app.use(session({
-    secret: KEYS.SESSION_SECRET,
-    resave: false,
-    cookie: {httpOnly: true, secure: true},
-    saveUninitialized: true,
-}));
+app.use(
+    session({
+        secret: KEYS.SESSION_SECRET,
+        resave: false,
+        cookie: { httpOnly: true, secure: true },
+        saveUninitialized: true
+    })
+);
 
 app.get("/test", (req, res) => res.end("It works!"));
 
