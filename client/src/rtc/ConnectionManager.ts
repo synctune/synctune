@@ -49,6 +49,8 @@ interface ConnectionManagerEventMap {
     "not-in-room": null;
     "already-in-room": string;
 
+    "isconnectedchanged": boolean;
+
     "error": any;
 }
 
@@ -66,7 +68,7 @@ export default class ConnectionManager extends Emittable {
         super();
 
         // TODO: put these out to keys
-        const options: Peer.PeerJSOption = {
+        const options: Peer.PeerJSOption = (process.env.NODE_ENV == "development")? {} : {
             // host: '/',
             // path: "room-server",
             // port: 3050,
@@ -132,6 +134,11 @@ export default class ConnectionManager extends Emittable {
                     roomName: this._roomName!
                 };
 
+                this._roomName = null;
+                this._roomOwner = null;
+
+                this.emitEvent("isconnectedchanged", false);
+
                 this.emitEvent("room-left", data);
 
                 this._peerConnections = {};
@@ -156,7 +163,7 @@ export default class ConnectionManager extends Emittable {
 
         try {
             // TODO: add to keys
-            const res = await axios.post("/room-server/rooms/create", data); // TODO: move out to keys
+            const res = await axios.post(`${KEYS.ROOM_SERVER_URL}/rooms/create`, data); // TODO: move out to keys
             
             if (res.status == 200) {
                 const data: RoomData = {
@@ -166,6 +173,8 @@ export default class ConnectionManager extends Emittable {
 
                 this._roomName = roomName;
                 this._roomOwner = this._id;
+
+                this.emitEvent("isconnectedchanged", true);
 
                 this.emitEvent("room-created", data);
             } else if (res.status == 409) {
@@ -187,7 +196,7 @@ export default class ConnectionManager extends Emittable {
 
         try {
             // TODO: add to keys
-            const res = await axios.get<GetRoomResponse>(`/room-server/${roomName}`);
+            const res = await axios.get<GetRoomResponse>(`${KEYS.ROOM_SERVER_URL}/rooms/${roomName}`);
 
             if (res.status == 200) {
                 const ownerId = res.data.ownerId;
@@ -203,16 +212,21 @@ export default class ConnectionManager extends Emittable {
                 // Connect to the room owner
                 const conn = peer.connect(ownerId);
 
+                console.log('Connecting to peer', ownerId);
+
                 conn.on("open", () => {
                     this.addPeerConnection(conn);
 
                     this._roomName = roomName;
                     this._roomOwner = ownerId;
 
+                    this.emitEvent("isconnectedchanged", true);
+
                     this.emitEvent("room-joined", data);
                 });
 
                 conn.on("error", (err) => {
+                    console.log("Error", err);
                     this.emitEvent("error", err);
                 });
 
@@ -245,7 +259,7 @@ export default class ConnectionManager extends Emittable {
             // Attempt to delete the room on the server
             try {
                 // TODO: add to keys
-                await axios.delete(`/room-server/${this._roomName!}`);
+                await axios.delete(`${KEYS.ROOM_SERVER_URL}/rooms/${this._roomName!}`);
             } catch(err) {}
 
             const data: RoomData = {
@@ -253,6 +267,10 @@ export default class ConnectionManager extends Emittable {
                 roomName: this._roomName!
             };
 
+            this._roomName = null;
+            this._roomOwner = null;
+
+            this.emitEvent("isconnectedchanged", false);
             this.emitEvent("room-left", data);
         }
     }

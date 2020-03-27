@@ -15,6 +15,7 @@ import { uuid } from "uuidv4";
 
 export interface RoomState {
     roomManager?: RoomManager;
+    isConnected: boolean;
     connectionManager: ConnectionManager;
     connectedSocketClients: string[];
     connectedRTCClients: string[];
@@ -150,6 +151,10 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     connectionManager.addEventListener("room-left", () => {
         Vue.set(state, "connectedSocketClients", []);
     });
+
+    connectionManager.addEventListener("isconnectedchanged", (newIsConnected) => {
+        Vue.set(state, "isConnected", newIsConnected);
+    });
 }
 
 // ------------------
@@ -160,6 +165,7 @@ const namespaced = false;
 
 const state: RoomState = {
     connectionManager: new ConnectionManager(uuid()),
+    isConnected: false,
     connectedSocketClients: [],
     connectedRTCClients: []
 };
@@ -171,7 +177,7 @@ const getters: GetterTree<RoomState, RootState> = {
         return (state.roomManager) ? state.roomManager : null;
     },
     [Getters.isConnected](state): boolean {
-        return !!state.roomManager;
+        return state.isConnected;
     },
     [Getters.isOwner](state): boolean {
         return (state.roomManager) ? state.roomManager.isOwner : false;

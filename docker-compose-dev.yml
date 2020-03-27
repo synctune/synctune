@@ -36,7 +36,8 @@ services:
             - ./client:/app
         environment:
             - CHOKIDAR_USEPOLLING=true
-            - VUE_APP_ROOM_SERVER_SOCKET_IO_PATH=room-server/socket.io
+            - VUE_APP_ROOM_SERVER_URL=/room-server
+            - VUE_APP_ROOM_SERVER_SOCKET_IO_PATH=room-server/socket.io # TODO: remove this
         networks:
             - app-network
         hostname: client
