@@ -19,6 +19,12 @@ const peerServer = ExpressPeerServer(server, {
     path: "/"
 });
 
+app.use((req, res, next) => {
+    console.log("HTTP request", req.method, req.url);
+    res.header("Access-Control-Allow-Origin", KEYS.CLIENT_HOST_PATH);
+    next();
+});
+
 app.use("/peerjs", peerServer);
 
 let config = {
