@@ -48,6 +48,15 @@ export default Vue.extend({
             audioFileMetadata: AudioStore.Getters.audioFileMetadata
         })
     },
+    mounted() {
+        // Connection established
+        const { setupConnectionManagerListeners }: Methods = this;
+        const connectionManager = this.connectionManager as ConnectionManager;
+
+        console.log("RoomStatus: setting up connection manager listeners", connectionManager);
+
+        setupConnectionManagerListeners(connectionManager);
+    },
     methods: {
         ...mapActions({
             deleteRoomManager: RoomStore.Actions.deleteRoomManager
@@ -97,23 +106,25 @@ export default Vue.extend({
         }
     },
     watch: {
-        isConnected(connection: boolean) {
-            if (!connection) return;
+        // isConnected(connection: boolean) {
+        //     if (!connection) return;
 
-            // Connection established
-            const { setupConnectionManagerListeners }: Methods = this;
-            const connectionManager = this.connectionManager as ConnectionManager;
+        //     // Connection established
+        //     const { setupConnectionManagerListeners }: Methods = this;
+        //     const connectionManager = this.connectionManager as ConnectionManager;
 
-            setupConnectionManagerListeners(connectionManager);
+        //     console.log("RoomStatus: setting up connection manager listeners", connectionManager);
 
-            // const roomManager = this.roomManager as RoomManager;
-            // setupSignallingSocketListeners(roomManager.signallingSocket);
+        //     setupConnectionManagerListeners(connectionManager);
 
-            // roomManager.addEventListener("peermanagercreated", () => {
-            //     const peerManager = roomManager.peerManager as PeerManager;
-            //     setupPeerManagerListeners(peerManager);
-            // });
-        }
+        //     // const roomManager = this.roomManager as RoomManager;
+        //     // setupSignallingSocketListeners(roomManager.signallingSocket);
+
+        //     // roomManager.addEventListener("peermanagercreated", () => {
+        //     //     const peerManager = roomManager.peerManager as PeerManager;
+        //     //     setupPeerManagerListeners(peerManager);
+        //     // });
+        // }
     }
 });
 </script>
