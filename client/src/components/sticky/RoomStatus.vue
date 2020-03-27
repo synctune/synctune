@@ -80,6 +80,7 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("client-joined", ({ clientId }) => {
+                console.log("Room Status: client-joined"); // TODO: remove
                 const { onClientRtcJoined }: Methods = this;
                 onClientRtcJoined(clientId);
             });

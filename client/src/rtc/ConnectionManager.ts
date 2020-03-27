@@ -169,9 +169,11 @@ export default class ConnectionManager extends Emittable {
         peer.on("connection", (conn) => { // When a remote peer connects with us
             const clientData = this.addPeerConnection(conn);
 
-            if (this.isOwner) {
-                this.emitEvent("client-joined", clientData);
-            }
+            conn.on("open", () => {
+                if (this.isOwner) {
+                    this.emitEvent("client-joined", clientData);
+                }
+            });
         });
     }
 

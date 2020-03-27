@@ -214,12 +214,12 @@ export default Vue.extend({
                     // If this is our first time playing, quickly play and stop the audio
                     // This is meant to stop a bug where a massive amount of delay occurs when
                     // playing an audio clip for the first time
-                    if (firstPlay) {
-                        doPreloadFakeout();
-                        this.firstPlay = false;
-                    }
+                    // if (firstPlay) {
+                    //     doPreloadFakeout();
+                    //     this.firstPlay = false;
+                    // }
 
-                    // doPreloadFakeout();
+                    doPreloadFakeout();
 
 
 
@@ -273,7 +273,7 @@ export default Vue.extend({
             // const roomManager = this.roomManager as RoomManager;
             // const peerManager = roomManager.peerManager as PeerManager;
             const connectionManager = this.connectionManager as ConnectionManager;
-            const { setIsPlaying, setStartedAt, setPausedAt }: Methods = this;
+            const { setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
 
             if (!audioLoaded) {
                 console.warn("Unable to play, audio file not loaded"); // TODO: remove
@@ -284,6 +284,8 @@ export default Vue.extend({
             //     console.log("Peermanager not connected"); // TODO: remove
             //     return;
             // }
+
+            doPreloadFakeout();
 
             const timesync = connectionManager.timesync;
 
@@ -403,6 +405,8 @@ export default Vue.extend({
             audioSource.connect(audioContext.destination);
             audioSource.start();
             audioSource.stop();
+
+            console.log("AudioPlayer: Doing preload fakeout"); // TODO: remove
         }
     },
     watch: {

@@ -250,7 +250,7 @@ export default Vue.extend({
         },
         pauseAudio() {
             const connectionManager = this.connectionManager as ConnectionManager;
-            connectionManager.sendStopSignal();
+            connectionManager.sendPauseSignal();
 
             // const roomManager = this.roomManager as RoomManager;
             // roomManager.sendPauseSignal();
