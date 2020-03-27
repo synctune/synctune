@@ -32,7 +32,8 @@ export interface MessageData {
         | "pause" 
         | "stop" 
         | "audiometadata"
-        | "audiochunk";
+        | "audiochunk"
+        | "closeconnection";
     data: any;
 }
 
@@ -314,6 +315,17 @@ export default class ConnectionManager extends Emittable {
                     const rtpReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreadytoplay", rtpReceivedClientId);
                     break;
+                case "closeconnection":
+                    const leavingClientID = messageData.data as string;
+                    const connection = this._peerConnections[leavingClientID]?.connection;
+
+                    console.log("Received client leaving message to", leavingClientID); // TODO: remove
+
+                    if (connection) {
+                        connection.close();
+                    }
+
+                    break;
                 case "timesync":
                     console.log(`Timesync: Received timesync message from '${clientId}'`, messageData.data); // TODO: remove
 
@@ -348,6 +360,18 @@ export default class ConnectionManager extends Emittable {
                 this.emitEvent("room-left", data);
 
                 this._peerConnections = {};
+            } else {
+                const clientId = conn.peer;
+
+                const clientData: ClientData = {
+                    clientId,
+                    connection: conn
+                };
+
+                // Remove the peer from the peer connections map
+                delete this._peerConnections[clientId];
+
+                this.emitEvent("client-left", clientData);
             }
         });
 
@@ -377,8 +401,7 @@ export default class ConnectionManager extends Emittable {
         };
 
         try {
-            // TODO: add to keys
-            const res = await axios.post(`${KEYS.ROOM_SERVER_URL}/rooms/create`, data); // TODO: move out to keys
+            const res = await axios.post(`${KEYS.ROOM_SERVER_URL}/rooms/create`, data);
             
             if (res.status == 200) {
                 const data: RoomData = {
@@ -473,7 +496,16 @@ export default class ConnectionManager extends Emittable {
 
         // Close all peer connections
         Object.values(this._peerConnections).forEach((clientData) => {
-            clientData.connection.close();
+            const connection = clientData.connection;
+
+            // Send close warning signal to other client
+            const messageData: MessageData = {
+                type: "closeconnection",
+                data: this._id
+            };
+            connection.send(messageData);
+
+            console.log("Sent client leaving message to", clientData.clientId); // TODO: remove
         });
 
         // Clear peer connections table
@@ -482,21 +514,24 @@ export default class ConnectionManager extends Emittable {
         if (this.isOwner) {
             // Attempt to delete the room on the server
             try {
-                // TODO: add to keys
                 await axios.delete(`${KEYS.ROOM_SERVER_URL}/rooms/${this._roomName!}`);
-            } catch(err) {}
-
-            const data: RoomData = {
-                ownerId: this._roomOwner!,
-                roomName: this._roomName!
-            };
-
-            this._roomName = null;
-            this._roomOwner = null;
-
-            this.emitEvent("isconnectedchanged", false);
-            this.emitEvent("room-left", data);
+                console.log("Successfully deleted room", this._roomName); // TODO: remove
+            } catch(err) {
+                console.log("Unable to delete room", this._roomName); // TODO: remove
+                this.emitEvent("error", `Unable to delete room ${this._roomName}`);
+            }
         }
+
+        const data: RoomData = {
+            ownerId: this._roomOwner!,
+            roomName: this._roomName!
+        };
+
+        this._roomName = null;
+        this._roomOwner = null;
+
+        this.emitEvent("isconnectedchanged", false);
+        this.emitEvent("room-left", data);
     }
 
     /**

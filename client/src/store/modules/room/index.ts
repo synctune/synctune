@@ -134,6 +134,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     });
 
     connectionManager.addEventListener("client-left", ({ clientId }) => {
+        console.log("Room store: client left", clientId);
         // Remove client from the clients list
         const idx = state.connectedSocketClients.indexOf(clientId);
         if (idx >= 0) Vue.delete(state.connectedSocketClients, idx);
