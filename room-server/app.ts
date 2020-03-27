@@ -1,4 +1,5 @@
 import * as http from "http";
+import cors from "cors";
 import express from "express";
 import bodyParser from "body-parser";
 import { ExpressPeerServer } from "peer";
@@ -21,9 +22,15 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use((req, res, next) => {
     console.log("HTTP request", req.method, req.url);
-    res.header("Access-Control-Allow-Origin", KEYS.CLIENT_HOST_PATH);
     next();
 });
+
+app.use(
+    cors({
+        origin: KEYS.CLIENT_HOST_PATH,
+        credentials: true
+    })
+);
 
 app.use("/peerjs", peerServer);
 
