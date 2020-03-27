@@ -7,9 +7,6 @@ import Vue from 'vue';
 import { mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import RoomManager from '../../rtc/RoomManager';
-import SignallingSocket from '../../socket/SignallingSocket';
-import PeerManager from '../../rtc/PeerManager';
 import CancellationToken from "../../utilities/CancellationToken";
 import HighResolutionTimeout from '../../utilities/HighResolutionTimeout';
 import ConnectionManager from '../../rtc/ConnectionManager';
@@ -18,15 +15,12 @@ type Data = {
     audioContext: AudioContext;
     audioSource: AudioBufferSourceNode | null;
     audioBuffer: AudioBuffer | null;
-    // startedAt: number;
-    // pausedAt: number;
     audioLoadCancellationToken: CancellationToken | null;
     firstPlay: boolean;
 }
 
 type Computed = {}
     & Pick<RoomStore.MapGettersStructure,
-        RoomStore.Getters.roomManager
         | RoomStore.Getters.connectionManager
         | RoomStore.Getters.isConnected
     > 
@@ -40,7 +34,6 @@ type Computed = {}
     >;
 
 type Methods = {
-    // setupRoomManagerListeners(roomManager: RoomManager): void;
     setupConnectionManagerListeners(connectionManager: ConnectionManager): void;
     loadAudioFile(audioFile: Blob): void;
     unloadAudioFile(): void;
@@ -69,15 +62,12 @@ export default Vue.extend({
             audioContext: new AudioContext(),
             audioSource: null,
             audioBuffer: null,
-            // startedAt: 0,
-            // pausedAt: 0,
             audioLoadCancellationToken: null,
             firstPlay: true
         }
     },
     computed: {
         ...mapGetters({
-            roomManager: RoomStore.Getters.roomManager,
             connectionManager: RoomStore.Getters.connectionManager,
             isConnected: RoomStore.Getters.isConnected,
             isPlaying: AudioStore.Getters.isPlaying,
@@ -104,63 +94,6 @@ export default Vue.extend({
             setStartedAt: AudioStore.Actions.setStartedAt,
             setPausedAt: AudioStore.Actions.setPausedAt,
         }),
-        // setupRoomManagerListeners(roomManager: RoomManager) {
-        //     const { 
-        //         loadAudioFile, 
-        //         setAudioFileMetadata,
-        //         unloadAudioFile, 
-        //         playAudio, 
-        //         pauseAudio, 
-        //         stopAudio,
-        //         clientSynced, 
-        //         removeClientsFromSyncList, 
-        //         clientLeft }: Methods = this;
-
-        //     roomManager.addEventListener("audiometadatasent", (metadata) => {
-        //         setAudioFileMetadata({ audioFileMetadata: metadata });
-        //     });
-
-        //     roomManager.addEventListener("audiofilesyncing", ({ audioFile, clients }) => {
-        //         // Unload existing audiofile, if one is loaded
-        //         unloadAudioFile();
-
-        //         removeClientsFromSyncList(clients);
-        //         loadAudioFile(audioFile);
-        //     });
-
-        //     roomManager.addEventListener("audiofilereceived", (audioFile) => {
-        //         loadAudioFile(audioFile);
-        //     });
-
-        //     roomManager.addEventListener("playsignalreceived", (data) => {
-        //         playAudio(data.startLocation, data.startTime);
-        //     });
-
-        //     roomManager.addEventListener("pausesignalreceived", (sentTime) => {
-        //         pauseAudio();
-        //     });
-
-        //     roomManager.addEventListener("stopsignalreceived", (sentTime) => {
-        //         stopAudio();
-        //     });
-
-        //     if (roomManager.isOwner) {
-        //         roomManager.addEventListener("clientreadytoplay", clientId => {
-        //             clientSynced(clientId);
-        //         });
-        //     }
-
-        //     const signallingSocket = roomManager.signallingSocket as SignallingSocket;
-        //     signallingSocket.on("room-left", () => {
-        //         stopAudio();
-        //         removeClientsFromSyncList();
-        //         unloadAudioFile();
-        //     });
-
-        //     signallingSocket.on("client-left", (_, clientId: string) => {
-        //         clientLeft(clientId);
-        //     });
-        // },
         setupConnectionManagerListeners(connectionManager: ConnectionManager) {
             const { 
                 loadAudioFile, 
@@ -174,6 +107,10 @@ export default Vue.extend({
                 clientLeft }: Methods = this;
 
             connectionManager.addEventListener("audiometadatasent", (metadata) => {
+                setAudioFileMetadata({ audioFileMetadata: metadata });
+            });
+
+            connectionManager.addEventListener("audiometadatareceived", (metadata) => {
                 setAudioFileMetadata({ audioFileMetadata: metadata });
             });
 
@@ -201,11 +138,11 @@ export default Vue.extend({
                 stopAudio();
             });
 
-            if (connectionManager.isOwner) {
-                connectionManager.addEventListener("clientreadytoplay", clientId => {
+            connectionManager.addEventListener("clientreadytoplay", clientId => {
+                if (connectionManager.isOwner) {
                     clientSynced(clientId);
-                });
-            }
+                }
+            });
 
             connectionManager.addEventListener("room-left", () => {
                 stopAudio();
@@ -234,8 +171,6 @@ export default Vue.extend({
             setIsPlaying({ playing: false });
             setStartedAt({ startedAt: 0 });
             setPausedAt({ pausedAt: 0 });
-            // this.startedAt = 0;
-            // this.pausedAt = 0;
 
             // If there is another audio file already loading, then attempt to cancel it
             if (audioLoadCancellationToken) {
@@ -263,25 +198,16 @@ export default Vue.extend({
                     this.audioBuffer = audioBuffer;
                     setAudioLoaded({ loaded: true });
 
-                    // If this is our first time playing, quickly play and stop the audio
                     // This is meant to stop a bug where a massive amount of delay occurs when
                     // playing an audio clip for the first time
-                    if (firstPlay) {
-                        doPreloadFakeout();
-                        this.firstPlay = false;
-                    }
+                    doPreloadFakeout();
+
 
                     // Send ready to play signal
                     const connectionManager = this.connectionManager as ConnectionManager;
                     if (!connectionManager.isOwner) {
                         connectionManager.sendReadyToPlaySignal(connectionManager.id!);
                     }
-
-                    // const roomManager = this.roomManager as RoomManager;
-                    // if (!roomManager.isOwner) {
-                    //     const peerManager = roomManager.peerManager as PeerManager;
-                    //     peerManager!.sendReadyToPlaySignal(roomManager.id!);
-                    // }
                 });
             });
         },
@@ -307,8 +233,6 @@ export default Vue.extend({
             setIsPlaying({ playing: false });
             setStartedAt({ startedAt: 0 });
             setPausedAt({ pausedAt: 0 });
-            // this.startedAt = 0;
-            // this.pausedAt = 0;
         },
         async playAudio(startLocation: number, startTime: number) {
             // TODO: delay the start time using the synchronized time
@@ -318,20 +242,15 @@ export default Vue.extend({
 
             const { audioContext, audioBuffer }: Data = this;
             const { audioLoaded, pausedAt }: Computed = this;
-            // const roomManager = this.roomManager as RoomManager;
-            // const peerManager = roomManager.peerManager as PeerManager;
             const connectionManager = this.connectionManager as ConnectionManager;
-            const { setIsPlaying, setStartedAt, setPausedAt }: Methods = this;
+            const { setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
 
             if (!audioLoaded) {
                 console.warn("Unable to play, audio file not loaded"); // TODO: remove
                 return;
             }
 
-            // if (!peerManager) {
-            //     console.log("Peermanager not connected"); // TODO: remove
-            //     return;
-            // }
+            doPreloadFakeout();
 
             const timesync = connectionManager.timesync;
 
@@ -342,14 +261,10 @@ export default Vue.extend({
             this.audioSource = audioSource;
             let offset = pausedAt;
 
-            // TODO: put this in
             // Ignore locally saved pause location if not the room owner
             if (!connectionManager.isOwner) {
                 offset = startLocation;
             }
-            // if (!roomManager.isOwner) {
-            //     offset = startLocation;
-            // }
 
             const startAudio = (overshoot = 0) => {
                 console.log(">> Playing audio at", offset, "with overshoot", overshoot); // TODO: remove
@@ -357,9 +272,6 @@ export default Vue.extend({
 
                 setStartedAt({ startedAt: audioContext.currentTime - offset });
                 setPausedAt({ pausedAt: 0 });
-
-                // this.startedAt = audioContext.currentTime - offset;
-                // this.pausedAt = 0;
 
                 setIsPlaying({ playing: true });
             }
@@ -380,9 +292,6 @@ export default Vue.extend({
                     startAudio(overshoot);
                 });
                 timeout.start();
-
-                // TODO: get the high-precision timer working
-                // setTimeout(startAudio, startDelay);
             }
         },
         async pauseAudio() {
@@ -393,7 +302,6 @@ export default Vue.extend({
             const elapsedTime = audioContext.currentTime - startedAt;
             stopAudio();
             setPausedAt({ pausedAt: elapsedTime });
-            // this.pausedAt = elapsedTime;
         },
         stopAudio() {
             const { audioSource }: Data = this;
@@ -409,8 +317,6 @@ export default Vue.extend({
                 this.audioSource = null;
             }
 
-            // this.startedAt = 0;
-            // this.pausedAt = 0;
             setIsPlaying({ playing: false });
         },
         clientSynced(clientId: string) {
@@ -451,6 +357,8 @@ export default Vue.extend({
             audioSource.connect(audioContext.destination);
             audioSource.start();
             audioSource.stop();
+
+            console.log("AudioPlayer: Doing preload fakeout"); // TODO: remove
         }
     },
     watch: {
@@ -462,19 +370,7 @@ export default Vue.extend({
                 unloadAudioFile();
                 return;
             }
-
-            // Connection created, setup connection manager listeners
-            // const { setupRoomManagerListeners }: Methods = this;
-            // const roomManager = this.roomManager! as RoomManager;
-            // setupRoomManagerListeners(roomManager);
-        },
-        // connectionManager(connectionManager: ConnectionManager) {
-        //     if (connectionManager) {
-        //         console.log("AudioPlayer: Setting up connection manager listeners"); // TODO: remove
-        //         const { setupConnectionManagerListeners }: Methods = this;
-        //         setupConnectionManagerListeners(connectionManager);
-        //     }
-        // }
+        }
     }
 });
 </script>

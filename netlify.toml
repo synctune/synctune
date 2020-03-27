@@ -13,7 +13,7 @@
   # Default build command.
   command = "npm run build"
 
-  environment = { VUE_APP_SIGNALLING_SERVER_SOCKET_IO_PATH = "signalling-server/socket.io", VUE_APP_SIGNALLING_SERVER_URI= "https://104.197.75.203:5000/"}
+  environment = { VUE_APP_SIGNALLING_SERVER_SOCKET_IO_PATH = "signalling-server/socket.io", VUE_APP_SIGNALLING_SERVER_URI= "https://104.197.75.203:5000/", VUE_APP_PEERJS_HOST= "synctune.herokuapp.com", VUE_APP_PEERJS_PATH= "room-server", VUE_APP_PEERJS_PORT= 80 }
 
 # The following redirect is intended for use with most SPAs that handle
 # routing internally.
