@@ -15,7 +15,7 @@ command = "npm run build"
 VUE_APP_PEERJS_HOST = "https://synctune.herokuapp.com"
 VUE_APP_ROOM_SERVER_URL = "https://synctune.herokuapp.com"
 VUE_APP_PEERJS_PATH = "/peerjs"
-VUE_APP_PEERJS_PORT = 80
+VUE_APP_PEERJS_PORT = "80"
 
 # The following redirect is intended for use with most SPAs that handle
 # routing internally.
