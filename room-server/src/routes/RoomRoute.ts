@@ -24,18 +24,22 @@ export const getRoomOwnerPeerId = (req: Request, res: Response) => {
 export const createRoom = (req: Request, res: Response) => {
     const { roomName, selfId } = req.body;
     const userId = req.sessionID; //cant ever be null
-    if (redisClient.exists(roomName))
-        return res.status(409).end(`Room ${roomName} already exists`);
-    redisClient.hmset(
-        roomName,
-        "ownerPeerId",
-        selfId,
-        "ownerSessionId",
-        userId!,
-        _ => {
-            return res.end("OK");
-        }
-    );
+    redisClient.exists(roomName, (err, exists) => {
+        if (err) return res.status(500).end(err);
+        if (exists)
+            return res.status(409).end(`Room ${roomName} already exists`);
+        redisClient.hmset(
+            roomName,
+            "ownerPeerId",
+            selfId,
+            "ownerSessionId",
+            userId!,
+            (err, _) => {
+                if (err) return res.status(500).end(err);
+                return res.end("OK");
+            }
+        );
+    });
 };
 
 // @param roomName
@@ -44,7 +48,7 @@ export const createRoom = (req: Request, res: Response) => {
 // @501 if the requester is not the room owner
 // @200 on success
 export const closeRoom = (req: Request, res: Response) => {
-    const { roomName } = req.body;
+    const { roomName } = req.params;
     // query redis for room name
     redisClient.hgetall(roomName, (err, roomData) => {
         if (err) return res.status(500).end(err);
@@ -54,7 +58,8 @@ export const closeRoom = (req: Request, res: Response) => {
             return res
                 .status(501)
                 .end("You can't delete this room since you don't own it");
-        redisClient.del(roomName, numDeleted => {
+        redisClient.del(roomName, (err, numDel) => {
+            if (err) return res.status(500).end(err);
             return res.end("OK");
         });
     });
