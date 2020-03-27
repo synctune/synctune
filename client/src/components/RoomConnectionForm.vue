@@ -87,13 +87,13 @@ export default Vue.extend({
             const { roomName }: Data = this;
             const router = this.$router as VueRouter;
 
-            router.push({ path: `/room/join/${roomName}` });
+            router.push({ path: `/room/join/${roomName}` }).catch(err => {});
         },
         createRoom() {
             const { roomName }: Data = this;
             const router = this.$router as VueRouter;
 
-            router.push({ path: `/room/create/${roomName}` });
+            router.push({ path: `/room/create/${roomName}` }).catch(err => {});
         }
     }
 });

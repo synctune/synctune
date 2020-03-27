@@ -18,43 +18,17 @@ const routes: RouteConfig[] = [
         path: "/room",
         name: "room",
         component: Room
-        // component: () =>
-        //     import(/* webpackChunkName: "Room" */ "../views/room/Room.vue")
     },
     {
         path: "/room/join/:id",
         name: "room-join",
         component: RoomJoin
-        // component: () => 
-        //     import(/* webpackChunkName: "Room" */ "../views/room/RoomJoin.vue")
     },
     {
         path: "/room/create/:id",
         name: "room-create",
         component: RoomCreate
-        // component: () => 
-        //     import(/* webpackChunkName: "Room" */ "../views/room/RoomCreate.vue")
-    },
-    // TODO: remove these tests routes
-    // Test routes
-    // {
-    //     path: '/test-rtc-camera-local',
-    //     name: "WebRTC Local Camera Tests",
-    //     component: async () => 
-    //         import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCCameraLocal.vue")
-    // },
-    // {
-    //     path: "/test-rtc-audio-file-local",
-    //     name: "WebRTC Local File Tests",
-    //     component: async () => 
-    //         import(/* webpackChunkName: "RTCCameraLocal" */ "../views/tests/RTCAudioFileLocal.vue")
-    // },
-    // {
-    //     path: "/test-rtc-signalling-server",
-    //     name: "WebRTC Connection via Signalling Server",
-    //     component: async () => 
-    //         import(/* webpackChunkName: "RTCSignallingServer" */ "../views/tests/RTCSignallingServer.vue")
-    // }
+    }
 ];
 
 const router = new VueRouter({

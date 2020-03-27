@@ -1,7 +1,7 @@
 import Vue from "vue";
 import { Module, GetterTree, MutationTree, ActionTree } from "vuex";
 import { RootState } from "../../index";
-import { AudioFileMetadata } from "@/rtc/RoomManager";
+import { AudioFileMetadata } from '@/rtc/ConnectionManager';
 
 // -------------------------
 // --- Type Declarations ---

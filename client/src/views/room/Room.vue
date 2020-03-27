@@ -8,7 +8,7 @@
         </button>
 
         <div>
-            <div>RoomManager connected: {{ isConnected }}</div>
+            <div>Connected: {{ isConnected }}</div>
             <div>Is Room Owner: {{ isOwner }}</div>
             <div>ID: {{ id }}</div>
             <div>Sync Offset: {{ syncOffset }}</div>
@@ -18,11 +18,11 @@
             <br>
 
             <div>
-                Signalling Server Clients:
+                Connected Clients:
                 <ul>
                     <li 
                         :key="`signalling-client-${clientId}`"
-                        v-for="clientId in connectedSocketClients"
+                        v-for="clientId in connectedClients"
                     >
                         {{ clientId }}
                     </li>
@@ -30,18 +30,6 @@
             </div>
 
             <br>
-
-            <div>
-                WebRTC Connections:
-                <ul>
-                    <li 
-                        :key="`rtc-peer-${clientId}`"
-                        v-for="(clientId) in connectedRTCClients"
-                    >
-                        {{ clientId }}
-                    </li>
-                </ul>
-            </div>
 
             <br>
 
@@ -108,10 +96,8 @@ import Vue from 'vue';
 import { mapState, mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import PeerManager from '../../rtc/PeerManager';
-import SignallingSocket from '../../socket/SignallingSocket';
-import RoomManager, { AudioFileMetadata } from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
+import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
 
 interface Data {
     sendClientId: string;
@@ -120,11 +106,10 @@ interface Data {
 
 type Computed = {} &
     Pick<RoomStore.MapGettersStructure, 
-        RoomStore.Getters.roomManager 
+        | RoomStore.Getters.connectionManager
         | RoomStore.Getters.isConnected 
         | RoomStore.Getters.isOwner
-        | RoomStore.Getters.connectedSocketClients
-        | RoomStore.Getters.connectedRTCClients
+        | RoomStore.Getters.connectedClients
         | RoomStore.Getters.id 
     > 
     & Pick<AudioStore.MapGettersStructure,
@@ -149,7 +134,7 @@ type Methods = {
 }
 
 export default Vue.extend({
-    // TODO: add checks for if there is no roomManager
+    // TODO: add checks for if there is no connection
     // TODO: add proper tracking of currently connected clients (probably in room store)
     components: {
 
@@ -162,11 +147,10 @@ export default Vue.extend({
     },
     computed: {
         ...mapGetters({
-            roomManager: RoomStore.Getters.roomManager,
+            connectionManager: RoomStore.Getters.connectionManager,
             isConnected: RoomStore.Getters.isConnected,
             isOwner: RoomStore.Getters.isOwner,
-            connectedSocketClients: RoomStore.Getters.connectedSocketClients,
-            connectedRTCClients: RoomStore.Getters.connectedRTCClients,
+            connectedClients: RoomStore.Getters.connectedClients,
             id: RoomStore.Getters.id,
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
@@ -181,22 +165,16 @@ export default Vue.extend({
         if (!isConnected) {
             console.log("WARNING: Not connected to a room... you shouldn't be in here");
         } else {
-            const { 
-                setupGeneralTimesyncListeners }: Methods = this;
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
-            const signallingSocket = roomManager.signallingSocket as SignallingSocket;
+            const { setupGeneralTimesyncListeners }: Methods = this;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
-            setupGeneralTimesyncListeners(peerManager.timesync);
+            setupGeneralTimesyncListeners(connectionManager.timesync);
         }
     },
     methods: {
-        ...mapActions({
-            deleteRoomManager: RoomStore.Actions.deleteRoomManager
-        }),
         leaveRoom() {
-            const roomManager = this.roomManager as RoomManager;
-            roomManager.leaveRoom();
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.leaveRoom();
         },
         setupGeneralTimesyncListeners(timesync: Timesync) {
             timesync.on("change", offset => {
@@ -215,7 +193,7 @@ export default Vue.extend({
             }
         },
         syncAudioFile(audioFile: File) {
-            const roomManager = this.roomManager as RoomManager;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
             const metadata: AudioFileMetadata = {
                 name: audioFile.name,
@@ -223,32 +201,25 @@ export default Vue.extend({
                 type: audioFile.type
             };
 
-            roomManager.syncAudioFile(audioFile, metadata);
+            connectionManager.syncAudioFile(audioFile, metadata);
         },
         playAudio() {
             const { pausedAt }: Computed = this;
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
+            const connectionManager = this.connectionManager as ConnectionManager;
             
-            // TODO: figure out proper delay timing
-            // Note: pausedAt will be 0 if we never paused before
-            console.log("Playing at", pausedAt);
-            const startTime = roomManager.sendPlaySignal(pausedAt, 100); 
+            connectionManager.sendPlaySignal(pausedAt, 100);
         },
         pauseAudio() {
-            const roomManager = this.roomManager as RoomManager;
-            roomManager.sendPauseSignal();
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.sendPauseSignal();
         },
         stopAudio() {
-            const roomManager = this.roomManager as RoomManager;
-            roomManager.sendStopSignal();
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.sendStopSignal();
         },
         syncClocks() { // TODO: remove
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
-            const timesync = peerManager.timesync;
-
-            timesync.sync();
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.timesync.sync();
         }
     }
 });
