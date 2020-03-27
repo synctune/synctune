@@ -27,6 +27,8 @@ services:
             - app-network
         hostname: room-server
         container_name: synctune_room_server
+        ports:
+            - 5000:5000
     client:
         build:
             dockerfile: Dockerfile.dev

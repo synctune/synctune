@@ -10,12 +10,11 @@ const redisClient = createClient(KEYS.REDIS_URL);
 // @200 ownerId: peerid of host
 export const getRoomOwnerPeerId = (req: Request, res: Response) => {
     const roomName = req.params.roomName;
-    // query redis for room name
     redisClient.hgetall(roomName, (err, roomData) => {
         if (err) return res.status(500).end(err);
         if (!roomData)
             return res.status(404).end(`No room with name ${roomName}`);
-        return res.end({ ownerId: roomData.ownerPeerId });
+        return res.json({ ownerId: roomData.ownerPeerId });
     });
 };
 
@@ -25,18 +24,18 @@ export const getRoomOwnerPeerId = (req: Request, res: Response) => {
 export const createRoom = (req: Request, res: Response) => {
     const { roomName, selfId } = req.body;
     const userId = req.sessionID; //cant ever be null
-    redisClient.exists(roomName, exists => {
-        if (exists)
-            return res.status(409).end(`Room ${roomName} already exists`);
-        redisClient.hmset(
-            roomName,
-            "ownerPeerId",
-            selfId,
-            "ownerSessionId",
-            userId!
-        );
-        return res.end("OK");
-    });
+    if (redisClient.exists(roomName))
+        return res.status(409).end(`Room ${roomName} already exists`);
+    redisClient.hmset(
+        roomName,
+        "ownerPeerId",
+        selfId,
+        "ownerSessionId",
+        userId!,
+        _ => {
+            return res.end("OK");
+        }
+    );
 };
 
 // @param roomName
