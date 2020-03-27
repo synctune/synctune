@@ -24,7 +24,6 @@ export const getRoomOwnerPeerId = (req: Request, res: Response) => {
 export const createRoom = (req: Request, res: Response) => {
     const { roomName, selfId } = req.body;
     const userId = req.sessionID; //cant ever be null
-    console.log(userId)
     redisClient.exists(roomName, (err, exists) => {
         if (err) return res.status(500).end(err);
         if (exists)
