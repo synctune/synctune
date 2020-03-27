@@ -21,14 +21,15 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use("/peerjs", peerServer);
 
-app.use(
-    session({
-        secret: KEYS.SESSION_SECRET,
-        resave: false,
-        // cookie: { httpOnly: true, secure: true },
-        saveUninitialized: true
-    })
-);
+let config = {
+    secret: KEYS.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { httpOnly: true, secure: false }
+};
+if (KEYS.IS_PROD) config.cookie.secure = true;
+
+app.use(session(config));
 
 app.get("/test", (req, res) => res.end("It works!"));
 
