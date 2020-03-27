@@ -5,6 +5,7 @@ import axios from "axios";
 import * as Timesync from "timesync";
 import { JsonRpcReceive } from "@/timesync/types";
 
+axios.defaults.withCredentials = true;
 
 // --- Audio-Related Types ---
 
