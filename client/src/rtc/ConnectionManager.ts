@@ -753,15 +753,11 @@ export default class ConnectionManager extends Emittable {
             data: now
         };
 
-        // console.log("Peermanager", this.peerManager); // TODO: remove
-
         const clients = this.clientIds;
         clients.forEach(clientId => {
             if (clientId === this._id) return;
 
             const sendChannel = this._peerConnections[clientId].connection;
-            // const sendChannel = this.peerManager!.getSendChannel(clientId, "syncChannel", true)!;
-            // console.log("stop signal: send channel", clientId, this._id, sendChannel);
             sendChannel.send(messageData);
         });
 
