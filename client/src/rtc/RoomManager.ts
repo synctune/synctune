@@ -117,18 +117,14 @@ export default class RoomManager extends Emittable {
     }
 
     private setupPeerManagerListeners(peerManager: PeerManager) {
-        peerManager.addEventListener(
-            "audioreceivechannelready",
-            ({ sourceEvent: audioReceiveChannel }) => {
+        peerManager.addEventListener("audioreceivechannelready", ({ sourceEvent: audioReceiveChannel }) => {
                 // Setup audio file receiving
                 audioReceiveChannel.addEventListener("message", ({ data }) => {
                     // console.log("Received data", data); // TODO: remove
 
                     if (typeof data === "string") {
                         try {
-                            const metadata = (JSON.parse(
-                                data
-                            ) as unknown) as AudioFileMetadata;
+                            const metadata = (JSON.parse(data) as unknown) as AudioFileMetadata;
 
                             // Initialize accumulator data
                             this._expectedAudioFileSize = metadata.size;
@@ -171,9 +167,7 @@ export default class RoomManager extends Emittable {
             // TODO: remove
         });
 
-        peerManager.addEventListener(
-            "syncreceivechannelready",
-            ({ clientId }) => {
+        peerManager.addEventListener("syncreceivechannelready", ({ clientId }) => {
                 console.log("Sync channel ready with", clientId); // TODO: remove
 
                 // Add peer to peer list
@@ -193,9 +187,7 @@ export default class RoomManager extends Emittable {
             }
         );
 
-        peerManager.addEventListener(
-            "syncreceivechannelready",
-            ({ sourceEvent: syncReceiveChannel }) => {
+        peerManager.addEventListener("syncreceivechannelready",({ sourceEvent: syncReceiveChannel }) => {
                 // Setup play/stop signal receive listener
                 syncReceiveChannel.addEventListener("message", event => {
                     try {
@@ -210,31 +202,19 @@ export default class RoomManager extends Emittable {
                                 break;
                             case "pause":
                                 const pauseSentTime = message.data as number;
-                                this.emitEvent(
-                                    "pausesignalreceived",
-                                    pauseSentTime
-                                );
+                                this.emitEvent("pausesignalreceived", pauseSentTime);
                                 break;
                             case "stop":
                                 const stopSentTime = message.data as number;
-                                this.emitEvent(
-                                    "stopsignalreceived",
-                                    stopSentTime
-                                );
+                                this.emitEvent("stopsignalreceived", stopSentTime);
                                 break;
                             case "audiofilereceived":
                                 const afrReceivedClientId = message.data as string;
-                                this.emitEvent(
-                                    "clientreceivedaudiofile",
-                                    afrReceivedClientId
-                                );
+                                this.emitEvent("clientreceivedaudiofile", afrReceivedClientId);
                                 break;
                             case "readytoplay":
                                 const rtpReceivedClientId = message.data as string;
-                                this.emitEvent(
-                                    "clientreadytoplay",
-                                    rtpReceivedClientId
-                                );
+                                this.emitEvent("clientreadytoplay", rtpReceivedClientId);
                                 break;
                         }
                     } catch (err) {
@@ -307,11 +287,7 @@ export default class RoomManager extends Emittable {
      * @param metadata The metadata for the audio file.
      * @param clients The target clients to sync the audio file to. If not given then all clients are synced.
      */
-    syncAudioFile(
-        audioFile: Blob,
-        metadata: AudioFileMetadata,
-        clients?: string[]
-    ) {
+    syncAudioFile(audioFile: Blob, metadata: AudioFileMetadata, clients?: string[]) {
         // TODO: reference https://webrtc.github.io/samples/src/content/datachannel/filetransfer/
 
         if (audioFile.size === 0) {
@@ -342,11 +318,7 @@ export default class RoomManager extends Emittable {
 
         // Send metadata to each client
         targetClients.forEach(clientId => {
-            const sendChannel = this.peerManager!.getSendChannel(
-                clientId,
-                "audioChannel",
-                true
-            );
+            const sendChannel = this.peerManager!.getSendChannel(clientId, "audioChannel", true);
             console.log("metadata: send channel", sendChannel); // TODO: remove
             sendChannel!.send(JSON.stringify(metadata));
 
@@ -549,24 +521,15 @@ export default class RoomManager extends Emittable {
     // --- EventEmitter Method Overrides ---
     // -------------------------------------
 
-    protected emitEvent<K extends keyof RoomManagerEventMap>(
-        eventName: K,
-        event: RoomManagerEventMap[K]
-    ) {
+    protected emitEvent<K extends keyof RoomManagerEventMap>(eventName: K,event: RoomManagerEventMap[K]) {
         super.emitEvent(eventName, event);
     }
 
-    addEventListener<K extends keyof RoomManagerEventMap>(
-        eventName: K,
-        listener: (event: RoomManagerEventMap[K]) => any
-    ) {
+    addEventListener<K extends keyof RoomManagerEventMap>(eventName: K, listener: (event: RoomManagerEventMap[K]) => any) {
         super.addEventListener(eventName, listener);
     }
 
-    removeEventListener<K extends keyof RoomManagerEventMap>(
-        eventName: K,
-        listener: (event: RoomManagerEventMap[K]) => any
-    ) {
+    removeEventListener<K extends keyof RoomManagerEventMap>(eventName: K, listener: (event: RoomManagerEventMap[K]) => any) {
         super.addEventListener(eventName, listener);
     }
 }

@@ -112,6 +112,7 @@ import PeerManager from '../../rtc/PeerManager';
 import SignallingSocket from '../../socket/SignallingSocket';
 import RoomManager, { AudioFileMetadata } from '../../rtc/RoomManager';
 import VueRouter from 'vue-router';
+import ConnectionManager from '../../rtc/ConnectionManager';
 
 interface Data {
     sendClientId: string;
@@ -121,6 +122,7 @@ interface Data {
 type Computed = {} &
     Pick<RoomStore.MapGettersStructure, 
         RoomStore.Getters.roomManager 
+        | RoomStore.Getters.connectionManager
         | RoomStore.Getters.isConnected 
         | RoomStore.Getters.isOwner
         | RoomStore.Getters.connectedSocketClients
@@ -163,6 +165,7 @@ export default Vue.extend({
     computed: {
         ...mapGetters({
             roomManager: RoomStore.Getters.roomManager,
+            connectionManager: RoomStore.Getters.connectionManager,
             isConnected: RoomStore.Getters.isConnected,
             isOwner: RoomStore.Getters.isOwner,
             connectedSocketClients: RoomStore.Getters.connectedSocketClients,
@@ -181,13 +184,14 @@ export default Vue.extend({
         if (!isConnected) {
             console.log("WARNING: Not connected to a room... you shouldn't be in here");
         } else {
-            const { 
-                setupGeneralTimesyncListeners }: Methods = this;
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
-            const signallingSocket = roomManager.signallingSocket as SignallingSocket;
+            const { setupGeneralTimesyncListeners }: Methods = this;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
-            setupGeneralTimesyncListeners(peerManager.timesync);
+            // const roomManager = this.roomManager as RoomManager;
+            // const peerManager = roomManager.peerManager as PeerManager;
+            // const signallingSocket = roomManager.signallingSocket as SignallingSocket;
+
+            setupGeneralTimesyncListeners(connectionManager.timesync);
         }
     },
     methods: {
@@ -195,8 +199,11 @@ export default Vue.extend({
             deleteRoomManager: RoomStore.Actions.deleteRoomManager
         }),
         leaveRoom() {
-            const roomManager = this.roomManager as RoomManager;
-            roomManager.leaveRoom();
+            // const roomManager = this.roomManager as RoomManager;
+            // roomManager.leaveRoom();
+
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.leaveRoom();
         },
         setupGeneralTimesyncListeners(timesync: Timesync) {
             timesync.on("change", offset => {
@@ -215,7 +222,8 @@ export default Vue.extend({
             }
         },
         syncAudioFile(audioFile: File) {
-            const roomManager = this.roomManager as RoomManager;
+            // const roomManager = this.roomManager as RoomManager;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
             const metadata: AudioFileMetadata = {
                 name: audioFile.name,
@@ -223,32 +231,46 @@ export default Vue.extend({
                 type: audioFile.type
             };
 
-            roomManager.syncAudioFile(audioFile, metadata);
+            // roomManager.syncAudioFile(audioFile, metadata);
+            connectionManager.syncAudioFile(audioFile, metadata);
         },
         playAudio() {
             const { pausedAt }: Computed = this;
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
+            const connectionManager = this.connectionManager as ConnectionManager;
             
-            // TODO: figure out proper delay timing
-            // Note: pausedAt will be 0 if we never paused before
-            console.log("Playing at", pausedAt);
-            const startTime = roomManager.sendPlaySignal(pausedAt, 100); 
+            connectionManager.sendPlaySignal(pausedAt, 100);
+
+            // const roomManager = this.roomManager as RoomManager;
+            // const peerManager = roomManager.peerManager as PeerManager;
+            
+            // // TODO: figure out proper delay timing
+            // // Note: pausedAt will be 0 if we never paused before
+            // console.log("Playing at", pausedAt);
+            // const startTime = roomManager.sendPlaySignal(pausedAt, 100); 
         },
         pauseAudio() {
-            const roomManager = this.roomManager as RoomManager;
-            roomManager.sendPauseSignal();
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.sendStopSignal();
+
+            // const roomManager = this.roomManager as RoomManager;
+            // roomManager.sendPauseSignal();
         },
         stopAudio() {
-            const roomManager = this.roomManager as RoomManager;
-            roomManager.sendStopSignal();
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.sendStopSignal();
+
+            // const roomManager = this.roomManager as RoomManager;
+            // roomManager.sendStopSignal();
         },
         syncClocks() { // TODO: remove
-            const roomManager = this.roomManager as RoomManager;
-            const peerManager = roomManager.peerManager as PeerManager;
-            const timesync = peerManager.timesync;
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.timesync.sync();
 
-            timesync.sync();
+            // const roomManager = this.roomManager as RoomManager;
+            // const peerManager = roomManager.peerManager as PeerManager;
+            // const timesync = peerManager.timesync;
+
+            // timesync.sync();
         }
     }
 });

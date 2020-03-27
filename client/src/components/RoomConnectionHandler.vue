@@ -56,14 +56,14 @@ export default Vue.extend({
             setRoomManager: Actions.setRoomManager,
             deleteRoomManager: Actions.deleteRoomManager
         }),
-        onSuccess(room: string) {
-            console.log(`Room '${room}' successfully joined`); // TODO: remove
+        onSuccess(room: RoomData) {
+            console.log(`Room '${room.roomName}' successfully joined`); // TODO: remove
 
             const router = this.$router as VueRouter;
-            router.push(`/room`);
+            router.push(`/room`).catch(err => {});
         },
-        onFail(room: string) {
-            console.log(`Unable to join room '${room}'`); // TODO: remove
+        onFail(room: RoomData) {
+            console.log(`Unable to join room '${room.roomName}'`); // TODO: remove
 
             // TODO: handle failure
 
@@ -90,7 +90,7 @@ export default Vue.extend({
             const goAnyways = confirm("Warning: already connected to a room! Are you sure you want to leave this room?");
 
             if (!goAnyways) { // Answer: no
-                router.push("/"); // Redirect to home
+                router.push("/").catch(err => {}); // Redirect to home
                 return;
             }
         }

@@ -16,6 +16,7 @@ import { uuid } from "uuidv4";
 export interface RoomState {
     roomManager?: RoomManager;
     isConnected: boolean;
+    isOwner: boolean;
     connectionManager: ConnectionManager;
     connectedSocketClients: string[];
     connectedRTCClients: string[];
@@ -141,15 +142,18 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     connectionManager.addEventListener("room-created", () => {
         // Add self
         Vue.set(state, "connectedSocketClients", [connectionManager.id]);
+        Vue.set(state, "isOwner", connectionManager.isOwner);
     });
 
     connectionManager.addEventListener("room-joined", ({ clients }) => {
         // Add other already connected clients + self
         Vue.set(state, "connectedSocketClients", [...clients, connectionManager.id]);
+        Vue.set(state, "isOwner", connectionManager.isOwner);
     });
 
     connectionManager.addEventListener("room-left", () => {
         Vue.set(state, "connectedSocketClients", []);
+        Vue.set(state, "isOwner", false);
     });
 
     connectionManager.addEventListener("isconnectedchanged", (newIsConnected) => {
@@ -166,6 +170,7 @@ const namespaced = false;
 const state: RoomState = {
     connectionManager: new ConnectionManager(uuid()),
     isConnected: false,
+    isOwner: false,
     connectedSocketClients: [],
     connectedRTCClients: []
 };
@@ -180,7 +185,7 @@ const getters: GetterTree<RoomState, RootState> = {
         return state.isConnected;
     },
     [Getters.isOwner](state): boolean {
-        return (state.roomManager) ? state.roomManager.isOwner : false;
+        return state.isOwner;
     },
     [Getters.connectedSocketClients](state): string[] {
         return state.connectedSocketClients;
@@ -189,7 +194,7 @@ const getters: GetterTree<RoomState, RootState> = {
         return state.connectedRTCClients;
     },
     [Getters.id](state): string | null {
-        return (state.roomManager) ? state.roomManager.id : null;
+        return state.connectionManager.id;
     },
     [Getters.connectionManager](state): ConnectionManager {
         return state.connectionManager;

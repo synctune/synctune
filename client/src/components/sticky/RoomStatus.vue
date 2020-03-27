@@ -11,24 +11,27 @@ import Vue from 'vue';
 import { mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import RoomManager from '../../rtc/RoomManager';
-import SignallingSocket from '../../socket/SignallingSocket';
 import VueRouter from 'vue-router';
+import SignallingSocket from '../../socket/SignallingSocket';
+import RoomManager from '../../rtc/RoomManager';
 import PeerManager from '../../rtc/PeerManager';
+import ConnectionManager from "../../rtc/ConnectionManager";
 
 type Computed = {
 
 } & Pick<RoomStore.MapGettersStructure,
     RoomStore.Getters.isConnected
     | RoomStore.Getters.roomManager
+    | RoomStore.Getters.connectionManager
 > & Pick<AudioStore.MapGettersStructure,
     AudioStore.Getters.audioFile
     | AudioStore.Getters.audioFileMetadata
 >
 
 type Methods = {
-    setupSignallingSocketListeners(signallingSocket: SignallingSocket): void;
-    setupPeerManagerListeners(peerManager: PeerManager): void;
+    // setupSignallingSocketListeners(signallingSocket: SignallingSocket): void;
+    // setupPeerManagerListeners(peerManager: PeerManager): void;
+    setupConnectionManagerListeners(connectionManager: ConnectionManager): void;
     onRoomLeft(): void;
     onClientRtcJoined(clientId: string): void;
 } & Pick<RoomStore.MapActionsStructure,
@@ -40,6 +43,7 @@ export default Vue.extend({
         ...mapGetters({
             isConnected: RoomStore.Getters.isConnected,
             roomManager: RoomStore.Getters.roomManager,
+            connectionManager: RoomStore.Getters.connectionManager,
             audioFile: AudioStore.Getters.audioFile,
             audioFileMetadata: AudioStore.Getters.audioFileMetadata
         })
@@ -48,34 +52,47 @@ export default Vue.extend({
         ...mapActions({
             deleteRoomManager: RoomStore.Actions.deleteRoomManager
         }),
-        setupSignallingSocketListeners(signallingSocket: SignallingSocket) {
-            signallingSocket.on("room-left", () => {
+        // setupSignallingSocketListeners(signallingSocket: SignallingSocket) {
+        //     signallingSocket.on("room-left", () => {
+        //         const { onRoomLeft }: Methods = this;
+        //         onRoomLeft();
+        //     });
+        // },
+        // setupPeerManagerListeners(peerManager: PeerManager) {
+        //     peerManager.addEventListener("datachannelsready", ({ clientId }) => {
+        //         const { onClientRtcJoined }: Methods = this;
+        //         onClientRtcJoined(clientId);
+        //     });
+        // },
+        setupConnectionManagerListeners(connectionManager: ConnectionManager) {
+            connectionManager.addEventListener("room-left", () => {
                 const { onRoomLeft }: Methods = this;
                 onRoomLeft();
             });
-        },
-        setupPeerManagerListeners(peerManager: PeerManager) {
-            peerManager.addEventListener("datachannelsready", ({ clientId }) => {
+
+            connectionManager.addEventListener("client-joined", ({ clientId }) => {
                 const { onClientRtcJoined }: Methods = this;
                 onClientRtcJoined(clientId);
             });
         },
         onRoomLeft() {
-            const { deleteRoomManager }: Methods = this;
             const router = this.$router as VueRouter;
 
-            deleteRoomManager();
+            // const { deleteRoomManager }: Methods = this;
+            // deleteRoomManager();
 
             // Go back to home page
-            router.push('/');
+            router.push('/').catch(err => {});
         },
         onClientRtcJoined(clientId: string) {
             const { audioFile, audioFileMetadata }: Computed = this;
-            const roomManager = this.roomManager as RoomManager;
+            // const roomManager = this.roomManager as RoomManager;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
             if (audioFile && audioFileMetadata) {
                 console.log("syncing existing audio file to new client", clientId); // TODO: remove
-                roomManager.syncAudioFile(audioFile, audioFileMetadata, [clientId]);
+                // roomManager.syncAudioFile(audioFile, audioFileMetadata, [clientId]);
+                connectionManager.syncAudioFile(audioFile, audioFileMetadata, [clientId]);
             }
         }
     },
@@ -84,14 +101,18 @@ export default Vue.extend({
             if (!connection) return;
 
             // Connection established
-            const { setupSignallingSocketListeners, setupPeerManagerListeners }: Methods = this;
-            const roomManager = this.roomManager as RoomManager;
-            setupSignallingSocketListeners(roomManager.signallingSocket);
+            const { setupConnectionManagerListeners }: Methods = this;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
-            roomManager.addEventListener("peermanagercreated", () => {
-                const peerManager = roomManager.peerManager as PeerManager;
-                setupPeerManagerListeners(peerManager);
-            });
+            setupConnectionManagerListeners(connectionManager);
+
+            // const roomManager = this.roomManager as RoomManager;
+            // setupSignallingSocketListeners(roomManager.signallingSocket);
+
+            // roomManager.addEventListener("peermanagercreated", () => {
+            //     const peerManager = roomManager.peerManager as PeerManager;
+            //     setupPeerManagerListeners(peerManager);
+            // });
         }
     }
 });
