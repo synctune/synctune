@@ -12,10 +12,10 @@ publish = "/dist/"
 command = "npm run build"
 
 [build.environment]
-VUE_APP_PEERJS_HOST = "https://synctune.herokuapp.com"
 VUE_APP_ROOM_SERVER_URL = "https://synctune.herokuapp.com"
-VUE_APP_PEERJS_PATH = "/peerjs"
-VUE_APP_PEERJS_PORT = "80"
+VUE_APP_PEERJS_HOST = "synctune.herokuapp.com"
+VUE_APP_PEERJS_PATH = ""
+VUE_APP_PEERJS_PORT = ""
 
 # The following redirect is intended for use with most SPAs that handle
 # routing internally.
