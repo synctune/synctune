@@ -1,9 +1,9 @@
 export default {
-    // TODO: remove
-    ROOM_SERVER_SOCKET_IO_PATH: (process.env.VUE_APP_ROOM_SERVER_SOCKET_IO_PATH || "room-server/socket.io") as string,
     ROOM_SERVER_URL: (process.env.VUE_APP_ROOM_SERVER_URL || "/room-server") as string,
     
-    PEERJS_HOST: (process.env.VUE_APP_PEERJS_HOST || "/") as string | undefined,
-    PEERJS_PATH: (process.env.VUE_APP_PEERJS_PATH || "room-server") as string | undefined,
-    PEERJS_PORT: (process.env.VUE_APP_PEERJS_PORT || 3050) as number | undefined,
+    PEERJS_HOST: (process.env.VUE_APP_PEERJS_HOST) as string,
+    PEERJS_PATH: (process.env.VUE_APP_PEERJS_PATH) as string,
+    PEERJS_PORT: parseInt(process.env.VUE_APP_PEERJS_PORT),
+
+    isProduction: (process.env.NODE_ENV === "production")
 };

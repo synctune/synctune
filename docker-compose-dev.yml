@@ -39,7 +39,9 @@ services:
         environment:
             - CHOKIDAR_USEPOLLING=true
             - VUE_APP_ROOM_SERVER_URL=/room-server
-            - VUE_APP_ROOM_SERVER_SOCKET_IO_PATH=room-server/socket.io # TODO: remove this
+            - VUE_APP_PEERJS_HOST=0.peerjs.com
+            - VUE_APP_PEERJS_PATH=/
+            - VUE_APP_PEERJS_PORT=443
         networks:
             - app-network
         hostname: client
