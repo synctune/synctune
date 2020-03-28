@@ -34,7 +34,8 @@ export interface MessageData {
         | "audiometadata"
         | "audiochunk"
         | "closeconnection"
-        | "clienttimesynced";
+        | "clienttimesynced"
+        | "runtimesync";
     data: any;
 }
 
@@ -61,7 +62,7 @@ export interface RoomJoinedData extends RoomData {
 interface ClientData {
     clientId: string;
     connection: Peer.DataConnection;
-    synced: boolean;
+    timesynced: boolean;
 }
 
 interface PeerConnections {
@@ -85,6 +86,7 @@ interface ConnectionManagerEventMap {
     "already-in-room": string;
 
     "isconnectedchanged": boolean;
+    "timesyncchanged": boolean;
 
     "error": any;
 
@@ -104,14 +106,14 @@ interface ConnectionManagerEventMap {
 
     "clientreceivedaudiofile": string;
     "clientreadytoplay": string;
-    "clienttimesynced": string;
+    "clienttimesyncchanged": ClientData;
 }
 
 const CHUNK_SIZE = 16384;
 
 // The client on the other end starts syncing clocks first
-const INITIATOR_TIMESYNC_DELAY = 500;
-const OTHER_TIMESYNC_DELAY = 0; 
+const INITIATOR_TIMESYNC_DELAY = 1000;
+const OTHER_TIMESYNC_DELAY = 500; 
 
 export default class ConnectionManager extends Emittable {
     private _id: string;
@@ -126,6 +128,8 @@ export default class ConnectionManager extends Emittable {
     private _expectedAudioFileSize: number | null;
     private _receivedChunks: ArrayBuffer[];
     private _receivedSize: number;
+
+    private _timesynced: boolean;
 
 
     constructor(id: string) {
@@ -150,6 +154,8 @@ export default class ConnectionManager extends Emittable {
         this._expectedAudioFileSize = null;
         this._receivedChunks = [];
         this._receivedSize = 0;
+
+        this._timesynced = false;
 
         this._timesync = Timesync.create({
             peers: [],
@@ -222,10 +228,9 @@ export default class ConnectionManager extends Emittable {
         // TODO: remove these
         timesync.on("change", (offset) => {
             console.log('Timesync: New offset', offset); // TODO: remove
-        });
 
-        timesync.on("sync", (state) => {
-            console.log(`Timesync: new sync state '${state}'`); // TODO: remove
+            this._timesynced = true;
+            this.emitEvent("timesyncchanged", true);
 
             if (!this.isOwner) {
                 // Send message to host client indicating that we are synced
@@ -245,6 +250,10 @@ export default class ConnectionManager extends Emittable {
             }
         });
 
+        timesync.on("sync", (state) => {
+            console.log(`Timesync: new sync state '${state}'`); // TODO: remove
+        });
+
         timesync.on("error", (error) => {
             console.log("Timesync: error", error); // TODO: remove
         });
@@ -259,7 +268,7 @@ export default class ConnectionManager extends Emittable {
         const clientData: ClientData = {
             clientId,
             connection: conn,
-            synced: false
+            timesynced: false
         };
         this._peerConnections[clientId] = clientData;
 
@@ -339,14 +348,6 @@ export default class ConnectionManager extends Emittable {
                     const rtpReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreadytoplay", rtpReceivedClientId);
                     break;
-                case "clienttimesynced": 
-                    const syncedClientId = messageData.data as string;
-
-                    // Update the client state
-                    this._peerConnections[clientId].synced = true;
-
-                    this.emitEvent("clienttimesynced", syncedClientId);
-                    break;
                 case "closeconnection":
                     const leavingClientID = messageData.data as string;
                     const connection = this._peerConnections[leavingClientID]?.connection;
@@ -381,7 +382,7 @@ export default class ConnectionManager extends Emittable {
                         const clientData: ClientData = {
                             clientId,
                             connection: conn,
-                            synced: this._peerConnections[clientId].synced
+                            timesynced: this._peerConnections[clientId].timesynced
                         };
         
                         // Remove the peer from the peer connections map
@@ -398,6 +399,17 @@ export default class ConnectionManager extends Emittable {
                         this.emitEvent("client-left", clientData);
                     }
 
+                    break;
+                case "clienttimesynced": 
+                    const syncedClientId = messageData.data as string;
+
+                    // Update the client state
+                    this._peerConnections[clientId].timesynced = true;
+
+                    this.emitEvent("clienttimesyncchanged", this._peerConnections[clientId]);
+                    break;
+                case "runtimesync": 
+                    this._timesync.sync();
                     break;
                 case "timesync":
                     console.log(`Timesync: Received timesync message from '${clientId}'`, messageData.data); // TODO: remove
@@ -495,7 +507,6 @@ export default class ConnectionManager extends Emittable {
         }
 
         try {
-            // TODO: add to keys
             const res = await axios.get<GetRoomResponse>(`${KEYS.ROOM_SERVER_URL}/rooms/${roomName}`);
 
             if (res.status == 200) {
@@ -512,7 +523,7 @@ export default class ConnectionManager extends Emittable {
                 // Connect to the room owner
                 const conn = peer.connect(ownerId);
 
-                console.log('Connecting to peer', ownerId);
+                console.log('Connecting to peer', ownerId); // TODO: remove
 
                 conn.on("open", () => {
                     this.addPeerConnection(conn);
@@ -850,6 +861,42 @@ export default class ConnectionManager extends Emittable {
         });
     }
 
+    /**
+     * Runs clock synchronization.
+     */
+    synchronizeClocks(runSelf = true) {
+        const targetClients = this.clientIds;
+
+        if (runSelf) {
+            // Delay by a little bit so we don't run into problems with the clients syncing
+            setTimeout(() => {
+                this._timesynced = false;
+                this.emitEvent("timesyncchanged", false);
+
+                this._timesync.sync();
+            }, 100);
+        }
+
+        // TODO: wipe timesync instance and create a new one
+        // TODO: don't expose timesync instance
+
+        const messageData: MessageData = {
+            type: "runtimesync",
+            data: null
+        };
+
+        // TODO: might have to stagger start times here too
+        targetClients.forEach(clientId => {
+            const clientData = this._peerConnections[clientId];
+
+            clientData.timesynced = false;
+            
+            clientData.connection.send(messageData);
+
+            this.emitEvent("clienttimesyncchanged", clientData);
+        });
+    }
+
     // ---------------
     // --- Getters ---
     // ---------------
@@ -880,6 +927,10 @@ export default class ConnectionManager extends Emittable {
 
     get clientIds(): string[] {
         return Object.keys(this._peerConnections);
+    }
+
+    get timesynced(): boolean {
+        return this._timesynced;
     }
 
     // -------------------------------------
