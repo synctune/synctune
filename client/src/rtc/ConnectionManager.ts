@@ -125,11 +125,7 @@ export default class ConnectionManager extends Emittable {
     constructor(id: string) {
         super();
 
-        // TODO: put these out to keys
-        const options: Peer.PeerJSOption = (process.env.NODE_ENV == "development")? {} : {
-            // host: '/',
-            // path: "room-server",
-            // port: 3050,
+        const options: Peer.PeerJSOption = {
             host: KEYS.PEERJS_HOST,
             path: KEYS.PEERJS_PATH,
             port: KEYS.PEERJS_PORT
