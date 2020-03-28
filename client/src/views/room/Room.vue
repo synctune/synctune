@@ -8,6 +8,7 @@
         </button>
 
         <div>
+            <div>Room Name: {{ roomName }}</div>
             <div>Connected: {{ isConnected }}</div>
             <div>Is Room Owner: {{ isOwner }}</div>
             <div>ID: {{ id }}</div>
@@ -103,8 +104,8 @@ import VueRouter from 'vue-router';
 import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
 
 interface Data {
-    sendClientId: string;
-    syncOffset: number;
+    roomName: string;
+    timesynced: boolean;
 }
 
 type Computed = {} &
@@ -145,7 +146,7 @@ export default Vue.extend({
     },
     data() {
         return {
-            sendClientId: "",
+            roomName: "",
             timesynced: false
         }
     },
@@ -171,6 +172,8 @@ export default Vue.extend({
         } else {
             const { setupConnectionManagerListeners }: Methods = this;
             const connectionManager = this.connectionManager as ConnectionManager;
+
+            this.roomName = connectionManager.room;
 
             this.timesynced = connectionManager.timesynced;
             setupConnectionManagerListeners(connectionManager);

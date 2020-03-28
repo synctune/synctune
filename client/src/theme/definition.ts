@@ -7,7 +7,7 @@ export const schema: Schema = {
             $mixins: ['primary_modifier', 'secondary_modifier', 'disabled_modifier']
         },
         text: {
-            $mixins: ['primary_modifier', 'secondary_modifier', 'disabled_modifier']
+            $mixins: ['primary_modifier', 'secondary_modifier', 'tertiary_modifier', 'disabled_modifier']
         },
         text_inverted: {
             $mixins: ['primary_modifier', 'secondary_modifier', 'disabled_modifier']
@@ -30,7 +30,17 @@ export const schema: Schema = {
         gradient_disabled: {
             $mixins: ['start_modifier', 'end_modifier']
         },
+        // -- Notification colors ---
         error: {
+            $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
+        },
+        info: {
+            $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
+        },
+        success: {
+            $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
+        },
+        warning: {
             $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
         }
     },

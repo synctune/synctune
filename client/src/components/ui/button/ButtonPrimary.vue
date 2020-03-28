@@ -116,7 +116,7 @@ export default Vue.extend({
         }
 
         &.disabled { 
-            & .DisabledOverlay {
+            & .ButtonPrimary__disabled-overlay {
                 opacity: 1;
             }
         }

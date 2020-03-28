@@ -10,6 +10,7 @@ const DARK_1 = "#000000";
 const DARK_2 = "#180037";
 const DARK_3 = "#370038";
 const DARK_4 = "#909090";
+const DARK_5 = "#5E5E5E";
 
 const PURPLE_1 = "#B072FE";
 const PURPLE_2 = "#C06CE8";
@@ -32,6 +33,18 @@ const ERROR_BG = "#FFF9F9";
 const ERROR_TEXT = DARK_1;
 const ERROR_ACCENT = "#DE1919";
 
+const INFO_BG = "#F9FFFF";
+const INFO_TEXT = DARK_1;
+const INFO_ACCENT = "#19D2DE";
+
+const SUCCESS_BG = "#F9FFF9";
+const SUCCESS_TEXT = DARK_1;
+const SUCCESS_ACCENT = "#29DE19";
+
+const WARNING_BG = "#FFFEF9";
+const WARNING_TEXT = DARK_1;
+const WARNING_ACCENT = "#DEB319";
+
 export default {
     name: "classic",
     theme: {
@@ -44,6 +57,7 @@ export default {
             text: {
                 primary: DARK_1,
                 secondary: DARK_2,
+                tertiary: DARK_5,
                 disabled: DARK_4,
             },
             text_inverted: {
@@ -82,6 +96,21 @@ export default {
                 background: ERROR_BG,
                 text: ERROR_TEXT,
                 accent: ERROR_ACCENT
+            },
+            info: {
+                background: INFO_BG,
+                text: INFO_TEXT,
+                accent: INFO_ACCENT
+            },
+            success: {
+                background: SUCCESS_BG,
+                text: SUCCESS_TEXT,
+                accent: SUCCESS_ACCENT
+            },
+            warning: {
+                background: WARNING_BG,
+                text: WARNING_TEXT,
+                accent: WARNING_ACCENT
             }
         },
         AudioVisualizer: {

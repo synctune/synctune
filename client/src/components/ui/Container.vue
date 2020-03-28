@@ -31,27 +31,21 @@ export default Vue.extend({
             default: true
         },
         baseClass: {
-            type: String,
             default: null
         },
         baseStyle: {
-            type: Object,
             default: null
         },
         baseId: {
-            type: String,
             default: null
         },
         accentClass: {
-            type: String,
             default: null
         },
         accentStyle: {
-            type: Object,
             default: null
         },
         accentId: {
-            type: String,
             default: null
         }
     }

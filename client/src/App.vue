@@ -4,6 +4,8 @@
         :namespace="defaultNamespace"
         use-root
     >
+        <notification-register></notification-register>
+
         <div id="nav">
             <router-link to="/">Home</router-link> |
             <router-link to="/room">Room</router-link>
@@ -34,6 +36,7 @@ import ThemeProvider from "./components/wrappers/ThemeProvider.vue";
 import RoomStatus from "./components/sticky/RoomStatus.vue";
 import AudioPlayer from "./components/sticky/AudioPlayer.vue";
 import { DEFAULT_NAMESPACE, DEFAULT_THEME } from "./constants/generalConstants";
+import NotificationRegister from "@/registers/NotificationRegister.vue";
 
 // No type declarations for these
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -56,6 +59,7 @@ export default Vue.extend({
         ThemeProvider,
         RoomStatus,
         AudioPlayer,
+        NotificationRegister
     },
     data() {
         return {
