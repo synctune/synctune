@@ -25,7 +25,7 @@
                         :key="`signalling-client-${clientId}`"
                         v-for="clientId in connectedClients"
                     >
-                        {{ clientId }}
+                        {{ clientNickname(clientId) }} ({{ clientId }})
                     </li>
                 </ul>
             </div>
@@ -108,8 +108,9 @@ interface Data {
     timesynced: boolean;
 }
 
-type Computed = {} &
-    Pick<RoomStore.MapGettersStructure, 
+type Computed = {
+    clientNickname(clientId: string): string;
+} & Pick<RoomStore.MapGettersStructure, 
         | RoomStore.Getters.connectionManager
         | RoomStore.Getters.isConnected 
         | RoomStore.Getters.isOwner
@@ -162,7 +163,14 @@ export default Vue.extend({
             audioLoaded: AudioStore.Getters.audioLoaded,
             syncedClients: AudioStore.Getters.syncedClients,
             pausedAt: AudioStore.Getters.pausedAt,
-        })
+        }),
+        clientNickname() {
+            const connectionManager = this.connectionManager as ConnectionManager;
+
+            return (clientId: string) => {
+                return connectionManager.getClientNickname(clientId);
+            }
+        }
     },
     mounted() {
         // TODO: actually do something here

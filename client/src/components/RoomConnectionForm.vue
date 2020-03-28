@@ -9,24 +9,34 @@
             Get Started
         </div>
 
+        <div class="RoomConnectionForm__nickname-title">
+            Nickname
+        </div>
+
         <input-field 
-            class="RoomConnectRoom__name"
-            placeholder="Enter Room Name"
-            v-model="roomName"
+            class="RoomConnectRoom__nickname-input"
+            placeholder="Enter Nickname"
+            v-model="nickname"
         />
 
-        <button-primary
+        <button-input-hybrid
             class="RoomConnectionForm__join"
-            @click="joinRoom"
-            :disabled="!validRoomName || isConnected"
+            @button-click="joinRoom"
+            :button-disabled="!validRoomName || isConnected || !validNickname"
+            input-placeholder="Enter Room Name"
+            v-model="roomName"
         >
             Join Room
-        </button-primary>
+        </button-input-hybrid>
+
+        <div class="RoomConnectionForm__or-text">
+            or
+        </div>
 
         <button-secondary
             class="RoomConnectionForm__create"
             @click="createRoom"
-            :disabled="!validRoomName || isConnected"
+            :disabled="isConnected || !validNickname"
         >
             Create Room
         </button-secondary>
@@ -37,19 +47,25 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import { mapGetters } from "vuex";
+import { NICKNAME_STORAGE_KEY } from "../constants/generalConstants";
 import * as RoomStore from "../store/modules/room";
+import shortid from "shortid";
 
 import Container from "@/components/ui/Container.vue";
 import InputField from "@/components/ui/forms/InputField.vue";
 import ButtonPrimary from "@/components/ui/button/ButtonPrimary.vue";
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
+import ButtonInputHybrid from "@/components/ui/button/ButtonInputHybrid.vue";
+
 
 interface Data {
+    nickname: string;
     roomName: string;
 }
 
 type Computed = {
-    emptyRoomName(): boolean;
+    validRoomName(): boolean;
+    validNickname(): boolean;
 } & Pick<RoomStore.MapGettersStructure,
     RoomStore.Getters.isConnected
 >
@@ -64,11 +80,20 @@ export default Vue.extend({
         Container,
         InputField,
         ButtonPrimary,
-        ButtonSecondary
+        ButtonSecondary,
+        ButtonInputHybrid
     },
     data() {
         return {
-            roomName: "test" // TODO: change to some other default
+            nickname: "",
+            roomName: ""
+        }
+    },
+    mounted() {
+        // Attempt to load stored nickname
+        const nickname = localStorage.getItem(NICKNAME_STORAGE_KEY);
+        if (nickname) {
+            this.nickname = nickname;
         }
     },
     computed: {
@@ -78,7 +103,11 @@ export default Vue.extend({
         validRoomName() {
             const { roomName }: Data = this;
             const isEmpty = !roomName.trim();
-            // TODO: add alphaneumeric check
+            return !isEmpty; 
+        },
+        validNickname() {
+            const { nickname }: Data = this;
+            const isEmpty = !nickname.trim();
             return !isEmpty; 
         }
     },
@@ -90,10 +119,18 @@ export default Vue.extend({
             router.push({ path: `/room/join/${roomName}` }).catch(err => {});
         },
         createRoom() {
-            const { roomName }: Data = this;
             const router = this.$router as VueRouter;
 
-            router.push({ path: `/room/create/${roomName}` }).catch(err => {});
+            // Generate a name for the room
+            const id = shortid.generate().toUpperCase();
+
+            router.push({ path: `/room/create/${id}` }).catch(err => {});
+        }
+    },
+    watch: {
+        nickname(newNickname: string) {
+            // Store updated nickname in local storage
+            localStorage.setItem(NICKNAME_STORAGE_KEY, newNickname);
         }
     }
 });
@@ -127,16 +164,30 @@ export default Vue.extend({
             margin-bottom: 2.5rem;
         }
 
-        & .RoomConnectRoom__name {
-            margin-bottom: 2.5rem;
-
-            max-width: 30rem;
-            width: 100%;
-
+        & .RoomConnectionForm__nickname-title {
+            color: color-link("RoomConnectionForm", "text", "tertiary");
+            margin-left: 0.3rem;
         }
 
+        & .RoomConnectRoom__nickname-input {
+            margin-bottom: 3.2rem;
+        }
+
+        & .RoomConnectRoom__nickname-input, & .RoomConnectionForm__nickname-title {
+            max-width: 30rem;
+            width: 100%;
+        }
+
+        $or-spacing: 0.6rem;
+
         & .RoomConnectionForm__join {
-            margin-bottom: 1.5rem;
+            margin-bottom: $or-spacing;
+        }
+
+        & .RoomConnectionForm__or-text {
+            color: color-link("RoomConnectionForm", "text", "tertiary");
+            font-size: 1.7rem;
+            margin-bottom: $or-spacing;
         }
 
         @include respond(phone) {

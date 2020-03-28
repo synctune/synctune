@@ -32,7 +32,7 @@ export default Vue.extend({
         position: relative;
         z-index: 1;
 
-        font-size: 1.4rem;
+        font-size: 1.7rem;
 
         border-radius: $radius-amount;
 

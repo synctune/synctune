@@ -33,7 +33,7 @@ export default Vue.extend({
         // v-model passthrough stuff
         updateValue(e: MouseEvent) {
             const target = e.target as HTMLInputElement;
-            this.$emit("input", target.value)
+            this.$emit("input", target.value);
         }
     }
 });

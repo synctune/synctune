@@ -5,7 +5,12 @@
         @click="$emit('click', $event)"
         v-bind="$attrs"
     >
-        <div class="ButtonPrimary__disabled-overlay"></div>
+        <div 
+            :class="['ButtonPrimary__disabled-overlay', disabledOverlayClass]"
+            :style="disabledOverlayStyle"
+            :id="disabledOverlayId"
+        >
+        </div>
         <slot></slot>
     </button-base>
 </template>
@@ -15,6 +20,17 @@ import Vue from 'vue';
 import ButtonBase from "@/components/ui/button/ButtonBase.vue";
 
 export default Vue.extend({
+    props: {
+        disabledOverlayClass: {
+            default: null
+        },
+        disabledOverlayStyle: {
+            default: null
+        },
+        disabledOverlayId: {
+            default: null
+        }
+    },
     components: {
         ButtonBase
     }

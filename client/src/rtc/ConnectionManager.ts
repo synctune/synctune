@@ -3,6 +3,7 @@ import KEYS from "@/keys";
 import Peer from "peerjs";
 import axios from "axios";
 import * as Timesync from "timesync";
+import { NICKNAME_STORAGE_KEY } from "../constants/generalConstants";
 
 axios.defaults.withCredentials = true;
 
@@ -61,8 +62,13 @@ export interface RoomJoinedData extends RoomData {
 
 interface ClientData {
     clientId: string;
+    nickname: string;
     connection: Peer.DataConnection;
     timesynced: boolean;
+}
+
+interface PeerMetadata {
+    nickname: string;
 }
 
 interface PeerConnections {
@@ -76,8 +82,8 @@ interface ConnectionManagerEventMap {
     "room-created": RoomData;
     "room-left": RoomData;
 
-    "client-joined": ClientData;
-    "client-left": ClientData;
+    "client-joined": Omit<ClientData, "connection">;
+    "client-left": Omit<ClientData, "connection">;
 
     "room-not-exists": string;
     "room-already-exists": string;
@@ -106,7 +112,7 @@ interface ConnectionManagerEventMap {
 
     "clientreceivedaudiofile": string;
     "clientreadytoplay": string;
-    "clienttimesyncchanged": ClientData;
+    "clienttimesyncchanged": Omit<ClientData, "connection">;
 }
 
 const CHUNK_SIZE = 16384;
@@ -117,6 +123,7 @@ const OTHER_TIMESYNC_DELAY = 500;
 
 export default class ConnectionManager extends Emittable {
     private _id: string;
+    private _nickname: string;
     private _peer: Peer;
     private _peerConnections: PeerConnections;
 
@@ -145,6 +152,10 @@ export default class ConnectionManager extends Emittable {
         this._peer = peer;
 
         this._id = peer.id;
+
+        // Attempt to load nickname
+        const storedNickname = localStorage.getItem(NICKNAME_STORAGE_KEY);
+        this._nickname = (storedNickname?.trim()) ? storedNickname : this._id;
 
         this._peerConnections = {};
 
@@ -188,6 +199,14 @@ export default class ConnectionManager extends Emittable {
             conn.on("open", () => {
                 if (this.isOwner) {
                     this.emitEvent("client-joined", clientData);
+                }
+            });
+
+            conn.on("close", () => {
+                // If the client is still marked as in the room (ie connection was not closed by us)
+                // then disconnect it now
+                if (this._peerConnections[clientData.clientId]) {
+                    this.emitEvent("client-left", clientData);
                 }
             });
         });
@@ -268,16 +287,19 @@ export default class ConnectionManager extends Emittable {
         timesync.on("error", (error) => {
             console.log("Timesync: error", error); // TODO: remove
         });
-        
-        console.log("timesync", this._timesync); // TODO: remove
     }
 
     private addPeerConnection(conn: Peer.DataConnection): ClientData {
         const clientId = conn.peer;
 
+        const peerMetadata = conn.metadata as PeerMetadata;
+
+        console.log("Connection Metadata with client", clientId, conn.metadata); // TODO: remove
+
         // Add the peer
         const clientData: ClientData = {
             clientId,
+            nickname: peerMetadata.nickname,
             connection: conn,
             timesynced: false
         };
@@ -392,6 +414,7 @@ export default class ConnectionManager extends Emittable {
         
                         const clientData: ClientData = {
                             clientId,
+                            nickname: this._peerConnections[clientId].nickname,
                             connection: conn,
                             timesynced: this._peerConnections[clientId].timesynced
                         };
@@ -539,7 +562,12 @@ export default class ConnectionManager extends Emittable {
                 const peer = this._peer;
 
                 // Connect to the room owner
-                const conn = peer.connect(ownerId);
+
+                const peerMetadata: PeerMetadata = {
+                    nickname: this._nickname
+                }
+                
+                const conn = peer.connect(ownerId, { metadata: peerMetadata });
 
                 console.log('Connecting to peer', ownerId); // TODO: remove
 
@@ -974,12 +1002,30 @@ export default class ConnectionManager extends Emittable {
         return this._timesync.now();
     }
 
+    /**
+     * Gets the nickname of a client (including self, if given).
+     * 
+     * @param clientId The id of the client.
+     */
+    getClientNickname(clientId: string): string | null {
+        if (clientId == this._id) {
+            return this._nickname;
+        }
+
+        const clientData = this._peerConnections[clientId];
+        return (clientData) ? clientData.nickname : null;
+    }
+
     // ---------------
     // --- Getters ---
     // ---------------
 
-    get id(): string | null {
+    get id(): string {
         return this._id;
+    }
+
+    get nickname(): string {
+        return this._nickname;
     }
 
     get isOwner(): boolean {
