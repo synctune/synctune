@@ -11,12 +11,18 @@ import CancellationToken from "../../utilities/CancellationToken";
 import HighResolutionTimeout from '../../utilities/HighResolutionTimeout';
 import ConnectionManager from '../../rtc/ConnectionManager';
 
+interface CachedPlaySignal {
+    startLocation: number;
+    startTime: number;
+    receivedTime: number;
+}
+
 type Data = {
     audioContext: AudioContext;
     audioSource: AudioBufferSourceNode | null;
     audioBuffer: AudioBuffer | null;
     audioLoadCancellationToken: CancellationToken | null;
-    firstPlay: boolean;
+    cachedPlaySignal: CachedPlaySignal | null;
 }
 
 type Computed = {}
@@ -45,6 +51,7 @@ type Methods = {
     removeClientsFromSyncList(clients?: string[]): void;
     onCanPlayThrough(): void;
     doPreloadFakeout(): void;
+    runCachedPlaySignal(): void;
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
     | AudioStore.Actions.setAudioFile
@@ -63,7 +70,7 @@ export default Vue.extend({
             audioSource: null,
             audioBuffer: null,
             audioLoadCancellationToken: null,
-            firstPlay: true
+            cachedPlaySignal: null
         }
     },
     computed: {
@@ -153,9 +160,17 @@ export default Vue.extend({
             connectionManager.addEventListener("client-left", ({ clientId }) => {
                 clientLeft(clientId);
             });
+
+            connectionManager.addEventListener("timesyncchanged", (timesynced) => {
+                if (timesynced) {
+                    // Run the cached play signal, if it exists
+                    const { runCachedPlaySignal }: Methods = this;
+                    runCachedPlaySignal();
+                }
+            });
         },
         loadAudioFile(audioFile: Blob) {
-            const { audioContext, audioLoadCancellationToken, firstPlay }: Data = this;
+            const { audioContext, audioLoadCancellationToken }: Data = this;
             const { 
                 setAudioFile, 
                 setAudioLoaded, 
@@ -163,7 +178,8 @@ export default Vue.extend({
                 onCanPlayThrough,
                 setStartedAt,
                 setPausedAt,
-                doPreloadFakeout }: Methods = this;
+                doPreloadFakeout,
+                runCachedPlaySignal }: Methods = this;
 
             setAudioFile({ audioFile });
 
@@ -207,6 +223,9 @@ export default Vue.extend({
                     const connectionManager = this.connectionManager as ConnectionManager;
                     if (!connectionManager.isOwner) {
                         connectionManager.sendReadyToPlaySignal(connectionManager.id!);
+
+                        // Run the cached play signal, if it exists
+                        runCachedPlaySignal();
                     }
                 });
             });
@@ -234,25 +253,45 @@ export default Vue.extend({
             setStartedAt({ startedAt: 0 });
             setPausedAt({ pausedAt: 0 });
         },
+        runCachedPlaySignal() {
+            const { cachedPlaySignal }: Data = this;
+            const { playAudio }: Methods = this;
+
+            if (cachedPlaySignal) {
+                console.log("Playing cached play signal", cachedPlaySignal); // TODO: remove
+                playAudio(cachedPlaySignal.startLocation, cachedPlaySignal.startTime);
+            }
+        },
         async playAudio(startLocation: number, startTime: number) {
             // TODO: delay the start time using the synchronized time
             // TODO: handle if audio has not been loaded yet
 
             console.log("Received play signal", startLocation); // TODO: remove
 
-            const { audioContext, audioBuffer }: Data = this;
+            const { audioContext, audioBuffer, cachedPlaySignal }: Data = this;
             const { audioLoaded, pausedAt }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
             const { setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
 
-            if (!audioLoaded) {
-                console.warn("Unable to play, audio file not loaded"); // TODO: remove
+            if (!audioLoaded || !connectionManager.timesynced) {
+                console.warn("Unable to play, audio file not loaded / time not synced... caching"); // TODO: remove
+
+                // Cache the play signal
+                const newCachedPlaySignal: CachedPlaySignal = {
+                    startLocation,
+                    startTime,
+                    receivedTime: connectionManager.now()
+                };
+
+                this.cachedPlaySignal = newCachedPlaySignal;
+
                 return;
             }
 
-            doPreloadFakeout();
+            // Clear cached play signal
+            this.cachedPlaySignal = null;
 
-            const timesync = connectionManager.timesync;
+            doPreloadFakeout();
 
             const audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
@@ -266,9 +305,12 @@ export default Vue.extend({
                 offset = startLocation;
             }
 
+            // Overshoot is the amount of milliseconds we overshot the target delay by
             const startAudio = (overshoot = 0) => {
                 console.log(">> Playing audio at", offset, "with overshoot", overshoot); // TODO: remove
-                audioSource.start(0, offset);
+
+                // Start the audio from the given offset, accounting for any overshoot
+                audioSource.start(0, offset + (overshoot / 1000));
 
                 setStartedAt({ startedAt: audioContext.currentTime - offset });
                 setPausedAt({ pausedAt: 0 });
@@ -276,13 +318,12 @@ export default Vue.extend({
                 setIsPlaying({ playing: true });
             }
 
-            const startDelay = startTime - timesync.now();
+            const startDelay = startTime - connectionManager.now();
             // If we received a start time that already passed
             if (startDelay <= 0) {
-                console.log("Playing audio from here")
                 // We need to attempt to make up for it by seeking forward by 
                 // however much time we missed
-                offset += -1 * startDelay;
+                offset += -1 * (startDelay / 1000);
 
                 startAudio();
             } 

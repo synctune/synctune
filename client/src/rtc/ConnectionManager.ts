@@ -157,21 +157,28 @@ export default class ConnectionManager extends Emittable {
 
         this._timesynced = false;
 
-        this._timesync = Timesync.create({
-            peers: [],
+        this._timesync = this.createTimesyncInstance([]);
+
+        this.setupPeerListeners(peer);
+
+        window.addEventListener("beforeunload", () => {
+            // Leave the room
+            this.leaveRoom();
+        });
+    }
+
+    private createTimesyncInstance(peers: string[]): Timesync {
+        const timesync = Timesync.create({
+            peers: [...peers],
             interval: null, // Disable automatic synchronization
             delay: 1000,
             repeat: 5,
             timeout: 10000
         });
 
-        this.setupPeerListeners(peer);
-        this.setupTimesync(this._timesync);
+        this.setupTimesync(timesync);
 
-        window.addEventListener("beforeunload", () => {
-            // Leave the room
-            this.leaveRoom();
-        });
+        return timesync;
     }
 
     private setupPeerListeners(peer: Peer) {
@@ -225,12 +232,8 @@ export default class ConnectionManager extends Emittable {
             });
         };
 
-        // TODO: remove these
         timesync.on("change", (offset) => {
             console.log('Timesync: New offset', offset); // TODO: remove
-
-            this._timesynced = true;
-            this.emitEvent("timesyncchanged", true);
 
             if (!this.isOwner) {
                 // Send message to host client indicating that we are synced
@@ -252,13 +255,21 @@ export default class ConnectionManager extends Emittable {
 
         timesync.on("sync", (state) => {
             console.log(`Timesync: new sync state '${state}'`); // TODO: remove
+
+            if (state === "start") {
+                this._timesynced = false;
+                this.emitEvent("timesyncchanged", false);
+            } else if (state === "end") {
+                this._timesynced = true;
+                this.emitEvent("timesyncchanged", true);
+            }
         });
 
         timesync.on("error", (error) => {
             console.log("Timesync: error", error); // TODO: remove
         });
         
-        console.log("timesync", this.timesync); // TODO: remove
+        console.log("timesync", this._timesync); // TODO: remove
     }
 
     private addPeerConnection(conn: Peer.DataConnection): ClientData {
@@ -409,7 +420,10 @@ export default class ConnectionManager extends Emittable {
                     this.emitEvent("clienttimesyncchanged", this._peerConnections[clientId]);
                     break;
                 case "runtimesync": 
+                    
                     this._timesync.sync();
+
+
                     break;
                 case "timesync":
                     console.log(`Timesync: Received timesync message from '${clientId}'`, messageData.data); // TODO: remove
@@ -463,6 +477,10 @@ export default class ConnectionManager extends Emittable {
             this.emitEvent("already-in-room", this._roomName!);
             return;
         }
+
+        // Reinitialize timesync instance
+        this._timesync.destroy();
+        this._timesync = this.createTimesyncInstance([]);
 
         const data: CreateRoomData = {
             roomName,
@@ -532,16 +550,19 @@ export default class ConnectionManager extends Emittable {
                     this._roomOwner = ownerId;
 
                     // Add peer to peer list
-                    const timesync = this._timesync;
-                    const peerList = timesync.options.peers as string[];
+                    const peerList = [ ...this._timesync.options.peers as string[]];
                     if (!peerList.includes(ownerId)) {
                         peerList.push(ownerId);
                         console.log("Added peer", ownerId, "to timesync", this._timesync); // TODO: remove
                     }
 
+                    // Reinitialize timesync instance
+                    this._timesync.destroy();
+                    this._timesync = this.createTimesyncInstance(peerList);
+
                     // Run the sync process
                     setTimeout(() => {
-                        timesync.sync(); 
+                        this._timesync.sync(); 
                     }, OTHER_TIMESYNC_DELAY);
 
                     this.emitEvent("isconnectedchanged", true);
@@ -629,6 +650,11 @@ export default class ConnectionManager extends Emittable {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return;
+        }
+
+        if (!this.isOwner) {
+            this.emitEvent("error", "Unable to sync audio file: not room owner");
+            return -1;
         }
 
         if (audioFile.size === 0) {
@@ -719,6 +745,11 @@ export default class ConnectionManager extends Emittable {
             return -1;
         }
 
+        if (!this.isOwner) {
+            this.emitEvent("error", "Unable to send play signal: not room owner");
+            return -1;
+        }
+
         const timesync = this._timesync;
         const now = timesync.now();
         // TODO: use synced time
@@ -760,6 +791,11 @@ export default class ConnectionManager extends Emittable {
             return -1;
         }
 
+        if (!this.isOwner) {
+            this.emitEvent("error", "Unable to send pause signal: not room owner");
+            return -1;
+        }
+
         // TODO: use synced time
         const now = Date.now();
 
@@ -789,6 +825,11 @@ export default class ConnectionManager extends Emittable {
             return -1;
         }
 
+        if (!this.isOwner) {
+            this.emitEvent("error", "Unable to send stop signal: not room owner");
+            return -1;
+        }
+
         // TODO: use synced time
         const now = Date.now();
 
@@ -815,6 +856,16 @@ export default class ConnectionManager extends Emittable {
      * @param selfId The id of self
      */
     sendAudioFileReceivedSignal(selfId: string) {
+        if (!this.isConnected) {
+            this.emitEvent("error", "Not connected to a room");
+            return;
+        }
+
+        if (this.isOwner) {
+            this.emitEvent("error", "Unable to send file received signal: not a client");
+            return;
+        }
+
         this.clientIds.forEach(otherId => {
             const syncSendChannel = this._peerConnections[otherId].connection;
 
@@ -841,6 +892,16 @@ export default class ConnectionManager extends Emittable {
      * @param selfId The id of self
      */
     sendReadyToPlaySignal(selfId: string) {
+        if (!this.isConnected) {
+            this.emitEvent("error", "Not connected to a room");
+            return;
+        }
+
+        if (this.isOwner) {
+            this.emitEvent("error", "Unable to send ready to play signal: not a client");
+            return;
+        }
+
         this.clientIds.forEach(otherId => {
             const syncSendChannel = this._peerConnections[otherId].connection;
 
@@ -864,21 +925,30 @@ export default class ConnectionManager extends Emittable {
     /**
      * Runs clock synchronization.
      */
-    synchronizeClocks(runSelf = true) {
-        const targetClients = this.clientIds;
-
-        if (runSelf) {
-            // Delay by a little bit so we don't run into problems with the clients syncing
-            setTimeout(() => {
-                this._timesynced = false;
-                this.emitEvent("timesyncchanged", false);
-
-                this._timesync.sync();
-            }, 100);
+    synchronizeClocks() {
+        if (!this.isConnected) {
+            this.emitEvent("error", "Not connected to a room");
+            return -1;
         }
 
-        // TODO: wipe timesync instance and create a new one
-        // TODO: don't expose timesync instance
+        if (!this.isOwner) {
+            this.emitEvent("error", "Unable to synchronize clocks: not room owner");
+            return;
+        }
+
+        const targetClients = this.clientIds;
+
+        const peers = [ ...this._timesync.options.peers as string[] ];
+        this._timesync.destroy();
+        this._timesync = this.createTimesyncInstance(peers);
+
+        // Delay by a little bit so we don't run into problems with the clients syncing
+        setTimeout(() => {
+            // this._timesynced = false;
+            // this.emitEvent("timesyncchanged", false);
+
+            this._timesync.sync();
+        }, 100);
 
         const messageData: MessageData = {
             type: "runtimesync",
@@ -895,6 +965,13 @@ export default class ConnectionManager extends Emittable {
 
             this.emitEvent("clienttimesyncchanged", clientData);
         });
+    }
+
+    /**
+     * Gives the current synced time.
+     */
+    now(): number {
+        return this._timesync.now();
     }
 
     // ---------------
@@ -919,10 +996,6 @@ export default class ConnectionManager extends Emittable {
 
     get roomOwner(): string | null {
         return this._roomOwner;
-    }
-
-    get timesync(): Timesync {
-        return this._timesync;
     }
 
     get clientIds(): string[] {

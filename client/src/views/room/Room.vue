@@ -11,7 +11,7 @@
             <div>Connected: {{ isConnected }}</div>
             <div>Is Room Owner: {{ isOwner }}</div>
             <div>ID: {{ id }}</div>
-            <div>Sync Offset: {{ syncOffset }}</div>
+            <div>Timesynced: {{ timesynced }}</div>
             <div>Audio Loaded: {{ audioLoaded }}</div>
             <div>Audio Playing: {{ isPlaying }}</div>
 
@@ -34,7 +34,7 @@
             <br>
 
             <div>
-                Synced Clients
+                Audio Synced Clients
                 <ul>
                     <li
                         :key="`syncedClient-${clientId}`"
@@ -50,7 +50,10 @@
             <!-- TODO: remove -->
             <button
                 @click="syncClocks"
-            >Sync Clocks</button>
+                :disabled="!isOwner || !timesynced"
+            >
+                Sync Clocks
+            </button>
 
             <br>
             <br>
@@ -61,12 +64,12 @@
                     ref="audioFileInputEl"
                     type="file" 
                     name="audio-file"
-                    :disabled="!isConnected || !isOwner"
+                    :disabled="!isConnected || !isOwner || !timesynced"
                     @change="onAudioFileChange"
                 >
                 <button
                     @click="playAudio"
-                    :disabled="!isConnected || !isOwner || !audioLoaded || isPlaying"
+                    :disabled="!isConnected || !isOwner || !audioLoaded || isPlaying || !timesynced"
                 >
                     Play
                 </button>
@@ -122,7 +125,8 @@ type Computed = {} &
 
 type Methods = {
     leaveRoom(): void;
-    setupGeneralTimesyncListeners(timesync: Timesync): void;
+    // setupGeneralTimesyncListeners(timesync: Timesync): void;
+    setupConnectionManagerListeners(connectionManager: ConnectionManager): void;
 
     onAudioFileChange(): void;
     syncAudioFile(audioFile: File): void;
@@ -142,7 +146,7 @@ export default Vue.extend({
     data() {
         return {
             sendClientId: "",
-            syncOffset: 0,
+            timesynced: false
         }
     },
     computed: {
@@ -165,21 +169,22 @@ export default Vue.extend({
         if (!isConnected) {
             console.log("WARNING: Not connected to a room... you shouldn't be in here");
         } else {
-            const { setupGeneralTimesyncListeners }: Methods = this;
+            const { setupConnectionManagerListeners }: Methods = this;
             const connectionManager = this.connectionManager as ConnectionManager;
 
-            setupGeneralTimesyncListeners(connectionManager.timesync);
+            this.timesynced = connectionManager.timesynced;
+            setupConnectionManagerListeners(connectionManager);
         }
     },
     methods: {
+        setupConnectionManagerListeners(connectionManager: ConnectionManager) {
+            connectionManager.addEventListener("timesyncchanged", (timesynced) => {
+                this.timesynced = timesynced;
+            });
+        },
         leaveRoom() {
             const connectionManager = this.connectionManager as ConnectionManager;
             connectionManager.leaveRoom();
-        },
-        setupGeneralTimesyncListeners(timesync: Timesync) {
-            timesync.on("change", offset => {
-                this.syncOffset = offset;
-            });
         },
         onAudioFileChange() {
             const { syncAudioFile, stopAudio }: Methods = this;
@@ -219,7 +224,7 @@ export default Vue.extend({
         },
         syncClocks() { // TODO: remove
             const connectionManager = this.connectionManager as ConnectionManager;
-            connectionManager.timesync.sync();
+            connectionManager.synchronizeClocks();
         }
     }
 });
