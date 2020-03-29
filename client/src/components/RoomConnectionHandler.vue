@@ -10,6 +10,7 @@ import { mapGetters, mapActions } from "vuex";
 import { Getters, Actions, MapGettersStructure, MapActionsStructure } from "../store/modules/room";
 import VueRouter, { Route } from 'vue-router';
 import ConnectionManager, { RoomData } from '../rtc/ConnectionManager';
+import * as NotificationManager from "../managers/NotificationManager";
 
 type Props = {
     mode: "join" | "create";
@@ -25,7 +26,7 @@ type Computed = Pick<MapGettersStructure, Getters.isConnected | Getters.connecti
 
 type Methods = {
     onSuccess(room: RoomData): void;
-    onFail(room: string): void;
+    onFail(roomName: string): void;
 }
 
 export default Vue.extend({
@@ -54,10 +55,14 @@ export default Vue.extend({
             const router = this.$router as VueRouter;
             router.push(`/room`).catch(err => {});
         },
-        onFail(room: RoomData) {
-            console.log(`Unable to join room '${room.roomName}'`); // TODO: remove
+        onFail(roomName: string) {
+            console.log(`Unable to join room '${roomName}'`); // TODO: remove
 
-            // TODO: handle failure
+            NotificationManager.showErrorNotification(this, "Unable to join room.");
+
+            // Go back to home page
+            const router = this.$router as VueRouter;
+            router.push(`/`).catch(err => {});
         }
     },
     mounted() {
@@ -73,13 +78,9 @@ export default Vue.extend({
         this.roomName = (targetRoom) ? targetRoom : "";
 
         if (isConnected && connectionManager.room !== targetRoom) {
-            // TODO: show an actual dialog box
-            const goAnyways = confirm("Warning: already connected to a room! Are you sure you want to leave this room?");
+            NotificationManager.showErrorNotification(this, "Already connected to a room.");
 
-            if (!goAnyways) { // Answer: no
-                router.push("/").catch(err => {}); // Redirect to home
-                return;
-            }
+            router.push("/").catch(err => {}); // Redirect to home
         }
 
         connectionManager.leaveRoom();

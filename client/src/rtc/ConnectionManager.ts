@@ -1,7 +1,7 @@
 import Emittable from '@/events/Emittable';
 import KEYS from "@/keys";
 import Peer from "peerjs";
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import * as Timesync from "timesync";
 import { NICKNAME_STORAGE_KEY } from "../constants/generalConstants";
 
@@ -513,7 +513,7 @@ export default class ConnectionManager extends Emittable {
         try {
             const res = await axios.post(`${KEYS.ROOM_SERVER_URL}/rooms/create`, data);
             
-            if (res.status == 200) {
+            if (res.status === 200) {
                 const data: RoomData = {
                     ownerId: this._id,
                     roomName: roomName
@@ -532,7 +532,17 @@ export default class ConnectionManager extends Emittable {
             }
 
         } catch(err) {
-            this.emitEvent("error", err);
+            const response = err.response as AxiosResponse | undefined;
+
+            if (response) {
+                if (response.status === 409 || response.status === 500) {
+                    this.emitEvent("room-already-exists", roomName);
+                } else {
+                    this.emitEvent("error", `Unsupported status code: ${response.status}`);
+                }
+            } else {
+                this.emitEvent("error", err);
+            }
         }
     }
 
@@ -550,7 +560,7 @@ export default class ConnectionManager extends Emittable {
         try {
             const res = await axios.get<GetRoomResponse>(`${KEYS.ROOM_SERVER_URL}/rooms/${roomName}`);
 
-            if (res.status == 200) {
+            if (res.status === 200) {
                 const ownerId = res.data.ownerId;
 
                 const data: RoomJoinedData = {
@@ -602,15 +612,21 @@ export default class ConnectionManager extends Emittable {
                     console.log("Error", err);
                     this.emitEvent("error", err);
                 });
-
-
-            } else if (res.status == 404) {
-                this.emitEvent("room-not-exists", roomName);
             } else {
                 throw `Unsupported status code: ${res.status}`;
             }
         } catch(err) {
-            this.emitEvent("error", err);
+            const response = err.response as AxiosResponse | undefined;
+
+            if (response) {
+                if (response.status === 404 || response.status === 500) {
+                    this.emitEvent("room-not-exists", roomName);
+                } else {
+                    this.emitEvent("error", `Unsupported status code: ${response.status}`);
+                }
+            } else {
+                this.emitEvent("error", err)
+            }
         }
     }
 

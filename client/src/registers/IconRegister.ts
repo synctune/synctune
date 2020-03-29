@@ -7,6 +7,7 @@ import PauseIcon from "vue-material-design-icons/Pause.vue";
 import UploadIcon from "vue-material-design-icons/Upload.vue";
 import DownloadIcon from "vue-material-design-icons/DownloadOutline.vue";
 import CheckIcon from "vue-material-design-icons/Check.vue";
+import SyncIcon from "vue-material-design-icons/Sync.vue";
 
 const ICONS_MAP = {
     CloseIcon,
@@ -14,7 +15,8 @@ const ICONS_MAP = {
     PauseIcon,
     UploadIcon,
     DownloadIcon,
-    CheckIcon
+    CheckIcon,
+    SyncIcon
 };
 
 export function register() {
