@@ -1,6 +1,5 @@
 import * as http from "http";
 import cors from "cors";
-import cookie from "cookie";
 import express from "express";
 import bodyParser from "body-parser";
 import { ExpressPeerServer } from "peer";
