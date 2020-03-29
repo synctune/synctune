@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import RoomConnectionForm from "@/components/RoomConnectionForm.vue";
+import RoomConnectionForm from "@/components/room/RoomConnectionForm.vue";
 import Container from "@/components/ui/Container.vue";
 
 import * as NotificationManager from "../managers/NotificationManager";

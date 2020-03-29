@@ -13,6 +13,8 @@ export interface RoomState {
     isOwner: boolean;
     connectionManager: ConnectionManager;
     connectedClients: string[];
+    roomName: string;
+    timesynced: boolean;
 }
 
 export enum Getters {
@@ -20,7 +22,9 @@ export enum Getters {
     isOwner = "isOwner",
     connectedClients = "connectedClients",
     id = "id",
-    connectionManager = "connectionManager"
+    connectionManager = "connectionManager",
+    roomName = "roomName",
+    timesynced = "timesynced"
 }
 
 export enum Mutations {}
@@ -33,6 +37,8 @@ export interface MapGettersStructure {
     [Getters.connectedClients]: string[];
     [Getters.id]: string | null;
     [Getters.connectionManager]: ConnectionManager;
+    [Getters.roomName]: string;
+    [Getters.timesynced]: boolean;
 }
 
 export interface MapMutationsStructure {}
@@ -63,21 +69,31 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         // Add self
         Vue.set(state, "connectedClients", [connectionManager.id]);
         Vue.set(state, "isOwner", connectionManager.isOwner);
+        Vue.set(state, "roomName", connectionManager.room);
+        Vue.set(state, "timesynced", false);
     });
 
     connectionManager.addEventListener("room-joined", ({ clients }) => {
         // Add other already connected clients + self
         Vue.set(state, "connectedClients", [...clients, connectionManager.id]);
         Vue.set(state, "isOwner", connectionManager.isOwner);
+        Vue.set(state, "roomName", connectionManager.room);
+        Vue.set(state, "timesynced", false);
     });
 
     connectionManager.addEventListener("room-left", () => {
         Vue.set(state, "connectedClients", []);
         Vue.set(state, "isOwner", false);
+        Vue.set(state, "roomName", "");
+        Vue.set(state, "timesynced", false);
     });
 
     connectionManager.addEventListener("isconnectedchanged", (newIsConnected) => {
         Vue.set(state, "isConnected", newIsConnected);
+    });
+
+    connectionManager.addEventListener("timesyncchanged", (timesynced) => {
+        Vue.set(state, "timesynced", timesynced);
     });
 }
 
@@ -92,6 +108,8 @@ const state: RoomState = {
     isConnected: false,
     isOwner: false,
     connectedClients: [],
+    roomName: "",
+    timesynced: false,
 };
 
 setupConnectionManagerListeners(state, state.connectionManager);
@@ -111,6 +129,12 @@ const getters: GetterTree<RoomState, RootState> = {
     },
     [Getters.connectionManager](state): ConnectionManager {
         return state.connectionManager;
+    },
+    [Getters.roomName](state): string {
+        return state.roomName;
+    },
+    [Getters.timesynced](state): boolean {
+        return state.timesynced;
     }
 };
 

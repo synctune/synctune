@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import RoomConnectionHandler from "../../components/RoomConnectionHandler.vue";
+import RoomConnectionHandler from "@/components/room/RoomConnectionHandler.vue";
 
 export default Vue.extend({
     components: {

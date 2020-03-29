@@ -92,12 +92,14 @@ export default Vue.extend({
         &.vertical-accents {
             & .Container__container {
                 margin: 0 $accent-size 0 $accent-size;
+                height: 100%;
             }
         }
 
         &.horizontal-accents {
             & .Container__container {
                 margin: $accent-size 0 $accent-size 0;
+                height: calc(100% - 2 * #{$accent-size});
             }
         }
     }

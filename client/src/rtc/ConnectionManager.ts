@@ -535,8 +535,10 @@ export default class ConnectionManager extends Emittable {
             const response = err.response as AxiosResponse | undefined;
 
             if (response) {
-                if (response.status === 409 || response.status === 500) {
+                if (response.status === 409) {
                     this.emitEvent("room-already-exists", roomName);
+                } else if (response.status === 500) {
+                    this.emitEvent("error", "Error when creating room");
                 } else {
                     this.emitEvent("error", `Unsupported status code: ${response.status}`);
                 }
@@ -619,8 +621,10 @@ export default class ConnectionManager extends Emittable {
             const response = err.response as AxiosResponse | undefined;
 
             if (response) {
-                if (response.status === 404 || response.status === 500) {
+                if (response.status === 404) {
                     this.emitEvent("room-not-exists", roomName);
+                } else if (response.status === 500) {
+                    this.emitEvent("error", "Error when joining room");
                 } else {
                     this.emitEvent("error", `Unsupported status code: ${response.status}`);
                 }

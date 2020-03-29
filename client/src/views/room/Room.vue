@@ -1,5 +1,11 @@
 <template>
     <div id="Room">
+        <room-not-connected-view v-if="!isConnected" />
+        <room-owner-view v-else-if="isOwner"/>
+        <room-client-view v-else />
+    </div>
+
+    <!-- <div v-else id="Room">
         <button
             @click="leaveRoom"
             :disabled="!isConnected"
@@ -48,7 +54,6 @@
 
             <br>
 
-            <!-- TODO: remove -->
             <button
                 @click="syncClocks"
                 :disabled="!isOwner || !timesynced"
@@ -90,7 +95,7 @@
 
             <audio ref="audioPlayerEl"></audio>
         </div>
-    </div>
+    </!-->
 </template>
 
 <script lang="ts">
@@ -103,10 +108,11 @@ import * as AudioStore from "../../store/modules/audio";
 import VueRouter from 'vue-router';
 import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
 
-interface Data {
-    roomName: string;
-    timesynced: boolean;
-}
+import RoomOwnerView from "@/components/room/RoomOwnerView.vue";
+import RoomClientView from "@/components/room/RoomClientView.vue";
+import RoomNotConnectedView from "@/components/room/RoomNotConnectedView.vue";
+
+interface Data {}
 
 type Computed = {
     clientNickname(clientId: string): string;
@@ -116,6 +122,8 @@ type Computed = {
         | RoomStore.Getters.isOwner
         | RoomStore.Getters.connectedClients
         | RoomStore.Getters.id 
+        | RoomStore.Getters.roomName 
+        | RoomStore.Getters.timesynced
     > 
     & Pick<AudioStore.MapGettersStructure,
         AudioStore.Getters.isPlaying
@@ -143,13 +151,9 @@ export default Vue.extend({
     // TODO: add checks for if there is no connection
     // TODO: add proper tracking of currently connected clients (probably in room store)
     components: {
-
-    },
-    data() {
-        return {
-            roomName: "",
-            timesynced: false
-        }
+        RoomOwnerView,
+        RoomClientView,
+        RoomNotConnectedView
     },
     computed: {
         ...mapGetters({
@@ -158,6 +162,8 @@ export default Vue.extend({
             isOwner: RoomStore.Getters.isOwner,
             connectedClients: RoomStore.Getters.connectedClients,
             id: RoomStore.Getters.id,
+            roomName: RoomStore.Getters.roomName,
+            timesynced: RoomStore.Getters.timesynced,
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
@@ -180,18 +186,12 @@ export default Vue.extend({
         } else {
             const { setupConnectionManagerListeners }: Methods = this;
             const connectionManager = this.connectionManager as ConnectionManager;
-
-            this.roomName = connectionManager.room;
-
-            this.timesynced = connectionManager.timesynced;
             setupConnectionManagerListeners(connectionManager);
         }
     },
     methods: {
         setupConnectionManagerListeners(connectionManager: ConnectionManager) {
-            connectionManager.addEventListener("timesyncchanged", (timesynced) => {
-                this.timesynced = timesynced;
-            });
+            
         },
         leaveRoom() {
             const connectionManager = this.connectionManager as ConnectionManager;
@@ -242,5 +242,13 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+    #Room {
+        margin: 0 3rem;
 
+        height: 100%;
+
+        @include respond(phone) {
+            margin: 0 2rem;
+        }
+    }
 </style>
