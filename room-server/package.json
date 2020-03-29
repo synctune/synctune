@@ -7,7 +7,9 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc",
         "dev": "nodemon --legacy-watch app.ts",
-        "prod": "NODE_ENV=production node ./build/app.js"
+        "prod": "NODE_ENV=production node ./build/app.js",
+        "heroku:push": "heroku container:push web --app=synctune",
+        "heroku:release": "heroku container:release web --app=synctune"
     },
     "author": "",
     "license": "ISC",
