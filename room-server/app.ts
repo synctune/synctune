@@ -47,7 +47,7 @@ const peerServer = ExpressPeerServer(server, {
     proxied: true,
     path: "/"
 });
-app.use("/peerjs", peerServer);
+app.use("/peerserver", peerServer);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT);

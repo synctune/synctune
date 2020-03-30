@@ -21,8 +21,6 @@ services:
         volumes:
             - /app/node_modules
             - ./room-server:/app
-        environment:
-            - SOCKET_IO_PATH=socket.io
         networks:
             - app-network
         hostname: room-server
@@ -39,9 +37,9 @@ services:
         environment:
             - CHOKIDAR_USEPOLLING=true
             - VUE_APP_ROOM_SERVER_URL=/room-server
-            - VUE_APP_PEERJS_HOST=0.peerjs.com
+            - VUE_APP_PEERJS_HOST=synctune-peerserver.herokuapp.com
             - VUE_APP_PEERJS_PATH=/
-            - VUE_APP_PEERJS_PORT=443
+            - VUE_APP_PEERJS_PORT=80
         networks:
             - app-network
         hostname: client

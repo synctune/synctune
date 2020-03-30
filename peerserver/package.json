@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "heroku:push": "heroku container:push web --app=synctune-peerserver",
+        "heroku:release": "heroku container:release web --app=synctune-peerserver"
+    }
+}
