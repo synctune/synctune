@@ -33,6 +33,8 @@ app.use(
 );
 
 // room server
+app.get("/test", (req, res) => res.end("It works!"));
+
 app.get("/rooms/:roomName", getRoomOwnerPeerId);
 
 app.post("/rooms/create", createRoom);
