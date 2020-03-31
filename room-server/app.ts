@@ -2,7 +2,6 @@ import * as http from "http";
 import cors from "cors";
 import express from "express";
 import bodyParser from "body-parser";
-import { ExpressPeerServer } from "peer";
 import {
     getRoomOwnerPeerId,
     createRoom,
@@ -34,20 +33,11 @@ app.use(
 );
 
 // room server
-app.get("/test", (req, res) => res.end("It works!"));
-
 app.get("/rooms/:roomName", getRoomOwnerPeerId);
 
 app.post("/rooms/create", createRoom);
 
 app.delete("/rooms/:roomName", closeRoom);
-
-// peerjs
-const peerServer = ExpressPeerServer(server, {
-    proxied: true,
-    path: "/"
-});
-app.use("/peerserver", peerServer);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT);
