@@ -139,7 +139,10 @@ export default Vue.extend({
             }
 
             & #RoomOwnerView__connected-devices {
+                min-height: 3rem;
+
                 flex-grow: 1;
+                flex-shrink: 1;
             }
         }
 
