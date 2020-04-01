@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { createClient } from "redis";
 import KEYS from "../../keys";
 
+const A_DAY = 86400;
 const redisClient = createClient(KEYS.REDIS_URL);
 
 // @param roomName
@@ -45,7 +46,13 @@ export const createRoom = (req: Request, res: Response) => {
                     console.log("createRoom Redis error:", err);
                     return res.status(500).end("Error with Redis");
                 }
-                return res.end("OK");
+                redisClient.expire(roomName, A_DAY, (err, _) => {
+                    if (err) {
+                        console.log("createRoom Redis error:", err);
+                        return res.status(500).end("Error with Redis");
+                    }
+                    return res.end("OK");
+                });
             }
         );
     });

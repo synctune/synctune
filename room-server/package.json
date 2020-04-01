@@ -9,7 +9,8 @@
         "dev": "nodemon --legacy-watch app.ts",
         "prod": "NODE_ENV=production node ./build/app.js",
         "heroku:push": "heroku container:push web --app=synctune-roomserver",
-        "heroku:release": "heroku container:release web --app=synctune-roomserver"
+        "heroku:release": "heroku container:release web --app=synctune-roomserver",
+        "heroku:redis:cli": "heroku redis:cli -a synctune-roomserver --confirm synctune-roomserver"
     },
     "author": "",
     "license": "ISC",
