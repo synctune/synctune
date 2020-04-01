@@ -64,5 +64,10 @@ export default Vue.extend({
                 z-index: 10;
             }
         }
+
+        @include respond(phone) {
+            $max-size: 12rem;
+            max-width: $max-size;
+        }
     }
 </style>

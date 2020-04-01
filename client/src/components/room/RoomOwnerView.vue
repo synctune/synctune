@@ -155,10 +155,6 @@ export default Vue.extend({
         }
 
         & #RoomOwnerView__room-controls {
-            // display: flex;
-            // flex-direction: row;
-            // align-items: center;
-
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             grid-template-areas: 

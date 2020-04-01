@@ -106,12 +106,16 @@ export default Vue.extend({
             & /deep/ .MusicControlsContainer__song-title {
                 font-size: 1.8rem;
                 font-weight: 500;
+
+                text-align: center;
             }
 
             & /deep/ .MusicControlsContainer__controls {
                 display: flex;
                 flex-direction: row;
+                justify-content: center;
                 align-items: center;
+                flex-wrap: wrap;
 
                 & > *:not(:last-child) {
                     margin-right: 1rem;

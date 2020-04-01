@@ -112,6 +112,8 @@ export default Vue.extend({
         height: 100%;
         position: relative;
 
+        overflow: auto;
+
         display: flex;
         flex-direction: column;
 
