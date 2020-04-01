@@ -37,6 +37,7 @@ export default Vue.extend({
         border-radius: $radius-amount;
 
         color: color-link("ButtonSecondary", "text", "primary");
+        background: none;
 
         transition: color $modifer-duration;
 

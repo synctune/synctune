@@ -248,7 +248,7 @@ export default Vue.extend({
         height: 100%;
 
         @include respond(phone) {
-            margin: 0 2rem;
+            margin: 1rem 2rem;
         }
     }
 </style>

@@ -17,13 +17,15 @@
             class="RoomConnectRoom__nickname-input"
             placeholder="Enter Nickname"
             v-model="nickname"
+            :disabled="isConnected"
         />
 
         <button-input-hybrid
             class="RoomConnectionForm__join"
             @button-click="joinRoom"
             :button-disabled="!validRoomName || isConnected || !validNickname"
-            input-placeholder="Enter Room Name"
+            :input-disabled="isConnected"
+            input-placeholder="Enter Room Code"
             v-model="roomName"
         >
             Join Room

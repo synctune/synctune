@@ -4,7 +4,7 @@ import Vue from "vue";
 import CloseIcon from "vue-material-design-icons/Close.vue";
 import PlayIcon from "vue-material-design-icons/PlayOutline.vue";
 import PauseIcon from "vue-material-design-icons/Pause.vue";
-import UploadIcon from "vue-material-design-icons/Upload.vue";
+import UploadIcon from "vue-material-design-icons/UploadOutline.vue";
 import DownloadIcon from "vue-material-design-icons/DownloadOutline.vue";
 import CheckIcon from "vue-material-design-icons/Check.vue";
 import SyncIcon from "vue-material-design-icons/Sync.vue";
