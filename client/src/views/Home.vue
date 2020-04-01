@@ -68,6 +68,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
     #Home {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;

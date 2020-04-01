@@ -12,6 +12,7 @@ import shortid from "shortid";
 
 // Global style sheet
 import "@/styling/main.scss";
+import 'overlayscrollbars/css/OverlayScrollbars.css';
 
 // Register all the used icons
 IconRegister.register();

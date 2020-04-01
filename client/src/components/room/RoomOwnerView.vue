@@ -211,7 +211,7 @@ export default Vue.extend({
         }
 
         & #RoomOwnerView__leave-room {
-
+            margin-bottom: 1rem;
         }
     }
 </style>

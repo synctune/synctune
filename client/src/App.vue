@@ -4,24 +4,32 @@
         :namespace="defaultNamespace"
         use-root
     >
-        <notification-register></notification-register>
+        <overlay-scrollbar 
+            id="App__overlay-container"
+            :options="{
+                paddingAbsolute: true,
+                scrollbars: {
+                    autoHide: 'leave'
+                }
+            }"
+        >
+            <div id="App__container">
+                <notification-register></notification-register>
 
-        <div id="nav">
-            <router-link to="/">Home</router-link> |
-            <router-link to="/room">Room</router-link>
-            <!-- TODO: remove these test links -->
-            <!-- <router-link to="/test-rtc-camera-local">Test RTC Camera Local</router-link> |
-            <router-link to="/test-rtc-audio-file-local">Test RTC Audio File Local</router-link> |
-            <router-link to="/test-rtc-signalling-server">Test RTC Signalling Server</router-link> | -->
-        </div>
+                <div id="nav">
+                    <router-link to="/">Home</router-link> |
+                    <router-link to="/room">Room</router-link>
+                </div>
 
-        <transition name="fade" mode="out-in">
-            <router-view />
-        </transition>
+                <transition name="fade" mode="out-in">
+                    <router-view />
+                </transition>
 
-        <!-- Sticky components -->
-        <room-status />
-        <audio-player />
+                <!-- Sticky components -->
+                <room-status />
+                <audio-player />
+            </div>
+        </overlay-scrollbar>
     </theme-provider>
 </template>
 
@@ -107,19 +115,32 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     #App {
         height: 100%;
-        position: relative;
+        width: 100%;
 
-        overflow: auto;
+        & #App__overlay-container {
+            height: 100%;
 
-        display: flex;
-        flex-direction: column;
+            position: relative;
 
-        $cutoff-point: 60%;
-        background: color-link("App", "background_gradient", "start");
-        background: linear-gradient(color-link("App", "background_gradient", "start") 0%, color-link("App", "background_gradient", "start") $cutoff-point, color-link("App", "background_gradient", "end"));
+            display: flex;
+            flex-direction: column;
+
+            $cutoff-point: 60%;
+            background: color-link("App", "background_gradient", "start");
+            background: linear-gradient(color-link("App", "background_gradient", "start") 0%, color-link("App", "background_gradient", "start") $cutoff-point, color-link("App", "background_gradient", "end"));
+
+            & #App__container {
+                position: relative;
+                
+                height: 100vh;
+
+                display: flex;
+                flex-direction: column;
+            }
+        }
     }
 
     // Transition effects
