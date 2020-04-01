@@ -16,7 +16,6 @@ const PURPLE_1 = "#B072FE";
 const PURPLE_2 = "#C06CE8";
 const PURPLE_3 = "#D274FF";
 
-
 const PINK_1 = "#F1B8FF";
 const PINK_2 = "#FFADFC";
 const PINK_3 = "#F9D6FF";
@@ -44,6 +43,10 @@ const SUCCESS_ACCENT = "#29DE19";
 const WARNING_BG = "#FFFEF9";
 const WARNING_TEXT = DARK_1;
 const WARNING_ACCENT = "#DEB319";
+
+const ICON_TEXT = "#434343";
+const ICON_TEXT_HOVER = "#624F62";
+const ICON_TEXT_CLICK = "#537374";
 
 export default {
     name: "classic",
@@ -131,6 +134,17 @@ export default {
         Home: {
             accent: {
                 tertiary: PINK_6
+            }
+        },
+        CircularButton: {
+            text: {
+                primary: ICON_TEXT,
+                secondary: ICON_TEXT_HOVER,
+                tertiary: ICON_TEXT_CLICK
+            },
+            accent: {
+                primary: PINK_2,
+                secondary: PURPLE_3
             }
         }
     }

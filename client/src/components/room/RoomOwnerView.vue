@@ -41,6 +41,8 @@
             </div>
             <music-controls-container 
                 id="RoomOwnerView__music-controls"
+                :can-play="true"
+                :is-playing="false"
             />
         </div>
 

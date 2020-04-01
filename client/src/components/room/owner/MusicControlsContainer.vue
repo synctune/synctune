@@ -8,7 +8,38 @@
             class="MusicControlsContainer__artwork-thumbnail"
         />
 
-        Music Controls
+        <div class="MusicControlsContainer__song-title">
+            {{ trackTitleDisplay }}
+        </div>
+
+        <div class="MusicControlsContainer__controls">
+            <circular-icon-button 
+                class="MusicControlsContainer__pause-button"
+                icon-name="pause-icon"
+                @click="$emit('pause', $event)"
+                size="4rem"
+                icon-size="2.5rem"
+                :disabled="!isPlaying || !canPlay"
+            />
+
+            <circular-icon-button 
+                class="MusicControlsContainer__play-button"
+                icon-name="play-icon"
+                @click="$emit('play', $event)"
+                size="6rem"
+                icon-size="4.5rem"
+                :disabled="isPlaying || !canPlay"
+            />
+
+            <circular-icon-button 
+                class="MusicControlsContainer__stop-button"
+                icon-name="stop-icon"
+                @click="$emit('stop', $event)"
+                size="4rem"
+                icon-size="2.5rem"
+                :disabled="!isPlaying || !canPlay"
+            />
+        </div>
     </container>
 </template>
 
@@ -16,11 +47,43 @@
 import Vue from 'vue';
 import Container from "@/components/ui/Container.vue";
 import ArtworkThumbnail from "@/components/ui/ArtworkThumbnail.vue";
+import CircularIconButton from "@/components/ui/button/CircularIconButton.vue";
+
+interface Props {
+    trackTitle: string | null;
+    isPlaying: boolean;
+    canPlay: boolean;
+}
+
+interface Computed {
+    trackTitleDisplay: string;
+}
 
 export default Vue.extend({
     components: {
         Container,
-        ArtworkThumbnail
+        ArtworkThumbnail,
+        CircularIconButton
+    },
+    props: {
+        trackTitle: {
+            type: String,
+            default: null
+        },
+        isPlaying: {
+            type: Boolean,
+            default: false
+        },
+        canPlay: {
+            type: Boolean,
+            default: false
+        }
+    },
+    computed: {
+        trackTitleDisplay() {
+            const { trackTitle }: Props = this;
+            return (trackTitle) ? trackTitle : "<no track currently loaded>";
+        }
     }
 });
 </script>
@@ -33,6 +96,27 @@ export default Vue.extend({
             display: flex;
             flex-direction: column;
             align-items: center;
+
+            padding: 1rem 0;
+
+            & > *:not(:last-child) {
+                margin-bottom: 1rem;
+            }
+
+            & /deep/ .MusicControlsContainer__song-title {
+                font-size: 1.8rem;
+                font-weight: 500;
+            }
+
+            & /deep/ .MusicControlsContainer__controls {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+
+                & > *:not(:last-child) {
+                    margin-right: 1rem;
+                }
+            }
         }
     }
 </style>

@@ -76,6 +76,12 @@ export const schema: Schema = {
     RoomJoin: {
         $inherits: "GLOBAL"
     },
+    CircularButton: {
+        $inherits: "GLOBAL"
+    },
+    CircularIconButton: {
+        $inherits: "GLOBAL"
+    },
 };
 
 export const mixins: Mixins = {

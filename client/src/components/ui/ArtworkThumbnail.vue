@@ -59,6 +59,8 @@ export default Vue.extend({
 
                 background-size: cover;
 
+                opacity: 0.9;
+
                 z-index: 10;
             }
         }
