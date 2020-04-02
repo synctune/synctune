@@ -52,7 +52,11 @@ export default Vue.extend({
     },
     methods: {
         onSuccess(room: RoomData) {
+            const { clearEventListeners }: Methods = this;
             const router = this.$router as VueRouter;
+
+            clearEventListeners();
+
             router.push(`/room`).catch(err => {});
         },
         onFail(roomName: string) {
