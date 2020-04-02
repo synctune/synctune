@@ -63,6 +63,21 @@ export const schema: Schema = {
     RoomConnectionHandler: {
         $inherits: "GLOBAL"
     },
+    CircularButton: {
+        $inherits: "GLOBAL"
+    },
+    CircularIconButton: {
+        $inherits: "GLOBAL"
+    },
+    ConnectedDevicesContainer: {
+        $inherits: "GLOBAL"
+    },
+    ConnectedDeviceItem: {
+        $inherits: "GLOBAL"
+    },
+    MusicControlsContainer: {
+        $inherits: "GLOBAL"
+    },
     // Views
     Home: {
         $inherits: "GLOBAL"
@@ -74,12 +89,6 @@ export const schema: Schema = {
         $inherits: "GLOBAL"
     },
     RoomJoin: {
-        $inherits: "GLOBAL"
-    },
-    CircularButton: {
-        $inherits: "GLOBAL"
-    },
-    CircularIconButton: {
         $inherits: "GLOBAL"
     },
 };

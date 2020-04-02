@@ -48,6 +48,9 @@ const ICON_TEXT = "#434343";
 const ICON_TEXT_HOVER = "#624F62";
 const ICON_TEXT_CLICK = "#537374";
 
+const DEVICE_ITEM_BG = "#F6F2FF";
+const DEVICE_ITEM_BG_ALT = "#EDE7FF";
+
 export default {
     name: "classic",
     theme: {
@@ -145,6 +148,20 @@ export default {
             accent: {
                 primary: PINK_2,
                 secondary: PURPLE_3
+            }
+        },
+        ConnectedDevicesContainer: {
+            text: {
+                secondary: DARK_4
+            }
+        },
+        ConnectedDeviceItem: {
+            text: {
+                secondary: DARK_3
+            },
+            background: {
+                primary: DEVICE_ITEM_BG,
+                secondary: DEVICE_ITEM_BG_ALT
             }
         }
     }

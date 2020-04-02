@@ -29,6 +29,7 @@
             </div>
             <connected-devices-container 
                 id="RoomOwnerView__connected-devices"
+                :clients="mockClients"
             />
         </div>
 
@@ -96,6 +97,18 @@ export default Vue.extend({
         ButtonSecondary,
         UploadButton,
     },
+    data() {
+        return {
+            // TODO: remove
+            mockClients: [
+                { id: "ad2q23eq", nickname: "Alec", status: "ready" },
+                { id: "dadawwa78", nickname: "Jeff", status: "syncing" },
+                { id: "ddwa7da", nickname: "Anto", status: "uploading", uploadProgress: 0.25 },
+                { id: "ddaw8vb", nickname: "Kamin", status: "loading" },
+                { id: "wdwa9f09", nickname: "Thierry Mr Long Name", status: "error" }
+            ]
+        }
+    },
     computed: {
         ...mapGetters({
             connectionManager: RoomStore.Getters.connectionManager,
@@ -123,6 +136,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
     $max-container-width: 45rem;
+    $connected-devices-min-height: 18rem;
 
     #RoomOwnerView {
         display: flex;
@@ -177,7 +191,9 @@ export default Vue.extend({
         }
 
         & #RoomOwnerView__connected-devices-container {
-            flex-grow: 1;
+            flex-grow: 0;
+            flex-shrink: 1;
+            min-height: $connected-devices-min-height;
 
             width: 100%;
             max-width: $max-container-width;
@@ -192,8 +208,11 @@ export default Vue.extend({
             & #RoomOwnerView__connected-devices {
                 min-height: 3rem;
 
-                flex-grow: 1;
+                flex-grow: 0;
                 flex-shrink: 1;
+                min-height: 0;
+
+                // overflow: auto;
             }
         }
 

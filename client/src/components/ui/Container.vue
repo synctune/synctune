@@ -62,6 +62,8 @@ export default Vue.extend({
         $padding-amount-sides: 0.5rem;
 
         position: relative;
+        display: flex;
+        flex-direction: column;
 
         border-radius: $radius-amount;
         box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.25);
@@ -71,6 +73,9 @@ export default Vue.extend({
         display: inline-block;
 
         & .Container__container {
+            flex-grow: 1;
+            flex-shrink: 1;
+
             background-color: color-link("Container", "background", "primary");
             border-radius: $radius-amount;
             padding: $padding-amount $padding-amount-sides $padding-amount $padding-amount-sides;

@@ -243,12 +243,12 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
     #Room {
-        margin: 0 3rem;
+        padding: 0 3rem;
 
         height: 100%;
 
         @include respond(phone) {
-            margin: 1rem 2rem;
+            padding: 1rem 2rem;
         }
     }
 </style>

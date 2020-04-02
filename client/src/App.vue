@@ -16,10 +16,11 @@
             <div id="App__container">
                 <notification-register></notification-register>
 
-                <div id="nav">
+                <!-- TODO: remove -->
+                <!-- <div id="nav">
                     <router-link to="/">Home</router-link> |
                     <router-link to="/room">Room</router-link>
-                </div>
+                </div> -->
 
                 <transition name="fade" mode="out-in">
                     <router-view />

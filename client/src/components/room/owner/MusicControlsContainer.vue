@@ -1,6 +1,9 @@
 <template>
     <container 
-        class="MusicControlsContainer"
+        :class="[
+            'MusicControlsContainer',
+            (trackIsLoaded) ? 'track-loaded' : null
+        ]"
         base-class="MusicControlsContainer__container"
         :vertical-accents="false"
     >
@@ -57,6 +60,7 @@ interface Props {
 
 interface Computed {
     trackTitleDisplay: string;
+    trackIsLoaded: boolean;
 }
 
 export default Vue.extend({
@@ -83,6 +87,10 @@ export default Vue.extend({
         trackTitleDisplay() {
             const { trackTitle }: Props = this;
             return (trackTitle) ? trackTitle : "<no track currently loaded>";
+        },
+        trackIsLoaded() {
+            const { trackTitle }: Props = this;
+            return !!trackTitle;
         }
     }
 });
@@ -108,6 +116,8 @@ export default Vue.extend({
                 font-weight: 500;
 
                 text-align: center;
+
+                color: color-link("MusicControlsContainer", "text", "primary");
             }
 
             & /deep/ .MusicControlsContainer__controls {
@@ -120,6 +130,12 @@ export default Vue.extend({
                 & > *:not(:last-child) {
                     margin-right: 1rem;
                 }
+            }
+        }
+
+        &:not(.track-loaded) {
+            & /deep/ .MusicControlsContainer__song-title {
+                color: color-link("MusicControlsContainer", "text", "disabled");
             }
         }
     }
