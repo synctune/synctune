@@ -22,6 +22,7 @@
                 :key="client.id"
                 :data="client"
                 :alternate-color="!!(n % 2)"
+                @kick="$emit('kick', client.id)"
             />
         </overlay-scrollbar>
         <div 
@@ -73,7 +74,7 @@ export default Vue.extend({
             const { clients }: Props = this;
             return clients.length > 0;
         }
-    }
+    },
 });
 </script>
 

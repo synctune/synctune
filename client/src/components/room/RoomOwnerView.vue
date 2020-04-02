@@ -30,6 +30,7 @@
             <connected-devices-container 
                 id="RoomOwnerView__connected-devices"
                 :clients="mockClients"
+                @kick="onKick"
             />
         </div>
 
@@ -88,6 +89,7 @@ type Computed = {}
 
 type Methods = {
     onAudioFileChange(e: MouseEvent): void;
+    onKick(clientId: string): void;
 };
 
 export default Vue.extend({
@@ -129,6 +131,10 @@ export default Vue.extend({
         onAudioFileChange(e: MouseEvent) {
             // TODO: implement
             console.log("Audio File changed", e);
+        },
+        onKick(clientId: string) {
+            // TODO: implement
+            console.log("Kicking client", clientId);
         }
     }
 });

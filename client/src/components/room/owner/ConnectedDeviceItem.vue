@@ -13,9 +13,11 @@
             {{ data.nickname }}
         </div>
 
-        <div class="ConnectedDeviceItem__kick-button">
-            X
-        </div>
+        <mini-icon-button 
+            class="ConnectedDeviceItem__kick-button"
+            icon-name="close-icon"
+            @click="$emit('kick', data.id)"
+        />
     </div>
 </template>
 
@@ -23,12 +25,17 @@
 import Vue from 'vue';
 import { Client } from "./ConnectedDevicesContainer.vue";
 
+import MiniIconButton from "@/components/ui/button/MiniIconButton.vue";
+
 interface Props {
     alternateColor: boolean;
     data: Client;
 }
 
 export default Vue.extend({
+    components: {
+        MiniIconButton
+    },
     props: {
         alternateColor: {
             type: Boolean,
@@ -70,7 +77,7 @@ export default Vue.extend({
 
             font-size: 1.7rem;
 
-            margin: 0 0.7rem;
+            margin: 0 1rem;
         }
 
         &.alternate-color {

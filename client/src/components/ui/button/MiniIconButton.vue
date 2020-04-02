@@ -1,13 +1,17 @@
 <template>
     <div 
         :class="[
-            'CircularButton',
+            'MiniIconButton',
             (disabled) ? 'disabled' : null
         ]"
         :style="baseStyles"
         @click="onClick"
     >
-        <slot></slot>
+        <icon-base 
+            class="MiniIconButton__icon"
+            :icon-name="iconName"
+            :size="iconSize"
+        />
     </div>
 </template>
 
@@ -15,21 +19,37 @@
 import Vue from 'vue';
 import * as Utilities from "../../../utilities";
 
+import IconBase from "@/components/ui/icons/IconBase.vue";
+
 interface Props {
     size: string;
     disabled: boolean;
+    iconSize: string;
+    iconName: string;
 }
 
 export default Vue.extend({
+    components: {
+        IconBase
+    },
     props: {
         size: {
             type: String,
             validator: Utilities.isCSSLength,
-            default: "4rem"
+            default: "2rem"
         },
         disabled: {
             type: Boolean,
             default: false
+        },
+        iconSize: {
+            type: String,
+            validator: Utilities.isCSSLength,
+            default: "1.8rem"
+        },
+        iconName: {
+            type: String,
+            required: true
         }
     },
     computed: {
@@ -59,10 +79,10 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
     $size: 3rem;
-    $outline-thickness: 3px;
+    $outline-thickness: 1px;
     $anim-time: 0.3s;
 
-    .CircularButton {
+    .MiniIconButton {
         flex-grow: 0;
         flex-shrink: 0;
 
@@ -75,34 +95,35 @@ export default Vue.extend({
 
         margin: $size / 10;
 
-        color: color-link("CircularButton", "text", "primary");
+        color: color-link("MiniIconButton", "text", "primary");
 
-        background-color: color-link("CircularButton", "background", "primary");
-
-        box-shadow: 0 0 2px $outline-thickness color-link("CircularButton", "accent", "primary");
+        box-shadow: 0 0 0 $outline-thickness color-link("MiniIconButton", "accent", "primary");
         border-radius: 50%;
 
         cursor: pointer;
 
-        transition: box-shadow $anim-time, color $anim-time, background-color $anim-time;
+        transition: box-shadow $anim-time, color $anim-time;
+
+        & .MiniIconButton__icon {
+            width: 100%;
+            height: 100%;
+        }
 
         &.disabled {
-            color: color-link("CircularButton", "text", "disabled");
-            background-color: color-link("CircularButton", "background", "disabled");
-            box-shadow: 0 0 2px $outline-thickness color-link("CircularButton", "accent", "primary", 0.5);
+            color: color-link("MiniIconButton", "text", "disabled");
+            box-shadow: 0 0 0 $outline-thickness color-link("MiniIconButton", "accent", "primary", 0.5);
 
             pointer-events: none;
         }
 
         &:hover:not(.disabled) {
-            color: color-link("CircularButton", "text", "secondary");
-            background-color: color-link("CircularButton", "background", "secondary");
-            box-shadow: 0 0 2px $outline-thickness color-link("CircularButton", "accent", "secondary");
+            color: color-link("MiniIconButton", "text", "secondary");
+            box-shadow: 0 0 0 $outline-thickness color-link("MiniIconButton", "accent", "secondary");
         }
 
         &:active:not(.disabled) {
-            color: color-link("CircularButton", "text", "tertiary");
-            box-shadow: 0 0 2px $outline-thickness color-link("CircularButton", "selected", "primary");
+            color: color-link("MiniIconButton", "text", "tertiary");
+            box-shadow: 0 0 0 $outline-thickness color-link("MiniIconButton", "selected", "primary");
         }
     }
 </style>
