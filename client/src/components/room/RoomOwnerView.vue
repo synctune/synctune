@@ -1,5 +1,10 @@
 <template>
     <div id="RoomOwnerView">
+        <back-button 
+            id="RoomOwnerView__back-button" 
+            @click="onBackClick"
+        />
+
         <div id="RoomOwnerView__room-code-container">
             <div id="RoomOwnerView__room-code-title">
                 Room Code:
@@ -76,6 +81,7 @@ import ConnectedDevicesContainer from "@/components/room/owner/ConnectedDevicesC
 import MusicControlsContainer from "@/components/room/owner/MusicControlsContainer.vue";
 import UploadButton from "@/components/ui/button/UploadButton.vue";
 import SyncButton from "@/components/ui/button/SyncButton.vue";
+import BackButton from "@/components/ui/button/BackButton.vue";
 
 type Computed = {} 
     & Pick<RoomStore.MapGettersStructure,
@@ -98,6 +104,8 @@ type Computed = {}
 type Methods = {
     onAudioFileChange(e: MouseEvent): void;
     onKick(clientId: string): void;
+    onSyncClick(): void;
+    onBackClick(): void;
 };
 
 export default Vue.extend({
@@ -107,6 +115,7 @@ export default Vue.extend({
         ButtonSecondary,
         UploadButton,
         SyncButton,
+        BackButton
     },
     data() {
         return {
@@ -165,6 +174,10 @@ export default Vue.extend({
             setTimeout(() => this.tempSyncProgress = 80, 2200);
             setTimeout(() => this.tempSyncProgress = 90, 2800);
             setTimeout(() => { this.tempSyncProgress = 100; this.tempSyncing = false }, 3650);
+        },
+        onBackClick() {
+            const router = this.$router as VueRouter;
+            router.push("/").catch(err => {});
         }
     }
 });
@@ -175,6 +188,7 @@ export default Vue.extend({
     $connected-devices-min-height: 18rem;
 
     #RoomOwnerView {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -183,6 +197,12 @@ export default Vue.extend({
 
         & > :not(:last-child) {
             margin-bottom: 1.3rem;
+        }
+
+        & #RoomOwnerView__back-button {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         & .RoomOwnerView__container-title {
