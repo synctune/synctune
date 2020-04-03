@@ -125,3 +125,22 @@ export function debounce(func: Function, wait: number, immediate?: boolean) {
         if (callNow) func.apply(context, args);
     };
 }
+
+// TODO: reference https://stackoverflow.com/questions/36532307/rem-px-in-javascript
+/**
+ * Converts a rem string value to its equivalent in pixels.
+ * 
+ * @param rem The rem value string. Ex: '20rem'
+ */
+export function remToPixel(rem: string): number {
+    const rCSSRemRegex = /^(\d*?.?\d+)(rem)$/g;
+    const isRem = rCSSRemRegex.test(rem);
+
+    if (!isRem) {
+        throw `'${rem}' is not a valid rem value`;
+    }
+
+    const remVal = parseFloat(rem.slice(0, -3)); // cut off 'rem' tail and parse as a float
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return remVal * rootPx;
+}

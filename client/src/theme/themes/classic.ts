@@ -51,6 +51,13 @@ const ICON_TEXT_CLICK = "#537374";
 const DEVICE_ITEM_BG = "#F6F2FF";
 const DEVICE_ITEM_BG_ALT = "#EDE7FF";
 
+// Status indicator colors
+const STATUS_READY_COLOR = "#46D154";
+const STATUS_SYNCING_COLOR = "#8E8E9D";
+const STATUS_UPLOADING_COLOR = "#18B0F1";
+const STATUS_LOADING_COLOR = STATUS_UPLOADING_COLOR;
+const STATUS_ERROR_COLOR = "#FF1212";
+
 export default {
     name: "classic",
     theme: {
@@ -117,6 +124,13 @@ export default {
                 background: WARNING_BG,
                 text: WARNING_TEXT,
                 accent: WARNING_ACCENT
+            },
+            sync_status: {
+                ready: STATUS_READY_COLOR,
+                syncing: STATUS_SYNCING_COLOR,
+                uploading: STATUS_UPLOADING_COLOR,
+                loading: STATUS_LOADING_COLOR,
+                error: STATUS_ERROR_COLOR
             }
         },
         AudioVisualizer: {

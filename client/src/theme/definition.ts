@@ -42,6 +42,10 @@ export const schema: Schema = {
         },
         warning: {
             $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
+        },
+        // --- Sync status colors ---
+        sync_status: {
+            $mixins: ['status_modifiers']
         }
     },
     // Components
@@ -76,6 +80,12 @@ export const schema: Schema = {
         $inherits: "GLOBAL"
     },
     MusicControlsContainer: {
+        $inherits: "GLOBAL"
+    },
+    CircleLoader: {
+        $inherits: "GLOBAL"
+    },
+    UploadingLoader: {
         $inherits: "GLOBAL"
     },
     // Views
@@ -151,6 +161,28 @@ export const mixins: Mixins = {
     },
     accent_modifier: {
         accent: {
+            $type: "color",
+            $required: true
+        }
+    },
+    status_modifiers: {
+        ready: {
+            $type: "color",
+            $required: true
+        },
+        syncing: {
+            $type: "color",
+            $required: true
+        },
+        uploading: {
+            $type: "color",
+            $required: true
+        },
+        loading: {
+            $type: "color",
+            $required: true
+        },
+        error: {
             $type: "color",
             $required: true
         }

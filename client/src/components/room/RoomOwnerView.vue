@@ -105,7 +105,7 @@ export default Vue.extend({
             mockClients: [
                 { id: "ad2q23eq", nickname: "Alec", status: "ready" },
                 { id: "dadawwa78", nickname: "Jeff", status: "syncing" },
-                { id: "ddwa7da", nickname: "Anto", status: "uploading", uploadProgress: 0.25 },
+                { id: "ddwa7da", nickname: "Anto", status: "uploading", uploadProgress: 25 },
                 { id: "ddaw8vb", nickname: "Kamin", status: "loading" },
                 { id: "wdwa9f09", nickname: "Thierry Mr Long Name", status: "error" }
             ]
@@ -135,6 +135,14 @@ export default Vue.extend({
         onKick(clientId: string) {
             // TODO: implement
             console.log("Kicking client", clientId);
+
+            // TODO: remove this stuff
+            // Test code that randomly changes the status of the client whenever the kick button is clicked
+            const idx = this.mockClients.findIndex((data: any) => data.id === clientId);
+            const rand = Math.floor(Math.random() * Math.floor(5));
+            const statusMap = ['ready', 'syncing', 'uploading', 'loading', 'error'];
+            console.log(`Setting status of client '${clientId}'(${idx}) to '${statusMap[rand]}'`);
+            this.mockClients[idx].status = statusMap[rand];
         }
     }
 });

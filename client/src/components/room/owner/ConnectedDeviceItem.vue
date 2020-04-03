@@ -5,9 +5,11 @@
             (alternateColor) ? 'alternate-color' : null
         ]"
     >
-        <div class="ConnectedDeviceItem__status">
-            O
-        </div>
+        <status-indicator 
+            class="ConnectedDeviceItem__status" 
+            :sync-status="data.status"
+            :upload-progress="data.uploadProgress"
+        />
 
         <div class="ConnectedDeviceItem__nickname">
             {{ data.nickname }}
@@ -26,6 +28,7 @@ import Vue from 'vue';
 import { Client } from "./ConnectedDevicesContainer.vue";
 
 import MiniIconButton from "@/components/ui/button/MiniIconButton.vue";
+import StatusIndicator from "@/components/ui/status/StatusIndicator.vue";
 
 interface Props {
     alternateColor: boolean;
@@ -34,7 +37,8 @@ interface Props {
 
 export default Vue.extend({
     components: {
-        MiniIconButton
+        MiniIconButton,
+        StatusIndicator
     },
     props: {
         alternateColor: {
