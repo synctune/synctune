@@ -1,8 +1,7 @@
 <template>
     <div id="Room">
-        <room-not-connected-view v-if="!isConnected" />
-        <room-owner-view v-else-if="isOwner"/>
-        <room-client-view v-else />
+        <room-owner-view v-if="isOwner && isConnected"/>
+        <room-client-view v-else-if="!isOwner && isConnected" />
     </div>
 
     <!-- <div v-else id="Room">
@@ -107,10 +106,10 @@ import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import VueRouter from 'vue-router';
 import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
+import * as NotificationManager from "../../managers/NotificationManager";
 
 import RoomOwnerView from "@/components/room/RoomOwnerView.vue";
 import RoomClientView from "@/components/room/RoomClientView.vue";
-import RoomNotConnectedView from "@/components/room/RoomNotConnectedView.vue";
 
 interface Data {}
 
@@ -153,7 +152,6 @@ export default Vue.extend({
     components: {
         RoomOwnerView,
         RoomClientView,
-        RoomNotConnectedView
     },
     computed: {
         ...mapGetters({
@@ -179,10 +177,14 @@ export default Vue.extend({
         }
     },
     mounted() {
-        // TODO: actually do something here
         const { isConnected }: Computed = this;
         if (!isConnected) {
-            console.log("WARNING: Not connected to a room... you shouldn't be in here");
+            const router = this.$router as VueRouter;
+
+            // Redirect back to home page and give an error message
+            router.push("/").catch(err => {});
+            NotificationManager.showErrorNotification(this, "Error: not connected to a room");
+            return;
         } else {
             const { setupConnectionManagerListeners }: Methods = this;
             const connectionManager = this.connectionManager as ConnectionManager;
