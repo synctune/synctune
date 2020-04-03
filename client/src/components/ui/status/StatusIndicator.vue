@@ -11,7 +11,7 @@
                 :icon-size="iconSize"
                 :progress="uploadProgress"
                 :radius="sizePx / 2"
-                :stroke="4"
+                :stroke="2"
             />
         </transition>
     </div>

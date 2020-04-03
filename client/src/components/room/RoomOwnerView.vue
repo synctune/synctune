@@ -17,7 +17,14 @@
                 @change="onAudioFileChange"
             />
 
-            <div id="RoomOwnerView__sync-button">Sync Button</div>
+            <sync-button 
+                id="RoomOwnerView__sync-button"
+                size="5rem"
+                icon-size="3rem"
+                :syncing="tempSyncing"
+                :sync-progress="tempSyncProgress"
+                @click="onSyncClick"
+            />
         </div>
 
         <div id="RoomOwnerView__connected-devices-container">
@@ -68,6 +75,7 @@ import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import ConnectedDevicesContainer from "@/components/room/owner/ConnectedDevicesContainer.vue";
 import MusicControlsContainer from "@/components/room/owner/MusicControlsContainer.vue";
 import UploadButton from "@/components/ui/button/UploadButton.vue";
+import SyncButton from "@/components/ui/button/SyncButton.vue";
 
 type Computed = {} 
     & Pick<RoomStore.MapGettersStructure,
@@ -98,14 +106,17 @@ export default Vue.extend({
         MusicControlsContainer,
         ButtonSecondary,
         UploadButton,
+        SyncButton,
     },
     data() {
         return {
             // TODO: remove
+            tempSyncing: false,
+            tempSyncProgress: 0,
             mockClients: [
                 { id: "ad2q23eq", nickname: "Alec", status: "ready" },
                 { id: "dadawwa78", nickname: "Jeff", status: "syncing" },
-                { id: "ddwa7da", nickname: "Anto", status: "uploading", uploadProgress: 25 },
+                { id: "ddwa7da", nickname: "Anto", status: "uploading", uploadProgress: 50 },
                 { id: "ddaw8vb", nickname: "Kamin", status: "loading" },
                 { id: "wdwa9f09", nickname: "Thierry Mr Long Name", status: "error" }
             ]
@@ -143,6 +154,17 @@ export default Vue.extend({
             const statusMap = ['ready', 'syncing', 'uploading', 'loading', 'error'];
             console.log(`Setting status of client '${clientId}'(${idx}) to '${statusMap[rand]}'`);
             this.mockClients[idx].status = statusMap[rand];
+        },
+        onSyncClick() {
+            // TODO: remove this stuff
+            this.tempSyncProgress = 0;
+            this.tempSyncing = true;
+
+            setTimeout(() => this.tempSyncProgress = 10, 700);
+            setTimeout(() => this.tempSyncProgress = 45, 1600);
+            setTimeout(() => this.tempSyncProgress = 80, 2200);
+            setTimeout(() => this.tempSyncProgress = 90, 2800);
+            setTimeout(() => { this.tempSyncProgress = 100; this.tempSyncing = false }, 3650);
         }
     }
 });

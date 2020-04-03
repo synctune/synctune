@@ -47,7 +47,7 @@ export default Vue.extend({
     computed: {
         hasProgress() {
             const { progress }: Props = this;
-            return !!progress;
+            return progress != null;
         }
     }
 });

@@ -114,10 +114,10 @@ export default Vue.extend({
 
     @keyframes donut-spin {
         0% {
-          transform: rotate(-90deg)    
+          transform: rotate(-90deg);
         }
         100% {
-          transform: rotate(270deg)
+          transform: rotate(270deg);
         }
     }
 
