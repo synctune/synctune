@@ -14,6 +14,12 @@ export default class Emittable {
         this.listeners = {};
     }
 
+    /**
+     * Clears all event listeners for the given event name. If no event name is given
+     * then all event listeners are cleared.
+     * 
+     * @param eventName The name of the event to clear.
+     */
     clearListeners(eventName?: string) {
         // If no specific event was given, clear all event listeners
         if (!eventName) {
@@ -27,6 +33,12 @@ export default class Emittable {
         }
     }
 
+    /**
+     * Emits an event with the given arguments.
+     * 
+     * @param eventName The event name.
+     * @param args The arguments.
+     */
     protected emitEvent(eventName: string, ...args: any[]) {
         const listeners = this.listeners[eventName];
 
@@ -38,44 +50,63 @@ export default class Emittable {
         listeners.forEach(record => record.listener(...args));
     }
 
-    addEventListener(event: string, listener: Function, tag?: string) {
+    /**
+     * Adds an event listener to the given event name.
+     * 
+     * @param eventName The event name.
+     * @param listener The listener function.
+     * @param tag The tag of the listener (optional).
+     */
+    addEventListener(eventName: string, listener: Function, tag?: string) {
         const recordItem: ListenerRecord = {
             listener,
             tag
         };
 
         // No listeners on event yet, add the first one
-        if (!this.listeners[event]) {
-            this.listeners[event] = [recordItem];
+        if (!this.listeners[eventName]) {
+            this.listeners[eventName] = [recordItem];
             return;
         }
 
-        this.listeners[event].push(recordItem);
+        this.listeners[eventName].push(recordItem);
     }
 
-    removeEventListener(event: string, listener: Function) {
+    /**
+     * Removes an event listener from the given event name.
+     * 
+     * @param eventName The event name.
+     * @param listener The listener function to remove.
+     */
+    removeEventListener(eventName: string, listener: Function) {
         // No listeners on event, so do nothing
-        if (!this.listeners[event]) {
+        if (!this.listeners[eventName]) {
             return;
         }
 
         // Attempt to find listener
-        const idx = this.listeners[event].findIndex((record) => record.listener === listener);
+        const idx = this.listeners[eventName].findIndex((record) => record.listener === listener);
 
         // Listener was found, remove it
         if (idx >= 0) {
-            this.listeners[event].splice(idx, 1);
+            this.listeners[eventName].splice(idx, 1);
         }
     }
 
-    removeEventListenersByTag(event: string, tag: string) {
+    /**
+     * Removes all event listeners with the given tag from the given event name.
+     * 
+     * @param eventName The event name.
+     * @param tag The listener tag.
+     */
+    removeEventListenersByTag(eventName: string, tag: string) {
         // No listeners on event, so do nothing
-        if (!this.listeners[event]) {
+        if (!this.listeners[eventName]) {
             return;
         }
 
         // Filter out all listeners with the tag
-        const listenersFiltered = this.listeners[event].filter(record => record.tag !== tag);
-        this.listeners[event] = listenersFiltered;
+        const listenersFiltered = this.listeners[eventName].filter(record => record.tag !== tag);
+        this.listeners[eventName] = listenersFiltered;
     }
 }
