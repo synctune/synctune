@@ -1,7 +1,7 @@
 import Vue from "vue";
 import { Module, GetterTree, MutationTree, ActionTree } from "vuex";
 import { RootState } from "../../index";
-import ConnectionManager from '@/rtc/ConnectionManager';
+import ConnectionManager from '@/managers/ConnectionManager';
 import { uuid } from "uuidv4";
 
 // -------------------------

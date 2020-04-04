@@ -1,7 +1,7 @@
 import Emittable from '@/events/Emittable';
 import KEYS from "@/keys";
 import Peer from "peerjs";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import * as Timesync from "timesync";
 import { NICKNAME_STORAGE_KEY } from "../constants/generalConstants";
 

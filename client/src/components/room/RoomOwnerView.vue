@@ -76,7 +76,7 @@ import { mapState, mapGetters, mapActions } from "vuex";
 import VueRouter from 'vue-router';
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
+import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
 
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import ConnectedDevicesContainer from "@/components/room/owner/ConnectedDevicesContainer.vue";

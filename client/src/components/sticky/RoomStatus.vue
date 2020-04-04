@@ -35,7 +35,7 @@ import { mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import VueRouter, { Route } from 'vue-router';
-import ConnectionManager, { AudioFileMetadata } from "../../rtc/ConnectionManager";
+import ConnectionManager, { AudioFileMetadata } from "../../managers/ConnectionManager";
 
 import Container from "@/components/ui/Container.vue";
 import IconClickable from "@/components/ui/icons/IconClickable.vue";

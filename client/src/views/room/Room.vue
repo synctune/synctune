@@ -105,7 +105,7 @@ import { mapState, mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import VueRouter from 'vue-router';
-import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
+import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
 import * as NotificationManager from "../../managers/NotificationManager";
 
 import RoomOwnerView from "@/components/room/RoomOwnerView.vue";

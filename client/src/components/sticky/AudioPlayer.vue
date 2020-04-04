@@ -9,7 +9,7 @@ import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import CancellationToken from "../../utilities/CancellationToken";
 import HighResolutionTimeout from '../../utilities/HighResolutionTimeout';
-import ConnectionManager from '../../rtc/ConnectionManager';
+import ConnectionManager from '../../managers/ConnectionManager';
 
 interface CachedPlaySignal {
     startLocation: number;

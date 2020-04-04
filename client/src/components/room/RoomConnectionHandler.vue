@@ -22,7 +22,7 @@ import Vue from 'vue';
 import { mapGetters, mapActions } from "vuex";
 import { Getters, Actions, MapGettersStructure, MapActionsStructure } from "../../store/modules/room";
 import VueRouter, { Route } from 'vue-router';
-import ConnectionManager, { RoomData } from '../../rtc/ConnectionManager';
+import ConnectionManager, { RoomData } from '../../managers/ConnectionManager';
 import * as NotificationManager from "../../managers/NotificationManager";
 
 import CircleSpinner from "@/components/ui/spinners/CircleSpinner.vue";
