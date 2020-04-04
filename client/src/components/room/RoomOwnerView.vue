@@ -57,11 +57,13 @@
                 id="RoomOwnerView__music-controls"
                 :can-play="true"
                 :is-playing="false"
+                :track-title="null"
             />
         </div>
 
         <button-secondary 
             id="RoomOwnerView__leave-room"
+            @click="onLeaveRoom"
         >
             Leave Room
         </button-secondary>
@@ -105,6 +107,7 @@ type Methods = {
     onAudioFileChange(e: MouseEvent): void;
     onKick(clientId: string): void;
     onSyncClick(): void;
+    onLeaveRoom(): void;
     onBackClick(): void;
 };
 
@@ -178,6 +181,9 @@ export default Vue.extend({
         onBackClick() {
             const router = this.$router as VueRouter;
             router.push("/").catch(err => {});
+        },
+        onLeaveRoom() {
+            // TODO: implement
         }
     }
 });
@@ -186,6 +192,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
     $max-container-width: 45rem;
     $connected-devices-min-height: 18rem;
+    $vertical-margins: 1rem;
 
     #RoomOwnerView {
         position: relative;
@@ -195,6 +202,8 @@ export default Vue.extend({
 
         height: 100%;
 
+        padding: $vertical-margins;
+
         & > :not(:last-child) {
             margin-bottom: 1.3rem;
         }
@@ -203,6 +212,8 @@ export default Vue.extend({
             position: absolute;
             top: 0;
             left: 0;
+
+            margin-top: $vertical-margins;
         }
 
         & .RoomOwnerView__container-title {
@@ -286,7 +297,7 @@ export default Vue.extend({
         }
 
         & #RoomOwnerView__leave-room {
-            margin-bottom: 1rem;
+            
         }
     }
 </style>

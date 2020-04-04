@@ -58,6 +58,9 @@ const STATUS_UPLOADING_COLOR = "#18B0F1";
 const STATUS_LOADING_COLOR = STATUS_UPLOADING_COLOR;
 const STATUS_ERROR_COLOR = "#FF1212";
 
+const AUDIO_VISUALIZER_GRADIENT_START = PURPLE_3;
+const AUDIO_VISUALIZER_GRADIENT_END = BLUE_1;
+
 export default {
     name: "classic",
     theme: {
@@ -133,10 +136,14 @@ export default {
                 error: STATUS_ERROR_COLOR
             }
         },
-        AudioVisualizer: {
+        AudioVisualizerCircle: {
             gradient: {
-                start: PURPLE_3,
-                end: BLUE_1
+                start: AUDIO_VISUALIZER_GRADIENT_START,
+                end: AUDIO_VISUALIZER_GRADIENT_END
+            },
+            gradient_disabled: {
+                start: Color(AUDIO_VISUALIZER_GRADIENT_START,).lighten(0.2).round().toString(),
+                end: Color(AUDIO_VISUALIZER_GRADIENT_END).lighten(0.2).round().toString()
             }
         },
         ButtonSecondary: {
@@ -177,6 +184,6 @@ export default {
                 primary: DEVICE_ITEM_BG,
                 secondary: DEVICE_ITEM_BG_ALT
             }
-        }
+        },
     }
 }

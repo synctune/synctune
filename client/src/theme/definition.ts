@@ -48,59 +48,51 @@ export const schema: Schema = {
             $mixins: ['status_modifiers']
         }
     },
-    // Components
-    AudioVisualizer: {
-        $inherits: "GLOBAL"
-    },
-    Container: {
-        $inherits: "GLOBAL"
-    },
-    ButtonPrimary: {
-        $inherits: "GLOBAL"
-    },
-    ButtonSecondary: {
-        $inherits: "GLOBAL"
-    },
-    RoomConnectionForm: {
-        $inherits: "GLOBAL"
-    },
-    RoomConnectionHandler: {
-        $inherits: "GLOBAL"
-    },
-    CircularButton: {
-        $inherits: "GLOBAL"
-    },
-    CircularIconButton: {
-        $inherits: "GLOBAL"
-    },
-    ConnectedDevicesContainer: {
-        $inherits: "GLOBAL"
-    },
-    ConnectedDeviceItem: {
-        $inherits: "GLOBAL"
-    },
-    MusicControlsContainer: {
-        $inherits: "GLOBAL"
-    },
-    CircleLoader: {
-        $inherits: "GLOBAL"
-    },
-    UploadingLoader: {
-        $inherits: "GLOBAL"
-    },
+    // --- Component Scope Declarations ---
+    // Misc components
+    AudioVisualizerCircle: { $inherits: "GLOBAL" },
+    Container: { $inherits: "GLOBAL" },
+    ArtworkThumbnail: { $inherits: "GLOBAL"},
+    // Room Components
+    RoomConnectionForm: { $inherits: "GLOBAL" },
+    RoomConnectionHandler: { $inherits: "GLOBAL" },
+    ConnectedDevicesContainer: { $inherits: "GLOBAL" },
+    ConnectedDeviceItem: { $inherits: "GLOBAL" },
+    MusicControlsContainer: { $inherits: "GLOBAL" },
+    CurrentSongContainer: { $inherits: "GLOBAL" },
+    // Buttons
+    ButtonPrimary: { $inherits: "GLOBAL" },
+    ButtonSecondary: { $inherits: "GLOBAL" },
+    CircularButton: { $inherits: "GLOBAL" },
+    CircularIconButton: { $inherits: "GLOBAL" },
+    BackButton: { $inherits: "GLOBAL" },
+    ButtonInputHybrid: { $inherits: "GLOBAL" },
+    MiniIconButton: { $inherits: "GLOBAL" },
+    SyncButton: { $inherits: "GLOBAL" },
+    UploadButton: { $inherits: "GLOBAL" },
+    // Loaders/spinners/rings
+    CircleLoader: { $inherits: "GLOBAL" },
+    UploadingLoader: { $inherits: "GLOBAL" },
+    CircleSpinner: { $inherits: "GLOBAL" },
+    SvgRing: { $inherits: "GLOBAL" },
+    // Forms
+    InputField: { $inherits: "GLOBAL" },
+    // Icons
+    IconBase: { $inherits: "GLOBAL" },
+    IconClickable: { $inherits: "GLOBAL" },
+    // Status stuff
+    StatusIndicator: { $inherits: "GLOBAL" },
+    BaseMode: { $inherits: "GLOBAL" },
+    ErrorMode: { $inherits: "GLOBAL" },
+    LoadingMode: { $inherits: "GLOBAL" },
+    ReadyMode: { $inherits: "GLOBAL" },
+    SyncingMode: { $inherits: "GLOBAL" },
+    UploadingMode: { $inherits: "GLOBAL" },
     // Views
-    Home: {
-        $inherits: "GLOBAL"
-    },
-    Room: {
-        $inherits: "GLOBAL"
-    },
-    RoomCreate: {
-        $inherits: "GLOBAL"
-    },
-    RoomJoin: {
-        $inherits: "GLOBAL"
-    },
+    Home: { $inherits: "GLOBAL" },
+    Room: { $inherits: "GLOBAL" },
+    RoomCreate: { $inherits: "GLOBAL" },
+    RoomJoin: { $inherits: "GLOBAL" },
 };
 
 export const mixins: Mixins = {

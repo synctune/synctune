@@ -90,7 +90,7 @@ export default Vue.extend({
         },
         trackIsLoaded() {
             const { trackTitle }: Props = this;
-            return !!trackTitle;
+            return trackTitle != null;
         }
     }
 });
