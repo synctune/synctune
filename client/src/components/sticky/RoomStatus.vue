@@ -87,7 +87,7 @@ export default Vue.extend({
         },
         onDisplayableRoute() {
             const route = this.$route as Route;
-            return DISPLAYABLE_ROUTE_NAMES.includes(route.name);
+            return (route.name) ? DISPLAYABLE_ROUTE_NAMES.includes(route.name) : false;
         }
     },
     mounted() {
