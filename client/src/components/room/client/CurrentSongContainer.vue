@@ -15,6 +15,29 @@
             {{ trackTitleDisplay }}
         </div>
 
+        <div class="CurrentSongContainer__compensation-controls">
+            <compensate-backwards-button 
+                class="CurrentSongContainer__compensation-backwards-button"
+                size="4rem"
+                primary-icon-size="2rem"
+                secondary-icon-size="0.7rem"
+                :disabled="!isPlaying"
+                @click="$emit('compensate-backwards', $event)"
+            />
+
+            <compensate-forwards-button 
+                class="CurrentSongContainer__compensation-forwards-button"
+                size="4rem"
+                primary-icon-size="2rem"
+                secondary-icon-size="0.7rem"
+                :disabled="!isPlaying"
+                @click="$emit('compensate-forwards', $event)"
+            />
+        </div>
+
+        <div class="CurrentSongContainer__compensate-info-blurb">
+            Compensate audio playback
+        </div>
     </container>
 </template>
 
@@ -22,6 +45,8 @@
 import Vue from 'vue';
 import Container from "@/components/ui/Container.vue";
 import ArtworkThumbnail from "@/components/ui/ArtworkThumbnail.vue";
+import CompensateBackwardsButton from "@/components/ui/button/CompensateBackwardsButton.vue";
+import CompensateForwardsButton from "@/components/ui/button/CompensateForwardsButton.vue";
 
 interface Props {
     isPlaying: boolean;
@@ -35,7 +60,9 @@ interface Computed {
 export default Vue.extend({
     components: {
         Container,
-        ArtworkThumbnail
+        ArtworkThumbnail,
+        CompensateBackwardsButton,
+        CompensateForwardsButton
     },
     props: {
         isPlaying: {
@@ -80,7 +107,7 @@ export default Vue.extend({
                 color: color-link("CurrentSongContainer", "text", "primary");
             }
 
-            & /deep/ .CurrentSongContainer__controls {
+            & /deep/ .CurrentSongContainer__compensation-controls {
                 display: flex;
                 flex-direction: row;
                 justify-content: center;
@@ -88,8 +115,15 @@ export default Vue.extend({
                 flex-wrap: wrap;
 
                 & > *:not(:last-child) {
-                    margin-right: 1rem;
+                    margin-right: 2rem;
                 }
+            }
+
+            & /deep/ .CurrentSongContainer__compensate-info-blurb {
+                font-size: 1.2rem;
+                text-align: center;
+
+                color: color-link("CurrentSongContainer", "text", "disabled");
             }
         }
 

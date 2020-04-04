@@ -32,6 +32,8 @@
                 id="RoomClientView__current-song"
                 :is-playing="false"
                 :track-title="null"
+                @compensate-forwards="onCompensateForwards"
+                @compensate-backwards="onCompensateBackwards"
             />
         </div>
 
@@ -73,6 +75,8 @@ type Computed = {}
 type Methods = {
     onLeaveRoom(): void;
     onBackClick(): void;
+    onCompensateForwards(): void;
+    onCompensateBackwards(): void;
 } 
 
 export default Vue.extend({
@@ -100,6 +104,12 @@ export default Vue.extend({
             router.push("/").catch(err => {});
         },
         onLeaveRoom() {
+            // TODO: implement
+        },
+        onCompensateForwards() {
+            // TODO: implement
+        },
+        onCompensateBackwards() {
             // TODO: implement
         }
     }
