@@ -1,9 +1,9 @@
 <template>
     <icon-clickable 
-        class="BackButton"
+        class="NextButton"
         :size="size"
         v-bind="$attrs"
-        icon-name="back-icon"
+        icon-name="next-icon"
         @click="$emit('click', $event)"
     />
 </template>
@@ -23,7 +23,7 @@ export default Vue.extend({
             type: String,
             validator: Utilities.isCSSLength,
             default: "4rem"
-        }
+        },
     }
 });
 </script>

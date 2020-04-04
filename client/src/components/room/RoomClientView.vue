@@ -31,6 +31,7 @@
             <current-song-container 
                 id="RoomClientView__current-song"
                 :is-playing="false"
+                :audio-loaded="false"
                 :track-title="null"
                 @compensate-forwards="onCompensateForwards"
                 @compensate-backwards="onCompensateBackwards"

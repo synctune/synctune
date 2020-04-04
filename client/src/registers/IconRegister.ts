@@ -14,6 +14,7 @@ import MinusIcon from "vue-material-design-icons/WindowMinimize.vue";
 import UndoIcon from "vue-material-design-icons/Undo.vue";
 import RedoIcon from "vue-material-design-icons/Redo.vue";
 import BackIcon from "vue-material-design-icons/ChevronLeft.vue";
+import NextIcon from "vue-material-design-icons/ChevronRight.vue";
 
 const ICONS_MAP = {
     CloseIcon,
@@ -28,7 +29,8 @@ const ICONS_MAP = {
     MinusIcon,
     UndoIcon,
     RedoIcon,
-    BackIcon
+    BackIcon,
+    NextIcon
 };
 
 export function register() {

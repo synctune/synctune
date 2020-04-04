@@ -57,6 +57,7 @@ export const schema: Schema = {
     AudioVisualizerCircle: { $inherits: "GLOBAL" },
     Container: { $inherits: "GLOBAL" },
     ArtworkThumbnail: { $inherits: "GLOBAL"},
+    RoomStatus: { $inherits: "GLOBAL" },
     // Room Components
     RoomConnectionForm: { $inherits: "GLOBAL" },
     RoomConnectionHandler: { $inherits: "GLOBAL" },

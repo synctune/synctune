@@ -2,7 +2,8 @@
     <container
         :class="[
             'CurrentSongContainer',
-            (isPlaying) ? 'is-playing' : null
+            (isPlaying) ? 'is-playing' : null,
+            (audioLoaded) ? 'audio-loaded' : null
         ]"
         base-class="CurrentSongContainer__container"
         :vertical-accents="false"
@@ -69,6 +70,10 @@ export default Vue.extend({
             type: Boolean,
             default: false
         },
+        audioLoaded: {
+            type: Boolean,
+            default: false
+        },
         trackTitle: {
             type: String,
             default: null
@@ -127,7 +132,7 @@ export default Vue.extend({
             }
         }
 
-        &:not(.is-playing) {
+        &:not(.audio-loaded) {
             & /deep/ .CurrentSongContainer__song-title {
                 color: color-link("CurrentSongContainer", "text", "disabled");
             }
