@@ -14,6 +14,10 @@
 <script lang="ts">
 import Vue from 'vue';
 
+interface Data {
+    analyzerNode: AnalyserNode | null;
+}
+
 interface Props {
     disabled: boolean;
     audioContext: AudioContext;
@@ -40,14 +44,17 @@ export default Vue.extend({
             // so this "analyzer node" stuff might be coming right out of my...
             // TODO: put analyzer node from the web audio api that is currently
             // being used to display the audio of
+            analyzerNode: null
         }
     },
     methods: {
         setupAudioContextListener(audioContext: AudioContext) {
-            // TODO: implement
-
+            let { analyzerNode }: Data = this as any;
             // Disconnect the analyzer node from a previous context (if it exists)
+            if (analyzerNode !== null) analyzerNode.disconnect();
             // Make a new analyzer node to listen to the current audio context
+            analyzerNode = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource();
             // Update the data state with the new node
         },
     },
