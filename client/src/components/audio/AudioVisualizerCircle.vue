@@ -89,6 +89,8 @@ export default Vue.extend({
 
             z-index: 0;
 
+            // For the disabled gradient because gradients do not work with 
+            // the transition css property
             &::before {
                 content: '';
                 border-radius: inherit;
@@ -114,6 +116,7 @@ export default Vue.extend({
 
         &.disabled {
             & .AudioVisualizerCircle__container {
+                // Show the gradient overlay
                 &::before {
                     opacity: 1;
                 }
