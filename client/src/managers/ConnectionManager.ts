@@ -3,7 +3,11 @@ import KEYS from "@/keys";
 import Peer from "peerjs";
 import axios, { AxiosResponse } from "axios";
 import * as Timesync from "timesync";
-import { NICKNAME_STORAGE_KEY } from "../constants/generalConstants";
+import { 
+    NICKNAME_STORAGE_KEY, 
+    TIMESYNC_DELAY, 
+    TIMESYNC_REPEAT, 
+    TIMESYNC_TIMEOUT } from "../constants/generalConstants";
 
 axios.defaults.withCredentials = true;
 
@@ -182,9 +186,9 @@ export default class ConnectionManager extends Emittable {
         const timesync = Timesync.create({
             peers: [...peers],
             interval: null, // Disable automatic synchronization
-            delay: 1000,
-            repeat: 5,
-            timeout: 10000
+            delay: TIMESYNC_DELAY,
+            repeat: TIMESYNC_REPEAT,
+            timeout: TIMESYNC_TIMEOUT
         });
 
         this.setupTimesync(timesync);
