@@ -18,8 +18,6 @@ interface CachedPlaySignal {
 }
 
 type Data = {
-    // audioContext: AudioContext;
-    // audioSource: AudioBufferSourceNode | null;
     audioBuffer: AudioBuffer | null;
     audioLoadCancellationToken: CancellationToken | null;
     cachedPlaySignal: CachedPlaySignal | null;
@@ -64,8 +62,6 @@ type Methods = {
 export default Vue.extend({
     data() {
         return {
-            // audioContext: new AudioContext(),
-            // audioSource: null,
             audioBuffer: null,
             audioLoadCancellationToken: null,
             cachedPlaySignal: null
