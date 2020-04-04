@@ -250,7 +250,11 @@ export default Vue.extend({
             }
 
             & #RoomOwnerView__sync-button {
-                margin-left: 1.5rem;
+                margin-left: 2.5rem;
+
+                @include respond(phone) {
+                    margin-left: 1.5rem;
+                }
 
                 grid-area: right-side;
                 align-self: center;
