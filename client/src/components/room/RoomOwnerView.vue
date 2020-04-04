@@ -76,7 +76,7 @@ import { mapState, mapGetters, mapActions } from "vuex";
 import VueRouter from 'vue-router';
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import ConnectionManager, { AudioFileMetadata } from '../../rtc/ConnectionManager';
+import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
 
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import ConnectedDevicesContainer from "@/components/room/owner/ConnectedDevicesContainer.vue";
@@ -99,7 +99,6 @@ type Computed = {}
         AudioStore.Getters.isPlaying
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
-        | AudioStore.Getters.syncedClients
         | AudioStore.Getters.pausedAt
     >;
 
@@ -146,7 +145,6 @@ export default Vue.extend({
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
-            syncedClients: AudioStore.Getters.syncedClients,
             pausedAt: AudioStore.Getters.pausedAt,
         })
     },

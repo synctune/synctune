@@ -9,7 +9,7 @@ import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import CancellationToken from "../../utilities/CancellationToken";
 import HighResolutionTimeout from '../../utilities/HighResolutionTimeout';
-import ConnectionManager from '../../rtc/ConnectionManager';
+import ConnectionManager from '../../managers/ConnectionManager';
 
 interface CachedPlaySignal {
     startLocation: number;
@@ -18,8 +18,6 @@ interface CachedPlaySignal {
 }
 
 type Data = {
-    audioContext: AudioContext;
-    audioSource: AudioBufferSourceNode | null;
     audioBuffer: AudioBuffer | null;
     audioLoadCancellationToken: CancellationToken | null;
     cachedPlaySignal: CachedPlaySignal | null;
@@ -32,9 +30,10 @@ type Computed = {}
     > 
     & Pick<AudioStore.MapGettersStructure,
         AudioStore.Getters.isPlaying 
+        | AudioStore.Getters.audioContext
+        | AudioStore.Getters.audioSource
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
-        | AudioStore.Getters.syncedClients
         | AudioStore.Getters.startedAt
         | AudioStore.Getters.pausedAt
     >;
@@ -46,18 +45,15 @@ type Methods = {
     playAudio(startLocation: number, startTime: number): void;
     pauseAudio(): void;
     stopAudio(): void;
-    clientSynced(clientId: string): void;
-    clientLeft(clientId: string): void;
-    removeClientsFromSyncList(clients?: string[]): void;
     onCanPlayThrough(): void;
     doPreloadFakeout(): void;
     runCachedPlaySignal(): void;
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
+    | AudioStore.Actions.setAudioSource
     | AudioStore.Actions.setAudioFile
     | AudioStore.Actions.setAudioFileMetadata
     | AudioStore.Actions.setAudioLoaded
-    | AudioStore.Actions.setSyncedClients
     | AudioStore.Actions.setStartedAt
     | AudioStore.Actions.setPausedAt
 >;
@@ -66,8 +62,6 @@ type Methods = {
 export default Vue.extend({
     data() {
         return {
-            audioContext: new AudioContext(),
-            audioSource: null,
             audioBuffer: null,
             audioLoadCancellationToken: null,
             cachedPlaySignal: null
@@ -78,9 +72,10 @@ export default Vue.extend({
             connectionManager: RoomStore.Getters.connectionManager,
             isConnected: RoomStore.Getters.isConnected,
             isPlaying: AudioStore.Getters.isPlaying,
+            audioContext: AudioStore.Getters.audioContext,
+            audioSource: AudioStore.Getters.audioSource,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
-            syncedClients: AudioStore.Getters.syncedClients,
             startedAt: AudioStore.Getters.startedAt,
             pausedAt: AudioStore.Getters.pausedAt,
         })
@@ -94,10 +89,10 @@ export default Vue.extend({
     methods: {
         ...mapActions({
             setIsPlaying: AudioStore.Actions.setIsPlaying,
+            setAudioSource: AudioStore.Actions.setAudioSource,
             setAudioFile: AudioStore.Actions.setAudioFile,
             setAudioFileMetadata: AudioStore.Actions.setAudioFileMetadata,
             setAudioLoaded: AudioStore.Actions.setAudioLoaded,
-            setSyncedClients: AudioStore.Actions.setSyncedClients,
             setStartedAt: AudioStore.Actions.setStartedAt,
             setPausedAt: AudioStore.Actions.setPausedAt,
         }),
@@ -108,10 +103,7 @@ export default Vue.extend({
                 unloadAudioFile, 
                 playAudio, 
                 pauseAudio, 
-                stopAudio,
-                clientSynced, 
-                removeClientsFromSyncList, 
-                clientLeft }: Methods = this;
+                stopAudio }: Methods = this;
 
             connectionManager.addEventListener("audiometadatasent", (metadata) => {
                 setAudioFileMetadata({ audioFileMetadata: metadata });
@@ -125,7 +117,6 @@ export default Vue.extend({
                 // Unload existing audiofile, if one is loaded
                 unloadAudioFile();
 
-                removeClientsFromSyncList(clients);
                 loadAudioFile(audioFile);
             });
 
@@ -145,24 +136,13 @@ export default Vue.extend({
                 stopAudio();
             });
 
-            connectionManager.addEventListener("clientreadytoplay", clientId => {
-                if (connectionManager.isOwner) {
-                    clientSynced(clientId);
-                }
-            });
-
             connectionManager.addEventListener("room-left", () => {
                 stopAudio();
-                removeClientsFromSyncList();
                 unloadAudioFile();
             });
 
-            connectionManager.addEventListener("client-left", ({ clientId }) => {
-                clientLeft(clientId);
-            });
-
             connectionManager.addEventListener("timesyncchanged", (timesynced) => {
-                if (timesynced) {
+                if (timesynced == true) {
                     // Run the cached play signal, if it exists
                     const { runCachedPlaySignal }: Methods = this;
                     runCachedPlaySignal();
@@ -170,7 +150,8 @@ export default Vue.extend({
             });
         },
         loadAudioFile(audioFile: Blob) {
-            const { audioContext, audioLoadCancellationToken }: Data = this;
+            const { audioLoadCancellationToken }: Data = this;
+            const { audioContext }: Computed = this;
             const { 
                 setAudioFile, 
                 setAudioLoaded, 
@@ -231,8 +212,9 @@ export default Vue.extend({
             });
         },
         unloadAudioFile() {
-            const { audioContext, audioSource }: Data = this;
+            const { audioSource }: Computed = this;
             const { 
+                setAudioSource,
                 setAudioFile, 
                 setAudioFileMetadata, 
                 setAudioLoaded, 
@@ -243,7 +225,7 @@ export default Vue.extend({
 
             if (audioSource) {
                 audioSource.disconnect();
-                this.audioSource = null;
+                setAudioSource({ audioSource: null });
             }
 
             setAudioFile({ audioFile: null });
@@ -268,10 +250,10 @@ export default Vue.extend({
 
             console.log("Received play signal", startLocation); // TODO: remove
 
-            const { audioContext, audioBuffer, cachedPlaySignal }: Data = this;
-            const { audioLoaded, pausedAt }: Computed = this;
+            const { audioBuffer, cachedPlaySignal }: Data = this;
+            const { audioContext, audioLoaded, pausedAt }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
-            const { setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
+            const { setAudioSource, setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
 
             if (!audioLoaded || !connectionManager.timesynced) {
                 console.warn("Unable to play, audio file not loaded / time not synced... caching"); // TODO: remove
@@ -297,7 +279,7 @@ export default Vue.extend({
             audioSource.buffer = audioBuffer;
             audioSource.connect(audioContext.destination);
 
-            this.audioSource = audioSource;
+            setAudioSource({ audioSource });
             let offset = pausedAt;
 
             // Ignore locally saved pause location if not the room owner
@@ -336,7 +318,7 @@ export default Vue.extend({
             }
         },
         async pauseAudio() {
-            const { audioSource, audioContext }: Data = this;
+            const { audioContext }: Computed = this;
             const { startedAt }: Computed = this;
             const { setIsPlaying, stopAudio, setPausedAt }: Methods = this;
 
@@ -345,8 +327,8 @@ export default Vue.extend({
             setPausedAt({ pausedAt: elapsedTime });
         },
         stopAudio() {
-            const { audioSource }: Data = this;
-            const { setIsPlaying, setStartedAt, setPausedAt }: Methods = this;
+            const { audioSource }: Computed = this;
+            const { setAudioSource, setIsPlaying, setStartedAt, setPausedAt }: Methods = this;
 
             if (audioSource) {
                 audioSource.disconnect();
@@ -355,35 +337,11 @@ export default Vue.extend({
                 try {
                     audioSource.stop(0);
                 } catch(err){}
-                this.audioSource = null;
+
+                setAudioSource({ audioSource: null });
             }
 
             setIsPlaying({ playing: false });
-        },
-        clientSynced(clientId: string) {
-            const { syncedClients }: Computed = this;
-            const { setSyncedClients }: Methods = this;
-            setSyncedClients({ syncedClients: [...syncedClients, clientId] });
-        },
-        clientLeft(clientId: string) {
-            const { syncedClients }: Computed = this;
-            const { setSyncedClients }: Methods = this;
-
-            const idx = syncedClients.indexOf(clientId);
-            if (idx >= 0) {
-                const newSyncList = [...syncedClients];
-                newSyncList.splice(idx, 1);
-                setSyncedClients({ syncedClients: newSyncList });
-            }
-        },
-        removeClientsFromSyncList(clients?: string[]) {
-            const { syncedClients }: Computed = this;
-            const { setSyncedClients }: Methods = this;
-
-            // Remove all clients, if none are specified
-            const newSyncedClients = (clients) ? syncedClients.filter((clientID) => !clients.includes(clientID)) : [];
-        
-            setSyncedClients({ syncedClients: newSyncedClients });
         },
         onCanPlayThrough() { // TODO: remove
             const { setAudioLoaded }: Methods = this;
@@ -391,7 +349,8 @@ export default Vue.extend({
             setAudioLoaded({ loaded: true });
         },
         doPreloadFakeout() {
-            const { audioBuffer, audioContext }: Data = this;
+            const { audioBuffer }: Data = this;
+            const { audioContext }: Computed = this;
 
             const audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;

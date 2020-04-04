@@ -1,9 +1,14 @@
 import Emittable from '@/events/Emittable';
 import KEYS from "@/keys";
 import Peer from "peerjs";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import * as Timesync from "timesync";
-import { NICKNAME_STORAGE_KEY } from "../constants/generalConstants";
+import { 
+    NICKNAME_STORAGE_KEY, 
+    TIMESYNC_DELAY, 
+    TIMESYNC_REPEAT, 
+    TIMESYNC_TIMEOUT,
+    AUDIO_CHUNK_SIZE } from "../constants/generalConstants";
 
 axios.defaults.withCredentials = true;
 
@@ -27,6 +32,8 @@ interface SyncingData {
 
 export interface MessageData {
     type: "timesync" 
+        | "audiometadatareceived"
+        | "audiochunkreceived"
         | "audiofilereceived" 
         | "readytoplay" 
         | "play" 
@@ -96,7 +103,6 @@ interface ConnectionManagerEventMap {
 
     "error": any;
 
-    // TODO: implement these
     "audiometadatasent": AudioFileMetadata;
     "audiochunksent": ArrayBuffer;
     "audiofilesent": Blob;
@@ -110,12 +116,12 @@ interface ConnectionManagerEventMap {
     "pausesignalreceived": number;
     "stopsignalreceived": number;
 
+    "clientreceivedaudiometadata": string;
     "clientreceivedaudiofile": string;
+    "clientreceivedaudiochunk": string;
     "clientreadytoplay": string;
     "clienttimesyncchanged": Omit<ClientData, "connection">;
 }
-
-const CHUNK_SIZE = 16384;
 
 // The client on the other end starts syncing clocks first
 const INITIATOR_TIMESYNC_DELAY = 1000;
@@ -182,9 +188,9 @@ export default class ConnectionManager extends Emittable {
         const timesync = Timesync.create({
             peers: [...peers],
             interval: null, // Disable automatic synchronization
-            delay: 1000,
-            repeat: 5,
-            timeout: 10000
+            delay: TIMESYNC_DELAY,
+            repeat: TIMESYNC_REPEAT,
+            timeout: TIMESYNC_TIMEOUT
         });
 
         this.setupTimesync(timesync);
@@ -314,6 +320,7 @@ export default class ConnectionManager extends Emittable {
         conn.on("data", (rawData) => {
             const messageData = rawData as MessageData;
 
+            // TODO: remove
             if (messageData.type !== "audiochunk") console.log("Received message from", clientId, messageData);
 
             switch(messageData.type) {
@@ -329,6 +336,8 @@ export default class ConnectionManager extends Emittable {
                         console.log("ConnectionManager: sending audiometadatareceived"); // TODO: remove
 
                         this.emitEvent("audiometadatareceived", metadata);
+
+                        this.sendAudioMetadataReceivedSignal(this.id!, clientId);
                     } catch(err) {
                         this.emitEvent("error", "Malformed audio metadata object");
                     }
@@ -342,6 +351,8 @@ export default class ConnectionManager extends Emittable {
                     this._receivedSize += arrBuff.byteLength;
 
                     this.emitEvent("audiochunkreceived", arrBuff);
+
+                    this.sendAudioChunkReceivedSignal(this.id!, clientId);
 
                     if (!this._expectedAudioFileSize) return;
 
@@ -357,7 +368,7 @@ export default class ConnectionManager extends Emittable {
 
                         this.emitEvent("audiofilereceived", dataBlob);
 
-                        this.sendAudioFileReceivedSignal(this.id!);
+                        this.sendAudioFileReceivedSignal(this.id!, clientId);
                     }
 
                     break;
@@ -377,6 +388,13 @@ export default class ConnectionManager extends Emittable {
                     const afrReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreceivedaudiofile", afrReceivedClientId);
                     break;
+                case "audiochunkreceived":
+                    const acrReceivedClientId = messageData.data as string;
+                    this.emitEvent("clientreceivedaudiochunk", acrReceivedClientId);
+                    break;
+                case "audiometadatareceived":
+                    const amdrReceivedClientId = messageData.data as string;
+                    this.emitEvent("clientreceivedaudiometadata", amdrReceivedClientId);
                 case "readytoplay":
                     const rtpReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreadytoplay", rtpReceivedClientId);
@@ -413,10 +431,7 @@ export default class ConnectionManager extends Emittable {
                         const clientId = conn.peer;
         
                         const clientData: ClientData = {
-                            clientId,
-                            nickname: this._peerConnections[clientId].nickname,
-                            connection: conn,
-                            timesynced: this._peerConnections[clientId].timesynced
+                            ...this._peerConnections[clientId]
                         };
         
                         // Remove the peer from the peer connections map
@@ -438,15 +453,12 @@ export default class ConnectionManager extends Emittable {
                     const syncedClientId = messageData.data as string;
 
                     // Update the client state
-                    this._peerConnections[clientId].timesynced = true;
+                    this._peerConnections[syncedClientId].timesynced = true;
 
-                    this.emitEvent("clienttimesyncchanged", this._peerConnections[clientId]);
+                    this.emitEvent("clienttimesyncchanged", this._peerConnections[syncedClientId]);
                     break;
                 case "runtimesync": 
-                    
                     this._timesync.sync();
-
-
                     break;
                 case "timesync":
                     console.log(`Timesync: Received timesync message from '${clientId}'`, messageData.data); // TODO: remove
@@ -741,7 +753,7 @@ export default class ConnectionManager extends Emittable {
         let currOffset = 0;
 
         function readSlice(offset: number) {
-            const slice = audioFile.slice(currOffset, offset + CHUNK_SIZE);
+            const slice = audioFile.slice(currOffset, offset + AUDIO_CHUNK_SIZE);
             fileReader.readAsArrayBuffer(slice);
         }
 
@@ -899,39 +911,108 @@ export default class ConnectionManager extends Emittable {
     }
 
     /**
-     * Sends the audiofilereceived signal to all RTC connections
+     * Sends the audiometadatareceived signal to the given client id
      * 
      * @param selfId The id of self
+     * @param toId The id of the client to send the signal to
      */
-    sendAudioFileReceivedSignal(selfId: string) {
+    protected sendAudioMetadataReceivedSignal(selfId: string, toId: string) {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return;
         }
 
         if (this.isOwner) {
-            this.emitEvent("error", "Unable to send file received signal: not a client");
+            this.emitEvent("error", "Unable to send audio metadata received signal: not a client");
             return;
         }
 
-        this.clientIds.forEach(otherId => {
-            const syncSendChannel = this._peerConnections[otherId].connection;
+        const sendChannel = this._peerConnections[toId].connection;
 
-            if (!syncSendChannel) {
-                console.log("Unable to send audio receive signal to", otherId); // TODO: remove
-                this.emitEvent("error", `Unable to send audio receive signal to ${otherId}`);
-                return;
-            }
+        if (!sendChannel) {
+            console.log("Unable to send audio metadata receive signal to", toId); // TODO: remove
+            this.emitEvent("error", `Unable to send audio metadata received signal to ${toId}`);
+            return;
+        }
 
-            console.log("Sending audiofilereceived to", otherId); // TODO: remove
+        console.log("Sending audiometadatareceived to", toId); // TODO: remove
 
-            const messageData: MessageData = {
-                type: "audiofilereceived",
-                data: selfId
-            }
+        const messageData: MessageData = {
+            type: "audiometadatareceived",
+            data: selfId
+        }
 
-            syncSendChannel.send(messageData);
-        });
+        sendChannel.send(messageData);
+    }
+
+    /**
+     * Sends the audiochunkreceived signal to the given client id
+     * 
+     * @param selfId The id of self
+     * @param toId The id of the client to send the signal to
+     */
+    protected sendAudioChunkReceivedSignal(selfId: string, toId: string) {
+        if (!this.isConnected) {
+            this.emitEvent("error", "Not connected to a room");
+            return;
+        }
+
+        if (this.isOwner) {
+            this.emitEvent("error", "Unable to send audio chunk received signal: not a client");
+            return;
+        }
+
+        const sendChannel = this._peerConnections[toId].connection;
+
+        if (!sendChannel) {
+            console.log("Unable to send audio chunk receive signal to", toId); // TODO: remove
+            this.emitEvent("error", `Unable to send audio chunk received signal to ${toId}`);
+            return;
+        }
+
+        console.log("Sending audiochunkreceived to", toId); // TODO: remove
+
+        const messageData: MessageData = {
+            type: "audiochunkreceived",
+            data: selfId
+        }
+
+        sendChannel.send(messageData);
+    }
+
+    /**
+     * Sends the audiofilereceived signal to the given client id
+     * 
+     * @param selfId The id of self
+     * @param toId The id of the client to send the signal to
+     */
+    protected sendAudioFileReceivedSignal(selfId: string, toId: string) {
+        if (!this.isConnected) {
+            this.emitEvent("error", "Not connected to a room");
+            return;
+        }
+
+        if (this.isOwner) {
+            this.emitEvent("error", "Unable to send audio file received signal: not a client");
+            return;
+        }
+
+        const sendChannel = this._peerConnections[toId].connection;
+
+        if (!sendChannel) {
+            console.log("Unable to send audio receive signal to", toId); // TODO: remove
+            this.emitEvent("error", `Unable to send audio file received signal to ${toId}`);
+            return;
+        }
+
+        console.log("Sending audiofilereceived to", toId); // TODO: remove
+
+        const messageData: MessageData = {
+            type: "audiofilereceived",
+            data: selfId
+        }
+
+        sendChannel.send(messageData);
     }
 
     /**
@@ -1080,11 +1161,15 @@ export default class ConnectionManager extends Emittable {
         super.emitEvent(eventName, event);
     }
 
-    addEventListener<K extends keyof ConnectionManagerEventMap>(eventName: K, listener: (event: ConnectionManagerEventMap[K]) => any) {
-        super.addEventListener(eventName, listener);
+    addEventListener<K extends keyof ConnectionManagerEventMap>(eventName: K, listener: (event: ConnectionManagerEventMap[K]) => any, tag?: string) {
+        super.addEventListener(eventName, listener, tag);
     }
 
     removeEventListener<K extends keyof ConnectionManagerEventMap>(eventName: K, listener: (event: ConnectionManagerEventMap[K]) => any) {
         super.removeEventListener(eventName, listener);
+    }
+
+    removeEventListenersByTag<K extends keyof ConnectionManagerEventMap>(eventName: K, tag: string) {
+        super.removeEventListenersByTag(eventName, tag);
     }
 }
