@@ -1,6 +1,19 @@
 <template>
     <div id="RoomConnectionHandler">
-        Joining Room: {{ roomName }}
+        <div id="RoomConnectionHandler__prefix-text">
+            {{ prefixText }}
+        </div>
+
+        <div id="RoomConnectionHandler__room-name">
+            {{ roomName }}
+        </div>
+
+        <circle-spinner 
+            id="RoomConnectionHandler__spinner"
+            :radius="35"
+            :stroke="6"
+            :animate-color="true"
+        />
     </div>
 </template>
 
@@ -12,6 +25,8 @@ import VueRouter, { Route } from 'vue-router';
 import ConnectionManager, { RoomData } from '../../rtc/ConnectionManager';
 import * as NotificationManager from "../../managers/NotificationManager";
 
+import CircleSpinner from "@/components/ui/spinners/CircleSpinner.vue";
+
 type Props = {
     mode: "join" | "create";
 }
@@ -22,7 +37,11 @@ type Data = {
 
 type ModeProp = "join" | "create";
 
-type Computed = Pick<MapGettersStructure, Getters.isConnected | Getters.connectionManager> & {}
+type Computed = {
+    prefixText: string;
+} & Pick<MapGettersStructure, 
+    Getters.isConnected | Getters.connectionManager
+>
 
 type Methods = {
     onSuccess(room: RoomData): void;
@@ -32,6 +51,9 @@ type Methods = {
 }
 
 export default Vue.extend({
+    components: {
+        CircleSpinner
+    },
     props: {
         mode: {
             type: String as () => ModeProp,
@@ -48,7 +70,11 @@ export default Vue.extend({
     computed: {
         ...mapGetters({
             connectionManager: Getters.connectionManager
-        })
+        }),
+        prefixText() {
+            const { mode }: Props = this;
+            return (mode === "join") ? "Joining Room" : "Creating Room";
+        }
     },
     methods: {
         onSuccess(room: RoomData) {
@@ -136,3 +162,27 @@ export default Vue.extend({
     }
 });
 </script>
+
+<style lang="scss" scoped>
+    #RoomConnectionHandler {
+        height: 100%;
+        
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        & #RoomConnectionHandler__prefix-text {
+            font-size: 1.5rem;
+        }
+
+        & #RoomConnectionHandler__room-name {
+            font-size: 3rem;
+            font-weight: 600;
+        }
+
+        & #RoomConnectionHandler__spinner {
+            margin-top: 2rem;
+        }
+    }
+</style>

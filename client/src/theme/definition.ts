@@ -43,9 +43,13 @@ export const schema: Schema = {
         warning: {
             $mixins: ['background_modifier', 'text_modifier', 'accent_modifier']
         },
-        // --- Sync status colors ---
+        // -- Sync status colors --
         sync_status: {
             $mixins: ['status_modifiers']
+        },
+        // -- Hue rotate colors --
+        hue_rotate: {
+            $mixins: ['hue_rotate_modifiers']
         }
     },
     // --- Component Scope Declarations ---
@@ -175,6 +179,32 @@ export const mixins: Mixins = {
             $required: true
         },
         error: {
+            $type: "color",
+            $required: true
+        }
+    },
+    hue_rotate_modifiers: {
+        color_1: {
+            $type: "color",
+            $required: true
+        },
+        color_2: {
+            $type: "color",
+            $required: true
+        },
+        color_3: {
+            $type: "color",
+            $required: true
+        },
+        color_4: {
+            $type: "color",
+            $required: true
+        },
+        color_5: {
+            $type: "color",
+            $required: true
+        },
+        color_6: {
             $type: "color",
             $required: true
         }

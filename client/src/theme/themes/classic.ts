@@ -61,6 +61,13 @@ const STATUS_ERROR_COLOR = "#FF1212";
 const AUDIO_VISUALIZER_GRADIENT_START = PURPLE_3;
 const AUDIO_VISUALIZER_GRADIENT_END = BLUE_1;
 
+const HUE_ROTATE_COLOR_1 = "#DF29F1";
+const HUE_ROTATE_COLOR_2 = "#F1C429";
+const HUE_ROTATE_COLOR_3 = "#2AF129";
+const HUE_ROTATE_COLOR_4 = "#299DF1";
+const HUE_ROTATE_COLOR_5 = "#29EDF1";
+const HUE_ROTATE_COLOR_6 = "#B129F1";
+
 export default {
     name: "classic",
     theme: {
@@ -134,6 +141,14 @@ export default {
                 uploading: STATUS_UPLOADING_COLOR,
                 loading: STATUS_LOADING_COLOR,
                 error: STATUS_ERROR_COLOR
+            },
+            hue_rotate: {
+                color_1: HUE_ROTATE_COLOR_1,
+                color_2: HUE_ROTATE_COLOR_2,
+                color_3: HUE_ROTATE_COLOR_3,
+                color_4: HUE_ROTATE_COLOR_4,
+                color_5: HUE_ROTATE_COLOR_5,
+                color_6: HUE_ROTATE_COLOR_6,
             }
         },
         AudioVisualizerCircle: {

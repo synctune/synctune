@@ -1,6 +1,9 @@
 <template>
     <svg 
-        class="CircleSpinner"
+        :class="[
+            'CircleSpinner',
+            (animateColor) ? 'animate-color' : null
+        ]"
         :height="radius * 2"
         :width="radius * 2"
     >
@@ -26,6 +29,7 @@ import * as Utilities from "../../../utilities";
 interface Props {
     radius: number;
     stroke: number;
+    animateColor: boolean;
 }
 
 interface Computed {
@@ -46,6 +50,10 @@ export default Vue.extend({
         stroke: {
             type: Number,
             default: 4
+        },
+        animateColor: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {
@@ -87,6 +95,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
     $spin-duration: 4.8s;
     $cycle-duration: 1.2s;
+    $color-duration: 6s;
 
     .CircleSpinner {
         transform: rotate(-90deg);
@@ -108,9 +117,36 @@ export default Vue.extend({
 
             stroke: color-link("CircleSpinner", "accent", "primary");
         }
+
+        &.animate-color {
+            & circle {
+                animation: donut-cycle $cycle-duration infinite ease-in-out, $color-duration infinite linear donut-colors;
+            }
+        }
     }
 
     // Animation keyframes
+
+    @keyframes donut-colors {
+        0% {
+            stroke: color-link("CircleSpinner", "hue_rotate", "color_1");
+        }
+        20% {
+            stroke: color-link("CircleSpinner", "hue_rotate", "color_2");
+        }
+        40% {
+            stroke: color-link("CircleSpinner", "hue_rotate", "color_3");
+        }
+        60% {
+            stroke: color-link("CircleSpinner", "hue_rotate", "color_4");
+        }
+        80% {
+            stroke: color-link("CircleSpinner", "hue_rotate", "color_5");
+        }
+        100% {
+            stroke: color-link("CircleSpinner", "hue_rotate", "color_6");
+        }
+    }
 
     @keyframes donut-spin {
         0% {
