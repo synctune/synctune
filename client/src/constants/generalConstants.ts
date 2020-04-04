@@ -9,3 +9,6 @@ export const NICKNAME_STORAGE_KEY = "nickname";
 export const TIMESYNC_REPEAT = 5;
 export const TIMESYNC_DELAY = 1000;
 export const TIMESYNC_TIMEOUT = 10000;
+
+// Audio-related constants
+export const AUDIO_CHUNK_SIZE = 16384;

@@ -7,6 +7,10 @@ import { AudioFileMetadata } from '@/managers/ConnectionManager';
 // --- Type Declarations ---
 // -------------------------
 
+interface AudioSourcePayload {
+    audioSource: AudioBufferSourceNode | null;
+}
+
 interface AudioFilePayload {
     audioFile: Blob | null;
 }
@@ -23,10 +27,6 @@ interface IsPlayingPayload {
     playing: boolean;
 }
 
-interface SyncClientsPayload {
-    syncedClients: string[];
-}
-
 interface StartedAtPayload {
     startedAt: number;
 }
@@ -37,70 +37,73 @@ interface PausedAtPayload {
 
 export interface AudioState {
     isPlaying: boolean;
+    audioContext: AudioContext;
+    audioSource: AudioBufferSourceNode | null;
     audioFile: Blob | null;
     audioFileMetadata: AudioFileMetadata | null;
     audioLoaded: boolean;
-    syncedClients: string[];
     startedAt: number;
     pausedAt: number;
 }
 
 export enum Getters {
     isPlaying = "isPlaying",
+    audioContext = "audioContext",
+    audioSource = "audioSource",
     audioFile = "audioFile",
     audioFileMetadata = "audioFileMetadata",
     audioLoaded = "audioLoaded",
-    syncedClients = "syncedClients",
     startedAt = "startedAt",
     pausedAt = "pausedAt"
 }
 
 export enum Mutations {
     setIsPlaying = "setIsPlaying",
+    setAudioSource = "setAudioSource",
     setAudioFile = "setAudioFile",
     setAudioFileMetadata = "setAudioFileMetadata",
     setAudioLoaded = "setAudioLoaded",
-    setSyncedClients = "setSyncedClients",
     setStartedAt = "setStartedAt",
     setPausedAt = "setPausedAt"
 }
 
 export enum Actions {
     setIsPlaying = "setIsPlaying",
+    setAudioSource = "setAudioSource",
     setAudioFile = "setAudioFile",
     setAudioFileMetadata = "setAudioFileMetadata",
     setAudioLoaded = "setAudioLoaded",
-    setSyncedClients = "setSyncedClients",
     setStartedAt = "setStartedAt",
     setPausedAt = "setPausedAt"
 }
 
 export interface MapGettersStructure {
     [Getters.isPlaying]: boolean;
+    [Getters.audioContext]: AudioContext;
+    [Getters.audioSource]: AudioBufferSourceNode | null;
     [Getters.audioFile]: Blob | null;
     [Getters.audioFileMetadata]: AudioFileMetadata | null;
     [Getters.audioLoaded]: boolean;
-    [Getters.syncedClients]: string[];
     [Getters.startedAt]: number;
     [Getters.pausedAt]: number;
 }
 
 export interface MapMutationsStructure {
     [Mutations.setIsPlaying](payload: IsPlayingPayload): void;
+    [Mutations.setAudioSource](payload: AudioSourcePayload ): void;
     [Mutations.setAudioFile](payload: AudioFilePayload): void;
     [Mutations.setAudioFileMetadata](payload: AudioFileMetadataPayload): void;
     [Mutations.setAudioLoaded](payload: AudioLoadedPayload): void;
-    [Mutations.setSyncedClients](payload: SyncClientsPayload): void;
     [Mutations.setStartedAt](payload: StartedAtPayload): void;
     [Mutations.setPausedAt](payload: PausedAtPayload): void;
 }
 
 export interface MapActionsStructure {
     [Actions.setIsPlaying](payload: IsPlayingPayload): void;
+    [Actions.setAudioSource](payload: AudioSourcePayload ): void;
     [Actions.setAudioFile](payload: AudioFilePayload): void;
     [Actions.setAudioFileMetadata](payload: AudioFileMetadataPayload): void;
     [Actions.setAudioLoaded](payload: AudioLoadedPayload): void;
-    [Actions.setSyncedClients](payload: SyncClientsPayload): void;
     [Actions.setStartedAt](payload: StartedAtPayload): void;
     [Actions.setPausedAt](payload: PausedAtPayload): void;
 }
@@ -113,10 +116,11 @@ const namespaced = false;
 
 const state: AudioState = {
     isPlaying: false,
+    audioContext: new AudioContext(),
+    audioSource: null,
     audioFile: null,
     audioFileMetadata: null,
     audioLoaded: false,
-    syncedClients: [],
     startedAt: 0,
     pausedAt: 0
 };
@@ -124,6 +128,12 @@ const state: AudioState = {
 const getters: GetterTree<AudioState, RootState> = {
     [Getters.isPlaying](state): boolean {
         return state.isPlaying;
+    },
+    [Getters.audioContext](state): AudioContext {
+        return state.audioContext;
+    },
+    [Getters.audioSource](state): AudioBufferSourceNode | null {
+        return state.audioSource;
     },
     [Getters.audioFile](state): Blob | null {
         return state.audioFile;
@@ -133,9 +143,6 @@ const getters: GetterTree<AudioState, RootState> = {
     },
     [Getters.audioLoaded](state): boolean {
         return state.audioLoaded;
-    },
-    [Getters.syncedClients](state): string[] {
-        return [...state.syncedClients];
     },
     [Getters.startedAt](state): number {
         return state.startedAt;
@@ -149,6 +156,9 @@ const mutations: MutationTree<AudioState> = {
     [Mutations.setIsPlaying](state, { playing }: IsPlayingPayload) {
         Vue.set(state, "isPlaying", playing);
     },
+    [Mutations.setAudioSource](state, { audioSource }: AudioSourcePayload) {
+        Vue.set(state, "audioSource", audioSource);
+    },
     [Mutations.setAudioFile](state, { audioFile }: AudioFilePayload) {
         Vue.set(state, "audioFile", audioFile);
     },
@@ -157,9 +167,6 @@ const mutations: MutationTree<AudioState> = {
     },
     [Mutations.setAudioLoaded](state, { loaded }: AudioLoadedPayload) {
         Vue.set(state, "audioLoaded", loaded);
-    },
-    [Mutations.setSyncedClients](state, { syncedClients }: SyncClientsPayload) {
-        Vue.set(state, "syncedClients", syncedClients);
     },
     [Mutations.setStartedAt](state, { startedAt }: StartedAtPayload) {
         Vue.set(state, "startedAt", startedAt);
@@ -173,6 +180,9 @@ const actions: ActionTree<AudioState, RootState> = {
     [Actions.setIsPlaying]({ commit }, payload: IsPlayingPayload) {
         commit(Mutations.setIsPlaying, payload);
     },
+    [Actions.setAudioSource]({ commit }, payload: AudioSourcePayload) {
+        commit(Mutations.setAudioSource, payload);
+    },
     [Actions.setAudioFile]({ commit }, payload: AudioFilePayload) {
         commit(Mutations.setAudioFile, payload);
     },
@@ -181,9 +191,6 @@ const actions: ActionTree<AudioState, RootState> = {
     },
     [Actions.setAudioLoaded]({ commit }, payload: AudioLoadedPayload) {
         commit(Mutations.setAudioLoaded, payload);
-    }, 
-    [Actions.setSyncedClients]({ commit }, payload: SyncClientsPayload) {
-        commit(Mutations.setSyncedClients, payload);
     },
     [Actions.setStartedAt]({ commit }, payload: StartedAtPayload) {
         commit(Mutations.setStartedAt, payload);

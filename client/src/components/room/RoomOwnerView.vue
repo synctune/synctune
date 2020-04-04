@@ -99,7 +99,6 @@ type Computed = {}
         AudioStore.Getters.isPlaying
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
-        | AudioStore.Getters.syncedClients
         | AudioStore.Getters.pausedAt
     >;
 
@@ -146,7 +145,6 @@ export default Vue.extend({
             isPlaying: AudioStore.Getters.isPlaying,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
-            syncedClients: AudioStore.Getters.syncedClients,
             pausedAt: AudioStore.Getters.pausedAt,
         })
     },
