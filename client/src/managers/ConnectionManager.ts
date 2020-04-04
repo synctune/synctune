@@ -1080,11 +1080,15 @@ export default class ConnectionManager extends Emittable {
         super.emitEvent(eventName, event);
     }
 
-    addEventListener<K extends keyof ConnectionManagerEventMap>(eventName: K, listener: (event: ConnectionManagerEventMap[K]) => any) {
-        super.addEventListener(eventName, listener);
+    addEventListener<K extends keyof ConnectionManagerEventMap>(eventName: K, listener: (event: ConnectionManagerEventMap[K]) => any, tag?: string) {
+        super.addEventListener(eventName, listener, tag);
     }
 
     removeEventListener<K extends keyof ConnectionManagerEventMap>(eventName: K, listener: (event: ConnectionManagerEventMap[K]) => any) {
         super.removeEventListener(eventName, listener);
+    }
+
+    removeEventListenersByTag<K extends keyof ConnectionManagerEventMap>(eventName: K, tag: string) {
+        super.removeEventListenersByTag(eventName, tag);
     }
 }

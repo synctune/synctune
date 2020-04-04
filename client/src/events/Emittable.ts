@@ -1,5 +1,10 @@
+interface ListenerRecord {
+    listener: Function;
+    tag?: string;
+}
+
 interface RegisteredListeners {
-    [eventName: string]: Function[];
+    [eventName: string]: ListenerRecord[];
 }
 
 export default class Emittable {
@@ -30,17 +35,22 @@ export default class Emittable {
             return;
         }
         
-        listeners.forEach(listener => listener(...args));
+        listeners.forEach(record => record.listener(...args));
     }
 
-    addEventListener(event: string, listener: Function) {
+    addEventListener(event: string, listener: Function, tag?: string) {
+        const recordItem: ListenerRecord = {
+            listener,
+            tag
+        };
+
         // No listeners on event yet, add the first one
         if (!this.listeners[event]) {
-            this.listeners[event] = [listener];
+            this.listeners[event] = [recordItem];
             return;
         }
 
-        this.listeners[event].push(listener);
+        this.listeners[event].push(recordItem);
     }
 
     removeEventListener(event: string, listener: Function) {
@@ -50,11 +60,22 @@ export default class Emittable {
         }
 
         // Attempt to find listener
-        const idx = this.listeners[event].findIndex((list) => list === listener);
+        const idx = this.listeners[event].findIndex((record) => record.listener === listener);
 
         // Listener was found, remove it
         if (idx >= 0) {
             this.listeners[event].splice(idx, 1);
         }
+    }
+
+    removeEventListenersByTag(event: string, tag: string) {
+        // No listeners on event, so do nothing
+        if (!this.listeners[event]) {
+            return;
+        }
+
+        // Filter out all listeners with the tag
+        const listenersFiltered = this.listeners[event].filter(record => record.tag !== tag);
+        this.listeners[event] = listenersFiltered;
     }
 }
