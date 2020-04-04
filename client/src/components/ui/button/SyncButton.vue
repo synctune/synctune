@@ -132,6 +132,8 @@ export default Vue.extend({
         stopSyncingSpinAnim() { 
             const syncIconEl = this.$refs.syncIconRef.$el as HTMLElement;
 
+            TweenLite.killTweensOf(syncIconEl);
+
             TweenLite.to(syncIconEl, 0.5, {
                 rotation: 0,
                 ease: "power1.out"

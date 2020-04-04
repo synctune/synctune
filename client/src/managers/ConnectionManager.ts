@@ -42,7 +42,7 @@ export interface MessageData {
         | "audiometadata"
         | "audiochunk"
         | "closeconnection"
-        | "clienttimesynced"
+        | "clienttimesyncchanged"
         | "runtimesync";
     data: any;
 }
@@ -100,6 +100,7 @@ interface ConnectionManagerEventMap {
 
     "isconnectedchanged": boolean;
     "timesyncchanged": boolean;
+    "timesyncsent": null;
 
     "error": any;
 
@@ -246,6 +247,8 @@ export default class ConnectionManager extends Emittable {
                 try {
                     sendChannel.send(messageData);
 
+                    this.emitEvent("timesyncsent", null);
+
                     console.log("Timesync: resolving send message", data); // TODO: remove
                     if (intervalId) clearInterval(intervalId);
                     resolve();
@@ -257,14 +260,12 @@ export default class ConnectionManager extends Emittable {
             });
         };
 
-        timesync.on("change", (offset) => {
-            console.log('Timesync: New offset', offset); // TODO: remove
-
+        timesync.on("sync", (state) => {
             if (!this.isOwner) {
                 // Send message to host client indicating that we are synced
                 const messageData: MessageData = {
-                    type: "clienttimesynced",
-                    data: this._id
+                    type: "clienttimesyncchanged",
+                    data: (state == "start") ? false : true // Timesyncing flag
                 };
 
                 Object.values(this._peerConnections).forEach((clientData) => {
@@ -321,7 +322,9 @@ export default class ConnectionManager extends Emittable {
             const messageData = rawData as MessageData;
 
             // TODO: remove
-            if (messageData.type !== "audiochunk") console.log("Received message from", clientId, messageData);
+            if (messageData.type !== "audiochunk" && messageData.type !== "audiochunkreceived") {
+                console.log("Received message from", clientId, messageData);
+            }
 
             switch(messageData.type) {
                 case "audiometadata":
@@ -449,13 +452,13 @@ export default class ConnectionManager extends Emittable {
                     }
 
                     break;
-                case "clienttimesynced": 
-                    const syncedClientId = messageData.data as string;
+                case "clienttimesyncchanged": 
+                    const timesynced = messageData.data as boolean;
 
                     // Update the client state
-                    this._peerConnections[syncedClientId].timesynced = true;
+                    this._peerConnections[clientId].timesynced = timesynced;
 
-                    this.emitEvent("clienttimesyncchanged", this._peerConnections[syncedClientId]);
+                    this.emitEvent("clienttimesyncchanged", { ...this._peerConnections[clientId] });
                     break;
                 case "runtimesync": 
                     this._timesync.sync();
@@ -484,13 +487,6 @@ export default class ConnectionManager extends Emittable {
             setTimeout(() => {
                 timesync.sync();
             }, INITIATOR_TIMESYNC_DELAY);
-        });
-
-        // Note: does not work on firefox!
-        // TODO: look into this
-        // TODO: remove this?
-        conn.on("close", () => {
-
         });
 
         conn.on("error", (err) => {
@@ -1092,7 +1088,7 @@ export default class ConnectionManager extends Emittable {
             
             clientData.connection.send(messageData);
 
-            this.emitEvent("clienttimesyncchanged", clientData);
+            this.emitEvent("clienttimesyncchanged", { ...clientData });
         });
     }
 
@@ -1151,6 +1147,10 @@ export default class ConnectionManager extends Emittable {
 
     get timesynced(): boolean {
         return this._timesynced;
+    }
+
+    get hasClients(): boolean {
+        return Object.keys(this._peerConnections).length > 0;
     }
 
     // -------------------------------------

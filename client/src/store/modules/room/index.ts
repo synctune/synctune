@@ -14,8 +14,9 @@ interface Client {
     id: string;
     nickname: string;
     uploadedChunks: number;
-    state: "ready" | "downloading" | "loading" | "syncing" | "error";
-    _prevState: "ready" | "downloading" | "loading" | "syncing" | "error";
+    state: "ready" | "uploading" | "loading" | "syncing" | "error";
+    _prevState: "ready" | "uploading" | "loading" | "syncing" | "error";
+    initialState: boolean;
 }
 
 export interface RoomState {
@@ -25,6 +26,7 @@ export interface RoomState {
     connectedClients: Client[];
     roomName: string;
     timesynced: boolean;
+    timesyncProgressCounter: number;
 }
 
 export enum Getters {
@@ -34,7 +36,8 @@ export enum Getters {
     id = "id",
     connectionManager = "connectionManager",
     roomName = "roomName",
-    timesynced = "timesynced"
+    timesynced = "timesynced",
+    timesyncProgressCounter = "timesyncProgressCounter"
 }
 
 export enum Mutations {}
@@ -44,11 +47,12 @@ export enum Actions {}
 export interface MapGettersStructure {
     [Getters.isConnected]: boolean;
     [Getters.isOwner]: boolean;
-    [Getters.connectedClients]: string[];
+    [Getters.connectedClients]: Client[];
     [Getters.id]: string | null;
     [Getters.connectionManager]: ConnectionManager;
     [Getters.roomName]: string;
     [Getters.timesynced]: boolean;
+    [Getters.timesyncProgressCounter]: number;
 }
 
 export interface MapMutationsStructure {}
@@ -70,7 +74,8 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
                 nickname: connectionManager.getClientNickname(clientId)!,
                 state: "syncing",
                 _prevState: "ready",
-                uploadedChunks: 0
+                uploadedChunks: 0,
+                initialState: true
             }
 
             state.connectedClients.push(clientData);
@@ -85,15 +90,35 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         if (idx >= 0) Vue.delete(state.connectedClients, idx);
     }, ROOM_STORE_TAG);
 
+    connectionManager.addEventListener("timesyncchanged", (timesynced) => {
+        Vue.set(state, "timesynced", timesynced);
+
+        // Reset progress counter if timesync is just starting
+        if (timesynced == false) {
+            Vue.set(state, "timesyncProgressCounter", 0);
+        }
+    });
+
+    connectionManager.addEventListener("timesyncsent", () => {
+        // Increment the timesync progress counter
+        Vue.set(state, "timesyncProgressCounter", state.timesyncProgressCounter + 1);
+    });
+
     connectionManager.addEventListener("clienttimesyncchanged", ({ clientId, timesynced }) => {
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
             const clientData = { ...state.connectedClients[idx] };
+            // Timesync is starting
             if (timesynced == false) {
-                clientData._prevState = clientData.state;
+                if (clientData.state !== "syncing") {
+                    clientData._prevState = clientData.state;
+                }
                 clientData.state = "syncing";
-            } else {
-                clientData.state = clientData._prevState;
+            } 
+            // Timesync is done
+            else {
+                clientData.state = (clientData.initialState) ? "ready" : clientData._prevState;
+                clientData.initialState = false;
                 clientData._prevState = "syncing";
             }
             Vue.set(state.connectedClients, idx, clientData);
@@ -102,7 +127,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("audiofilesyncing", ({ clients }) => {
-        const connectedClientsClone = { ...state.connectedClients };
+        const connectedClientsClone = [ ...state.connectedClients ];
 
         // Set all target clients to downloading state
         clients.forEach(clientId => {
@@ -111,7 +136,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
             if (idx > 0) {
                 const clientData = connectedClientsClone[idx];
                 clientData._prevState = clientData.state;
-                clientData.state = "downloading";
+                clientData.state = "uploading";
                 clientData.uploadedChunks = 0;
             }
         });
@@ -154,7 +179,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
 
     connectionManager.addEventListener("room-created", () => {
         // Add self
-        Vue.set(state, "connectedClients", [connectionManager.id]);
+        Vue.set(state, "connectedClients", []);
         Vue.set(state, "isOwner", connectionManager.isOwner);
         Vue.set(state, "roomName", connectionManager.room);
         Vue.set(state, "timesynced", false);
@@ -162,7 +187,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
 
     connectionManager.addEventListener("room-joined", ({ clients }) => {
         // Add other already connected clients + self
-        Vue.set(state, "connectedClients", [...clients, connectionManager.id]);
+        Vue.set(state, "connectedClients", [...clients]);
         Vue.set(state, "isOwner", connectionManager.isOwner);
         Vue.set(state, "roomName", connectionManager.room);
         Vue.set(state, "timesynced", false);
@@ -198,6 +223,7 @@ const state: RoomState = {
     connectedClients: [],
     roomName: "",
     timesynced: false,
+    timesyncProgressCounter: 0
 };
 
 setupConnectionManagerListeners(state, state.connectionManager);
@@ -223,6 +249,9 @@ const getters: GetterTree<RoomState, RootState> = {
     },
     [Getters.timesynced](state): boolean {
         return state.timesynced;
+    },
+    [Getters.timesyncProgressCounter](state): number {
+        return state.timesyncProgressCounter;
     }
 };
 

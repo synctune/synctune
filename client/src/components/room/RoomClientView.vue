@@ -2,7 +2,7 @@
     <div id="RoomClientView">
         <back-button 
             id="RoomClientView__back-button" 
-            @click="onBackClick"
+            @click="gotoHomePage"
         />
 
         <div id="RoomClientView__room-code-container">
@@ -14,9 +14,10 @@
             </div>
         </div>
 
+        <!-- TODO: pass in audio analyzer node -->
         <audio-visualizer-circle 
             id="RoomClientView__audio-visualizer"
-            :disabled="false"
+            :disabled="!isPlaying || !audioLoaded"
             :audio-context="null"
         />
 
@@ -30,17 +31,17 @@
 
             <current-song-container 
                 id="RoomClientView__current-song"
-                :is-playing="false"
-                :audio-loaded="false"
-                :track-title="null"
-                @compensate-forwards="onCompensateForwards"
-                @compensate-backwards="onCompensateBackwards"
+                :is-playing="isPlaying"
+                :audio-loaded="audioLoaded"
+                :track-title="audioTrackTitle"
+                @compensate-forwards="compensateForwards"
+                @compensate-backwards="compensateBackwards"
             />
         </div>
 
         <button-secondary 
             id="RoomClientView__leave-room"
-            @click="onLeaveRoom"
+            @click="leaveRoom"
         >
             Leave Room
         </button-secondary>
@@ -53,31 +54,30 @@ import VueRouter from 'vue-router';
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import { mapState, mapGetters, mapActions } from "vuex";
+import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
 
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import BackButton from "@/components/ui/button/BackButton.vue";
 import CurrentSongContainer from "@/components/room/client/CurrentSongContainer.vue";
 import AudioVisualizerCircle from "@/components/audio/AudioVisualizerCircle.vue";
 
-type Computed = {} 
-    & Pick<RoomStore.MapGettersStructure,
-        RoomStore.Getters.connectionManager
-        | RoomStore.Getters.isConnected 
-        | RoomStore.Getters.isOwner
-        | RoomStore.Getters.id 
-        | RoomStore.Getters.roomName
-    >
-    & Pick<AudioStore.MapGettersStructure,
-        AudioStore.Getters.isPlaying
-        | AudioStore.Getters.audioFile
-        | AudioStore.Getters.audioLoaded
-    >;
+type Computed = {
+    audioTrackTitle: string | null;
+} & Pick<RoomStore.MapGettersStructure,
+    RoomStore.Getters.connectionManager
+    | RoomStore.Getters.roomName
+>
+& Pick<AudioStore.MapGettersStructure,
+    AudioStore.Getters.isPlaying
+    | AudioStore.Getters.audioFileMetadata
+    | AudioStore.Getters.audioLoaded
+>;
 
 type Methods = {
+    gotoHomePage(): void;
     onLeaveRoom(): void;
-    onBackClick(): void;
-    onCompensateForwards(): void;
-    onCompensateBackwards(): void;
+    compensateForwards(): void;
+    compensateBackwards(): void;
 } 
 
 export default Vue.extend({
@@ -90,27 +90,29 @@ export default Vue.extend({
     computed: {
         ...mapGetters({
             connectionManager: RoomStore.Getters.connectionManager,
-            isConnected: RoomStore.Getters.isConnected,
-            isOwner: RoomStore.Getters.isOwner,
-            id: RoomStore.Getters.id,
             roomName: RoomStore.Getters.roomName,
             isPlaying: AudioStore.Getters.isPlaying,
-            audioFile: AudioStore.Getters.audioFile,
+            audioFileMetadata: AudioStore.Getters.audioFileMetadata,
             audioLoaded: AudioStore.Getters.audioLoaded,
-        })
+        }),
+        audioTrackTitle() {
+            const audioFileMetadata = this.audioFileMetadata as AudioFileMetadata;
+            return (audioFileMetadata) ? audioFileMetadata.name : null;
+        },
     },
     methods: {
-        onBackClick() {
+        gotoHomePage() {
             const router = this.$router as VueRouter;
             router.push("/").catch(err => {});
         },
-        onLeaveRoom() {
+        leaveRoom() {
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.leaveRoom();
+        },
+        compensateForwards() {
             // TODO: implement
         },
-        onCompensateForwards() {
-            // TODO: implement
-        },
-        onCompensateBackwards() {
+        compensateBackwards() {
             // TODO: implement
         }
     }
@@ -177,14 +179,6 @@ export default Vue.extend({
         & #RoomClientView__current-song-container {
             width: 100%;
             max-width: $max-container-width;
-
-            & #RoomClientView__current-song-title {
-
-            }
-
-            & #RoomClientView__current-song {
-
-            }
         }
     }
 </style>

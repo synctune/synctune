@@ -105,6 +105,8 @@ export default Vue.extend({
             & .ConnectedDevicesContainer__no-devices {
                 text-align: center;
                 color: color-link("ConnectedDevicesContainer", "text", "secondary");
+
+                margin: 1rem 0;
             }
         }
 

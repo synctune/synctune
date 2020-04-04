@@ -255,7 +255,7 @@ export default Vue.extend({
             const connectionManager = this.connectionManager as ConnectionManager;
             const { setAudioSource, setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
 
-            if (!audioLoaded || !connectionManager.timesynced) {
+            if (!audioLoaded || !(connectionManager.timesynced || !connectionManager.hasClients)) {
                 console.warn("Unable to play, audio file not loaded / time not synced... caching"); // TODO: remove
 
                 // Cache the play signal
@@ -377,6 +377,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
     #AudioPlayer {
-
+        position: absolute;
     }
 </style>
