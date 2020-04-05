@@ -169,24 +169,24 @@ export function displaySecondsString(totalSeconds: number) {
     return `${minutesStr}:${secondsStr}`;
 }
 
-const code_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const code_length = 9;
-/**
- * Generates a random room code.
- */
-export function generateRoomCode() {
-    let code = "";
-    for (let pos = 0; pos < code_length; pos++) {
-        code += choose(code_chars);
-    }
-    return code;
-}
-
+const codeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const codeLength = 9;
 /**
  * Makes a random choice from a string of characters
  * @param source String from which to choose characters
  */
 function choose(choices: string) {
-    let index = Math.floor(Math.random() * choices.length);
+    const index = Math.floor(Math.random() * choices.length);
     return choices[index];
-  }
+}
+
+/**
+ * Generates a random room code.
+ */
+export function generateRoomCode() {
+    let code = "";
+    for (let pos = 0; pos < codeLength; pos++) {
+        code += choose(codeChars);
+    }
+    return code;
+}
