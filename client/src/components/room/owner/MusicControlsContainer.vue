@@ -43,6 +43,13 @@
                 :disabled="!isPlaying || !canPlay"
             />
         </div>
+
+        <audio-seekbar 
+            class="MusicControlsContainer__audio-seekbar"
+            :song-length="songLength"
+            :current-time="currentTime"
+            @seek="$emit('seek', $event)"
+        />
     </container>
 </template>
 
@@ -51,6 +58,7 @@ import Vue from 'vue';
 import Container from "@/components/ui/Container.vue";
 import ArtworkThumbnail from "@/components/ui/ArtworkThumbnail.vue";
 import CircularIconButton from "@/components/ui/button/CircularIconButton.vue";
+import AudioSeekbar from "@/components/audio/AudioSeekbar.vue";
 
 interface Props {
     trackTitle: string | null;
@@ -67,7 +75,8 @@ export default Vue.extend({
     components: {
         Container,
         ArtworkThumbnail,
-        CircularIconButton
+        CircularIconButton,
+        AudioSeekbar
     },
     props: {
         trackTitle: {
@@ -81,6 +90,14 @@ export default Vue.extend({
         canPlay: {
             type: Boolean,
             default: false
+        },
+        songLength: { // Seconds
+            type: Number,
+            default: null
+        },
+        currentTime: { // Seconds
+            type: Number,
+            default: 0
         }
     },
     computed: {

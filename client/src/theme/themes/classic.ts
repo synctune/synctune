@@ -68,6 +68,10 @@ const HUE_ROTATE_COLOR_4 = "#299DF1";
 const HUE_ROTATE_COLOR_5 = "#29EDF1";
 const HUE_ROTATE_COLOR_6 = "#B129F1";
 
+const SEEKBAR_BG = "#FFCFFD";
+const SEEKBAR_SEEKER = "#DF1DFF";
+const SEEKBAR_DISABLED = "#E3CFE3";
+
 export default {
     name: "classic",
     theme: {
@@ -200,5 +204,16 @@ export default {
                 secondary: DEVICE_ITEM_BG_ALT
             }
         },
+        AudioSeekbar: {
+            text: {
+                primary: DARK_3,
+                secondary: LIGHT_1
+            },
+            background: {
+                primary: SEEKBAR_BG,
+                secondary: SEEKBAR_SEEKER,
+                disabled: SEEKBAR_DISABLED
+            }
+        }
     }
 }

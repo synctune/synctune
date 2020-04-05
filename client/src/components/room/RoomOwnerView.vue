@@ -55,14 +55,18 @@
             >
                 Music Controls
             </div>
+            <!-- TODO: implement song-length and current-time props -->
             <music-controls-container 
                 id="RoomOwnerView__music-controls"
                 :can-play="audioLoaded && (timesynced || !hasClients)"
                 :is-playing="isPlaying"
                 :track-title="audioTrackTitle"
+                :song-length="230"
+                :current-time="78"
                 @play="playAudio"
                 @pause="pauseAudio"
                 @stop="stopAudio"
+                @seek="seekAudio"
             />
         </div>
 
@@ -119,6 +123,7 @@ type Methods = {
     playAudio(): void;
     pauseAudio(): void;
     stopAudio(): void;
+    seekAudio(seekTime: number): void;
     gotoHomePage(): void;
     leaveRoom(): void;
 };
@@ -218,6 +223,10 @@ export default Vue.extend({
         stopAudio() {
             const connectionManager = this.connectionManager as ConnectionManager;
             connectionManager.sendStopSignal();
+        },
+        seekAudio(seekTime: number) {
+            // TODO: implement
+            console.log("Seek audio to", seekTime);
         },
         gotoHomePage() {
             const router = this.$router as VueRouter;
