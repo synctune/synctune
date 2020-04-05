@@ -170,7 +170,7 @@ export default Vue.extend({
         },
         containerClientList() {
             const { connectedClients, audioFile }: Computed = this;
-            const numChunks = (audioFile) ? Math.ceil(audioFile.size / AUDIO_CHUNK_SIZE) : null;
+            const numChunks = (audioFile) ? Math.ceil(audioFile.size / AUDIO_CHUNK_SIZE) : 0;
 
             return connectedClients.map(clientData => {
                 const uploadProgress = (audioFile) ? clientData.uploadedChunks / numChunks * 100 : null;
