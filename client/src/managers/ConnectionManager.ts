@@ -42,6 +42,7 @@ export interface MessageData {
         | "audiometadata"
         | "audiochunk"
         | "closeconnection"
+        | "kicked"
         | "clienttimesyncchanged"
         | "runtimesync";
     data: any;
@@ -453,6 +454,10 @@ export default class ConnectionManager extends Emittable {
                     }
 
                     break;
+                case "kicked": 
+                    this.leaveRoom();
+
+                    break;
                 case "clienttimesyncchanged": 
                     const timesynced = messageData.data as boolean;
 
@@ -694,6 +699,34 @@ export default class ConnectionManager extends Emittable {
 
         this.emitEvent("isconnectedchanged", false);
         this.emitEvent("room-left", data);
+    }
+
+    kickClient(clientId: string) {
+        if (!this.isConnected) {
+            this.emitEvent("not-in-room", null);
+            return;
+        }
+
+        if (!this.isOwner) {
+            this.emitEvent("error", "Unable to kick client: must be owner");
+            return;
+        }
+
+        const clientData = this._peerConnections[clientId];
+
+        if (!clientData) {
+            this.emitEvent("error", "Unable to kick client: client not found");
+            return;
+        }
+
+        // Send kick signal to the client
+        const messageData: MessageData = {
+            type: "kicked",
+            data: this._id
+        };
+
+        const connection = clientData.connection;
+        connection.send(messageData);
     }
 
     /**
