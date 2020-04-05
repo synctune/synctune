@@ -51,7 +51,7 @@ import VueRouter from 'vue-router';
 import { mapGetters } from "vuex";
 import { NICKNAME_STORAGE_KEY } from "../../constants/generalConstants";
 import * as RoomStore from "../../store/modules/room";
-import shortid from "shortid";
+import * as Utilities from "../../utilities";
 
 import Container from "@/components/ui/Container.vue";
 import InputField from "@/components/ui/forms/InputField.vue";
@@ -124,7 +124,7 @@ export default Vue.extend({
             const router = this.$router as VueRouter;
 
             // Generate a name for the room
-            const id = shortid.generate().toUpperCase();
+            const id = Utilities.generateRoomCode();
 
             router.push({ path: `/room/create/${id}` }).catch(err => {});
         }

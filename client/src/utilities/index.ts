@@ -168,3 +168,10 @@ export function displaySecondsString(totalSeconds: number) {
 
     return `${minutesStr}:${secondsStr}`;
 }
+
+/**
+ * Generates a random room code.
+ */
+export function generateRoomCode() {
+    return "anton's-big-brain-here";
+}
