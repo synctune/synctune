@@ -701,6 +701,11 @@ export default class ConnectionManager extends Emittable {
         this.emitEvent("room-left", data);
     }
 
+    /**
+     * Attempts to kick the given client
+     * 
+     * @param clientId The id of the client to kick
+     */
     kickClient(clientId: string) {
         if (!this.isConnected) {
             this.emitEvent("not-in-room", null);

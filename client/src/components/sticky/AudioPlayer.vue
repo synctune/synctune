@@ -18,7 +18,7 @@ interface CachedPlaySignal {
 }
 
 type Data = {
-    audioBuffer: AudioBuffer | null;
+    currTimeUpdatorId: number | null;
     audioLoadCancellationToken: CancellationToken | null;
     cachedPlaySignal: CachedPlaySignal | null;
 }
@@ -31,9 +31,11 @@ type Computed = {}
     & Pick<AudioStore.MapGettersStructure,
         AudioStore.Getters.isPlaying 
         | AudioStore.Getters.audioContext
+        | AudioStore.Getters.audioBuffer
         | AudioStore.Getters.audioSource
         | AudioStore.Getters.audioFile
         | AudioStore.Getters.audioLoaded
+        | AudioStore.Getters.currentTime
         | AudioStore.Getters.startedAt
         | AudioStore.Getters.pausedAt
     >;
@@ -48,12 +50,16 @@ type Methods = {
     onCanPlayThrough(): void;
     doPreloadFakeout(): void;
     runCachedPlaySignal(): void;
+    startCurrTimeUpdator(): void;
+    stopCurrTimeUpdator(): void;
 } & Pick<AudioStore.MapActionsStructure,
     AudioStore.Actions.setIsPlaying
+    | AudioStore.Actions.setAudioBuffer
     | AudioStore.Actions.setAudioSource
     | AudioStore.Actions.setAudioFile
     | AudioStore.Actions.setAudioFileMetadata
     | AudioStore.Actions.setAudioLoaded
+    | AudioStore.Actions.setCurrentTime
     | AudioStore.Actions.setStartedAt
     | AudioStore.Actions.setPausedAt
 >;
@@ -62,7 +68,7 @@ type Methods = {
 export default Vue.extend({
     data() {
         return {
-            audioBuffer: null,
+            currTimeUpdatorId: null,
             audioLoadCancellationToken: null,
             cachedPlaySignal: null
         }
@@ -73,9 +79,11 @@ export default Vue.extend({
             isConnected: RoomStore.Getters.isConnected,
             isPlaying: AudioStore.Getters.isPlaying,
             audioContext: AudioStore.Getters.audioContext,
+            audioBuffer: AudioStore.Getters.audioBuffer,
             audioSource: AudioStore.Getters.audioSource,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
+            currentTime: AudioStore.Getters.currentTime,
             startedAt: AudioStore.Getters.startedAt,
             pausedAt: AudioStore.Getters.pausedAt,
         })
@@ -89,10 +97,12 @@ export default Vue.extend({
     methods: {
         ...mapActions({
             setIsPlaying: AudioStore.Actions.setIsPlaying,
+            setAudioBuffer: AudioStore.Actions.setAudioBuffer,
             setAudioSource: AudioStore.Actions.setAudioSource,
             setAudioFile: AudioStore.Actions.setAudioFile,
             setAudioFileMetadata: AudioStore.Actions.setAudioFileMetadata,
             setAudioLoaded: AudioStore.Actions.setAudioLoaded,
+            setCurrentTime: AudioStore.Actions.setCurrentTime,
             setStartedAt: AudioStore.Actions.setStartedAt,
             setPausedAt: AudioStore.Actions.setPausedAt,
         }),
@@ -156,6 +166,7 @@ export default Vue.extend({
             const { 
                 setAudioFile, 
                 setAudioLoaded, 
+                setAudioBuffer,
                 setIsPlaying, 
                 onCanPlayThrough,
                 setStartedAt,
@@ -193,7 +204,7 @@ export default Vue.extend({
                         return;
                     }
 
-                    this.audioBuffer = audioBuffer;
+                    setAudioBuffer({ audioBuffer: audioBuffer });
                     setAudioLoaded({ loaded: true });
 
                     // This is meant to stop a bug where a massive amount of delay occurs when
@@ -246,15 +257,19 @@ export default Vue.extend({
             }
         },
         async playAudio(startLocation: number, startTime: number) {
-            // TODO: delay the start time using the synchronized time
-            // TODO: handle if audio has not been loaded yet
-
             console.log("Received play signal", startLocation); // TODO: remove
 
-            const { audioBuffer, cachedPlaySignal }: Data = this;
-            const { audioContext, audioLoaded, pausedAt }: Computed = this;
+            const { cachedPlaySignal }: Data = this;
+            const { audioContext, audioBuffer, audioLoaded, audioSource }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
-            const { setAudioSource, setIsPlaying, setStartedAt, setPausedAt, doPreloadFakeout }: Methods = this;
+            const { 
+                setAudioSource, 
+                setIsPlaying, 
+                setStartedAt, 
+                setPausedAt, 
+                doPreloadFakeout, 
+                startCurrTimeUpdator,
+                stopAudio }: Methods = this;
 
             if (!audioLoaded || !(connectionManager.timesynced || !connectionManager.hasClients)) {
                 console.warn("Unable to play, audio file not loaded / time not synced... caching"); // TODO: remove
@@ -276,12 +291,25 @@ export default Vue.extend({
 
             doPreloadFakeout();
 
-            const audioSource = audioContext.createBufferSource();
-            audioSource.buffer = audioBuffer;
-            audioSource.connect(audioContext.destination);
+            const prevAudioSource = audioSource;
 
-            setAudioSource({ audioSource });
-            let offset = pausedAt;
+            const newAudioSource = audioContext.createBufferSource();
+            newAudioSource.buffer = audioBuffer;
+            newAudioSource.connect(audioContext.destination);
+
+            // Note: do NOT use addEventListener here, it is intentional that we
+            // want only one event handler here so it is able to be removed later on
+            newAudioSource.onended = () => {
+                const { isPlaying }: Computed = this;
+
+                // If the song ended on its own accord
+                if (isPlaying) {
+                    stopAudio();
+                }
+            };
+
+            setAudioSource({ audioSource: newAudioSource });
+            let offset = startLocation;
 
             // Ignore locally saved pause location if not the room owner
             if (!connectionManager.isOwner) {
@@ -292,13 +320,22 @@ export default Vue.extend({
             const startAudio = (overshoot = 0) => {
                 console.log(">> Playing audio at", offset, "with overshoot", overshoot); // TODO: remove
 
+                // Stop any audio that may be already playing
+                if (prevAudioSource) {
+                    prevAudioSource.onended = () => {};
+                    prevAudioSource.disconnect();
+                    prevAudioSource.stop();
+                }
+
                 // Start the audio from the given offset, accounting for any overshoot
-                audioSource.start(0, offset + (overshoot / 1000));
+                newAudioSource.start(0, offset + (overshoot / 1000));
 
                 setStartedAt({ startedAt: audioContext.currentTime - offset });
                 setPausedAt({ pausedAt: 0 });
 
                 setIsPlaying({ playing: true });
+
+                startCurrTimeUpdator();
             }
 
             const startDelay = startTime - connectionManager.now();
@@ -324,14 +361,24 @@ export default Vue.extend({
             const { setIsPlaying, stopAudio, setPausedAt }: Methods = this;
 
             const elapsedTime = audioContext.currentTime - startedAt;
-            stopAudio();
             setPausedAt({ pausedAt: elapsedTime });
+            stopAudio();
         },
         stopAudio() {
             const { audioSource }: Computed = this;
-            const { setAudioSource, setIsPlaying, setStartedAt, setPausedAt }: Methods = this;
+            const { 
+                setAudioSource, 
+                setIsPlaying, 
+                setStartedAt, 
+                setPausedAt, 
+                stopCurrTimeUpdator }: Methods = this;
+
+            
+            setIsPlaying({ playing: false });
+            stopCurrTimeUpdator();
 
             if (audioSource) {
+                audioSource.onended = () => {};
                 audioSource.disconnect();
                 // To handle if we never started the audio
                 // e.g. disconnecting from room without ever playing audio
@@ -341,8 +388,6 @@ export default Vue.extend({
 
                 setAudioSource({ audioSource: null });
             }
-
-            setIsPlaying({ playing: false });
         },
         onCanPlayThrough() { // TODO: remove
             const { setAudioLoaded }: Methods = this;
@@ -350,8 +395,7 @@ export default Vue.extend({
             setAudioLoaded({ loaded: true });
         },
         doPreloadFakeout() {
-            const { audioBuffer }: Data = this;
-            const { audioContext }: Computed = this;
+            const { audioContext, audioBuffer }: Computed = this;
 
             const audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
@@ -360,6 +404,43 @@ export default Vue.extend({
             audioSource.stop();
 
             console.log("AudioPlayer: Doing preload fakeout"); // TODO: remove
+        },
+        startCurrTimeUpdator() {
+            const { currTimeUpdatorId }: Data = this;
+            const { audioContext, audioBuffer, startedAt }: Computed = this;
+            const { setCurrentTime }: Methods = this;
+
+            // Stop the existing time updator interval, if one is running
+            if (currTimeUpdatorId) {
+                clearInterval(currTimeUpdatorId);
+            }
+
+            function updateCurrTime() {
+                const currTime = audioContext.currentTime - startedAt;
+
+                // Don't update if we've hit the end of the song
+                if (!audioBuffer || currTime > audioBuffer.duration) {
+                    return;
+                }
+
+                setCurrentTime({ currentTime: currTime });
+            }
+
+            // Update the current time tracker every second
+            updateCurrTime();
+            this.currTimeUpdatorId = setInterval(updateCurrTime, 1000);
+        },
+        stopCurrTimeUpdator() {
+            const { currTimeUpdatorId }: Data = this;
+            const { pausedAt }: Computed = this;
+            const { setCurrentTime }: Methods = this;
+
+            // Stop the existing time updator interval, if one is running
+            if (currTimeUpdatorId) {
+                clearInterval(currTimeUpdatorId);
+                setCurrentTime({ currentTime: pausedAt });
+                this.currTimeUpdatorId = null;
+            }
         }
     },
     watch: {

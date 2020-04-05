@@ -61,8 +61,8 @@
                 :can-play="audioLoaded && (timesynced || !hasClients)"
                 :is-playing="isPlaying"
                 :track-title="audioTrackTitle"
-                :song-length="230"
-                :current-time="78"
+                :song-length="songLength"
+                :current-time="currentTime"
                 @play="playAudio"
                 @pause="pauseAudio"
                 @stop="stopAudio"
@@ -100,6 +100,7 @@ type Computed = {
     hasClients: boolean;
     containerClientList: ContainerClient[];
     syncProgress: number;
+    songLength: number | null;
 } & Pick<RoomStore.MapGettersStructure,
     | RoomStore.Getters.connectionManager
     | RoomStore.Getters.connectedClients
@@ -109,9 +110,11 @@ type Computed = {
     | RoomStore.Getters.timesyncProgressCounter
 > & Pick<AudioStore.MapGettersStructure,
     AudioStore.Getters.isPlaying
+    | AudioStore.Getters.audioBuffer
     | AudioStore.Getters.audioFileMetadata
     | AudioStore.Getters.audioFile
     | AudioStore.Getters.audioLoaded
+    | AudioStore.Getters.currentTime
     | AudioStore.Getters.pausedAt
 >;
 
@@ -144,9 +147,11 @@ export default Vue.extend({
             id: RoomStore.Getters.id,
             roomName: RoomStore.Getters.roomName,
             isPlaying: AudioStore.Getters.isPlaying,
+            audioBuffer: AudioStore.Getters.audioBuffer,
             audioFileMetadata: AudioStore.Getters.audioFileMetadata,
             audioFile: AudioStore.Getters.audioFile,
             audioLoaded: AudioStore.Getters.audioLoaded,
+            currentTime: AudioStore.Getters.currentTime,
             pausedAt: AudioStore.Getters.pausedAt,
             timesynced: RoomStore.Getters.timesynced,
             timesyncProgressCounter: RoomStore.Getters.timesyncProgressCounter
@@ -178,6 +183,11 @@ export default Vue.extend({
         syncProgress() {
             const { timesyncProgressCounter }: Computed = this;
             return timesyncProgressCounter / TIMESYNC_REPEAT / 2 * 100;
+        },
+        songLength() {
+            const { audioLoaded, audioBuffer }: Computed = this;
+            if (!audioLoaded) return null;
+            return (audioBuffer) ? audioBuffer.duration : null;
         }
     },
     methods: {
@@ -225,8 +235,10 @@ export default Vue.extend({
             connectionManager.sendStopSignal();
         },
         seekAudio(seekTime: number) {
-            // TODO: implement
-            console.log("Seek audio to", seekTime);
+            const { isPlaying }: Computed = this;
+            const connectionManager = this.connectionManager as ConnectionManager;
+
+            connectionManager.sendPlaySignal(seekTime, 100);
         },
         gotoHomePage() {
             const router = this.$router as VueRouter;
