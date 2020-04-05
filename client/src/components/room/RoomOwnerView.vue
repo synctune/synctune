@@ -19,6 +19,7 @@
                 id="RoomOwnerView__upload-audio"
                 name="room-file-input"
                 accept="audio/*"
+                :disabled="!timesynced && hasClients"
                 @change="onAudioFileChange"
             />
 
@@ -172,7 +173,7 @@ export default Vue.extend({
             const numChunks = (audioFile) ? Math.ceil(audioFile.size / AUDIO_CHUNK_SIZE) : null;
 
             return connectedClients.map(clientData => {
-                const uploadProgress = (audioFile) ? clientData.uploadedChunks / numChunks : null;
+                const uploadProgress = (audioFile) ? clientData.uploadedChunks / numChunks * 100 : null;
 
                 const transData: ContainerClient = {
                     id: clientData.id,

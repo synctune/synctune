@@ -398,6 +398,7 @@ export default class ConnectionManager extends Emittable {
                 case "audiometadatareceived":
                     const amdrReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreceivedaudiometadata", amdrReceivedClientId);
+                    break;
                 case "readytoplay":
                     const rtpReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreadytoplay", rtpReceivedClientId);

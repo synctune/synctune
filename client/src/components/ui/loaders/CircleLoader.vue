@@ -71,7 +71,7 @@ export default Vue.extend({
         & circle {
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
-            transition: stroke-dashoffset 0.35s;
+            transition: stroke-dashoffset 0.1s;
 
             stroke: color-link("CircleLoader", "accent", "primary");
         }

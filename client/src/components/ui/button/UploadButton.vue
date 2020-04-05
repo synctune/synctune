@@ -1,15 +1,17 @@
 <template>
     <div class="UploadButton">
         <input 
+            :id="name" 
             :class="[
                 'UploadButton__file-input', 
                 (dialogOpen) ? 'dialog-open' : null
             ]"
-            type="file" 
-            :id="[name]" 
-            v-bind="$attrs"
             ref="fileInput"
+            :disabled="disabled"
+            v-bind="$attrs"
+            type="file" 
             @change="$emit('change', $event)"
+            @click="onClick"
         />
         <label 
             class="UploadButton__overlay-label"
@@ -30,14 +32,22 @@
 import Vue from 'vue';
 import IconBase from "@/components/ui/icons/IconBase.vue";
 
+interface Props {
+    name: string;
+    disabled: boolean;
+}
+
+interface Data {
+    dialogOpen: boolean;
+}
+
 export default Vue.extend({
     components: {
         IconBase
     },
     data() {
         return {
-            focusCounter: 0,
-            dialogOpen: false
+            dialogOpen: false,
         }
     },
     props: {
@@ -45,29 +55,32 @@ export default Vue.extend({
             type: String,
             required: true
         },
-        fileInputId: {
-            default: null
+        disabled: {
+            type: Boolean,
+            default: false
         }
     },
     mounted() {
         const fileInputEl = this.$refs.fileInput as HTMLInputElement;
         fileInputEl.addEventListener("focusin", () => {
-            this.focusCounter++;
-        });
-
-        fileInputEl.addEventListener("focusout", () => {
-            this.focusCounter++;
-        });
-    },
-    watch: {
-        focusCounter(counter: number) {
-            if (counter % 4 === 1 || counter % 4 === 2) {
-                this.dialogOpen = true;
-            } else {
+            const { dialogOpen }: Data = this;
+            if (dialogOpen) {
                 this.dialogOpen = false;
             }
+        });
+    },
+    methods: {
+        onClick(e: MouseEvent) {
+            const { disabled }: Props = this;
+            const { dialogOpen }: Data = this;
+
+            if (disabled) return;
+
+            if (!dialogOpen) {
+                this.dialogOpen = true;
+            }
         }
-    }
+    },
 });
 </script>
 
@@ -177,11 +190,9 @@ export default Vue.extend({
                 }
             }
 
-            &:disabled {
-                cursor: inherit;
-            }
-
             &:disabled + .UploadButton__overlay-label {
+                pointer-events: none;
+
                 & .UploadButton__upload-icon {
                     color: color-link("UploadButton", "text", "disabled");
                 }

@@ -121,6 +121,7 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("audiofilereceived", (audioFile) => {
+                console.log("AudioPlayer: audiofilereceived");
                 loadAudioFile(audioFile);
             });
 

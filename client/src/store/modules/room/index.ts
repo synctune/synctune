@@ -127,14 +127,23 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("audiofilesyncing", ({ clients }) => {
-        const connectedClientsClone = [ ...state.connectedClients ];
+        
+        const connectedClientsCopy = [ ...state.connectedClients ];
+
+        console.log("SETTING AUDIO FILE SYNCING FOR CLIENTS", clients); // TODO: remove
 
         // Set all target clients to downloading state
         clients.forEach(clientId => {
-            const idx = connectedClientsClone.findIndex(data => data.id === clientId);
+            if (clientId === connectionManager.id) {
+                return;
+            }
 
-            if (idx > 0) {
-                const clientData = connectedClientsClone[idx];
+            const idx = connectedClientsCopy.findIndex(data => data.id === clientId);
+
+            if (idx >= 0) {
+                console.log(`$> Setting client ${clientId} to 'uploading'`); // TODO: remove
+
+                const clientData = connectedClientsCopy[idx];
                 clientData._prevState = clientData.state;
                 clientData.state = "uploading";
                 clientData.uploadedChunks = 0;
@@ -142,23 +151,33 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         });
 
         // Update connected clients state
-        Vue.set(state, "connectedClients", connectedClientsClone);
+        Vue.set(state, "connectedClients", connectedClientsCopy);
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("clientreceivedaudiochunk", (clientId) => {
+        if (clientId === connectionManager.id) {
+            return;
+        }
+
         // Add to the uploaded chunk counter for the given client
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
             const clientData = { ...state.connectedClients[idx] };
-            clientData.uploadedChunks++;
+            clientData.uploadedChunks += 1;
             Vue.set(state.connectedClients, idx, clientData);
         }
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("clientreceivedaudiofile", (clientId) => {
+        if (clientId === connectionManager.id) {
+            return;
+        }
+
         // Set to loading state
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
+            console.log(`$> Setting client ${clientId} to 'loading'`); // TODO: remove
+
             const clientData = { ...state.connectedClients[idx] };
             clientData._prevState = clientData.state;
             clientData.state = "loading";
@@ -167,9 +186,15 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("clientreadytoplay", (clientId) => {
+        if (clientId === connectionManager.id) {
+            return;
+        }
+
         // Set to ready state
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
+            console.log(`$> Setting client ${clientId} to 'ready'`); // TODO: remove
+
             const clientData = { ...state.connectedClients[idx] };
             clientData._prevState = clientData.state;
             clientData.state = "ready";
