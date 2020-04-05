@@ -54,7 +54,7 @@ export default Vue.extend({
             if (analyzerNode !== null) analyzerNode.disconnect();
             // Make a new analyzer node to listen to the current audio context
             analyzerNode = audioContext.createAnalyser();
-            const source = audioContext.createMediaStreamSource();
+            // const source = audioContext.createMediaStreamSource();
             // Update the data state with the new node
         },
     },
