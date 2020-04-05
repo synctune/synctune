@@ -7,6 +7,11 @@ import { AudioFileMetadata } from '@/managers/ConnectionManager';
 // --- Type Declarations ---
 // -------------------------
 
+// --- Payloads ---
+interface AudioBufferPayload {
+    audioBuffer: AudioBuffer | null;
+}
+
 interface AudioSourcePayload {
     audioSource: AudioBufferSourceNode | null;
 }
@@ -27,6 +32,10 @@ interface IsPlayingPayload {
     playing: boolean;
 }
 
+interface CurrentTimePayload {
+    currentTime: number;
+}
+
 interface StartedAtPayload {
     startedAt: number;
 }
@@ -35,13 +44,17 @@ interface PausedAtPayload {
     pausedAt: number;
 }
 
+// --- Store Type Declarations ---
+
 export interface AudioState {
     isPlaying: boolean;
     audioContext: AudioContext;
+    audioBuffer: AudioBuffer | null;
     audioSource: AudioBufferSourceNode | null;
     audioFile: Blob | null;
     audioFileMetadata: AudioFileMetadata | null;
     audioLoaded: boolean;
+    currentTime: number;
     startedAt: number;
     pausedAt: number;
 }
@@ -49,30 +62,36 @@ export interface AudioState {
 export enum Getters {
     isPlaying = "isPlaying",
     audioContext = "audioContext",
+    audioBuffer = "audioBuffer",
     audioSource = "audioSource",
     audioFile = "audioFile",
     audioFileMetadata = "audioFileMetadata",
     audioLoaded = "audioLoaded",
+    currentTime = "currentTime",
     startedAt = "startedAt",
     pausedAt = "pausedAt"
 }
 
 export enum Mutations {
     setIsPlaying = "setIsPlaying",
+    setAudioBuffer = "setAudioBuffer",
     setAudioSource = "setAudioSource",
     setAudioFile = "setAudioFile",
     setAudioFileMetadata = "setAudioFileMetadata",
     setAudioLoaded = "setAudioLoaded",
+    setCurrentTime = "setCurrentTime",
     setStartedAt = "setStartedAt",
     setPausedAt = "setPausedAt"
 }
 
 export enum Actions {
     setIsPlaying = "setIsPlaying",
+    setAudioBuffer = "setAudioBuffer",
     setAudioSource = "setAudioSource",
     setAudioFile = "setAudioFile",
     setAudioFileMetadata = "setAudioFileMetadata",
     setAudioLoaded = "setAudioLoaded",
+    setCurrentTime = "setCurrentTime",
     setStartedAt = "setStartedAt",
     setPausedAt = "setPausedAt"
 }
@@ -80,30 +99,36 @@ export enum Actions {
 export interface MapGettersStructure {
     [Getters.isPlaying]: boolean;
     [Getters.audioContext]: AudioContext;
+    [Getters.audioBuffer]: AudioBuffer | null;
     [Getters.audioSource]: AudioBufferSourceNode | null;
     [Getters.audioFile]: Blob | null;
     [Getters.audioFileMetadata]: AudioFileMetadata | null;
     [Getters.audioLoaded]: boolean;
+    [Getters.currentTime]: number;
     [Getters.startedAt]: number;
     [Getters.pausedAt]: number;
 }
 
 export interface MapMutationsStructure {
     [Mutations.setIsPlaying](payload: IsPlayingPayload): void;
+    [Mutations.setAudioBuffer](payload: AudioBufferPayload): void;
     [Mutations.setAudioSource](payload: AudioSourcePayload ): void;
     [Mutations.setAudioFile](payload: AudioFilePayload): void;
     [Mutations.setAudioFileMetadata](payload: AudioFileMetadataPayload): void;
     [Mutations.setAudioLoaded](payload: AudioLoadedPayload): void;
+    [Mutations.setCurrentTime](payload: CurrentTimePayload): void;
     [Mutations.setStartedAt](payload: StartedAtPayload): void;
     [Mutations.setPausedAt](payload: PausedAtPayload): void;
 }
 
 export interface MapActionsStructure {
     [Actions.setIsPlaying](payload: IsPlayingPayload): void;
-    [Actions.setAudioSource](payload: AudioSourcePayload ): void;
+    [Actions.setAudioBuffer](payload: AudioBufferPayload): void;
+    [Actions.setAudioSource](payload: AudioSourcePayload): void;
     [Actions.setAudioFile](payload: AudioFilePayload): void;
     [Actions.setAudioFileMetadata](payload: AudioFileMetadataPayload): void;
     [Actions.setAudioLoaded](payload: AudioLoadedPayload): void;
+    [Actions.setCurrentTime](payload: CurrentTimePayload): void;
     [Actions.setStartedAt](payload: StartedAtPayload): void;
     [Actions.setPausedAt](payload: PausedAtPayload): void;
 }
@@ -117,10 +142,12 @@ const namespaced = false;
 const state: AudioState = {
     isPlaying: false,
     audioContext: new AudioContext(),
+    audioBuffer: null,
     audioSource: null,
     audioFile: null,
     audioFileMetadata: null,
     audioLoaded: false,
+    currentTime: 0,
     startedAt: 0,
     pausedAt: 0
 };
@@ -131,6 +158,9 @@ const getters: GetterTree<AudioState, RootState> = {
     },
     [Getters.audioContext](state): AudioContext {
         return state.audioContext;
+    },
+    [Getters.audioBuffer](state): AudioBuffer | null {
+        return state.audioBuffer;
     },
     [Getters.audioSource](state): AudioBufferSourceNode | null {
         return state.audioSource;
@@ -144,6 +174,9 @@ const getters: GetterTree<AudioState, RootState> = {
     [Getters.audioLoaded](state): boolean {
         return state.audioLoaded;
     },
+    [Getters.currentTime](state): number {
+        return state.currentTime;
+    },
     [Getters.startedAt](state): number {
         return state.startedAt;
     },
@@ -155,6 +188,9 @@ const getters: GetterTree<AudioState, RootState> = {
 const mutations: MutationTree<AudioState> = {
     [Mutations.setIsPlaying](state, { playing }: IsPlayingPayload) {
         Vue.set(state, "isPlaying", playing);
+    },
+    [Mutations.setAudioBuffer](state, { audioBuffer }: AudioBufferPayload) {
+        Vue.set(state, "audioBuffer", audioBuffer);
     },
     [Mutations.setAudioSource](state, { audioSource }: AudioSourcePayload) {
         Vue.set(state, "audioSource", audioSource);
@@ -168,6 +204,9 @@ const mutations: MutationTree<AudioState> = {
     [Mutations.setAudioLoaded](state, { loaded }: AudioLoadedPayload) {
         Vue.set(state, "audioLoaded", loaded);
     },
+    [Mutations.setCurrentTime](state, { currentTime }: CurrentTimePayload) {
+        Vue.set(state, "currentTime", currentTime);
+    },
     [Mutations.setStartedAt](state, { startedAt }: StartedAtPayload) {
         Vue.set(state, "startedAt", startedAt);
     },
@@ -180,6 +219,9 @@ const actions: ActionTree<AudioState, RootState> = {
     [Actions.setIsPlaying]({ commit }, payload: IsPlayingPayload) {
         commit(Mutations.setIsPlaying, payload);
     },
+    [Actions.setAudioBuffer]({ commit }, payload: AudioBufferPayload) {
+        commit(Mutations.setAudioBuffer, payload);
+    },
     [Actions.setAudioSource]({ commit }, payload: AudioSourcePayload) {
         commit(Mutations.setAudioSource, payload);
     },
@@ -191,6 +233,9 @@ const actions: ActionTree<AudioState, RootState> = {
     },
     [Actions.setAudioLoaded]({ commit }, payload: AudioLoadedPayload) {
         commit(Mutations.setAudioLoaded, payload);
+    },
+    [Actions.setCurrentTime]({ commit }, payload: CurrentTimePayload) {
+        commit(Mutations.setCurrentTime, payload);
     },
     [Actions.setStartedAt]({ commit }, payload: StartedAtPayload) {
         commit(Mutations.setStartedAt, payload);
