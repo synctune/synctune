@@ -16,6 +16,8 @@
         <div 
             class="AudioSeekbar__seeker"
             ref="seekbarEl"
+            @mousemove="onSeekMouseMove"
+            @mouseleave="onSeekMouseLeave"
             @click="onSeekbarClick"
         >
             <div 
@@ -65,6 +67,8 @@ interface Computed {
 
 interface Methods {
     onSeekbarClick(event: MouseEvent): void;
+    onSeekMouseMove(event: MouseEvent): void;
+    onSeekMouseMove(): void;
 }
 
 export default Vue.extend({
@@ -112,7 +116,7 @@ export default Vue.extend({
 
             if (!isLoaded) return "-- : --";
 
-            const previewTime = Math.round(songLength! * previewPercent / 100);
+            const previewTime = songLength! * previewPercent / 100;
             return Utilities.displaySecondsString(previewTime);
         },
         currentTimePercent() {
@@ -124,21 +128,6 @@ export default Vue.extend({
             return currentTime / songLength! * 100;
         }
     },
-    mounted() {
-        const seekbarEl = this.$refs.seekbarEl as HTMLElement;
-
-        seekbarEl.addEventListener("mousemove", (event) => {
-            const posPercent = event.offsetX / seekbarEl.offsetWidth * 100;
-
-            this.displayPreview = true;
-            this.previewPercent = posPercent;
-        });
-
-        seekbarEl.addEventListener("mouseout", () => {
-            this.displayPreview = false;
-            this.previewPercent = 0;
-        });
-    },
     methods: {
         onSeekbarClick(event: MouseEvent) {
             const { songLength }: Props = this;
@@ -148,9 +137,23 @@ export default Vue.extend({
             if (!isLoaded) return;
 
             const posPercent = event.offsetX / seekbarEl.offsetWidth;
-            const seekToTime = Math.round(songLength! * posPercent);
+            const seekToTime = songLength! * posPercent;
 
             this.$emit("seek", seekToTime);
+        },
+        onSeekMouseMove(event: MouseEvent) {
+            const seekbarEl = this.$refs.seekbarEl as HTMLElement;
+
+            const posPercent = event.offsetX / seekbarEl.offsetWidth * 100;
+
+            this.displayPreview = true;
+            this.previewPercent = posPercent;
+        },
+        onSeekMouseLeave() {
+            const seekbarEl = this.$refs.seekbarEl as HTMLElement;
+
+            this.displayPreview = false;
+            this.previewPercent = 0;
         }
     }
 });

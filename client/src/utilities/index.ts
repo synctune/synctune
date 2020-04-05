@@ -152,6 +152,7 @@ export function remToPixel(rem: string): number {
  * @param totalSeconds The number of seconds.
  */
 export function displaySecondsString(totalSeconds: number) {
+    totalSeconds = Math.round(totalSeconds);
     const hours = Math.floor(totalSeconds / 3600);
     totalSeconds %= 3600;
     const minutes = Math.floor(totalSeconds / 60);
