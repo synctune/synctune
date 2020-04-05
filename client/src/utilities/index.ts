@@ -169,8 +169,8 @@ export function displaySecondsString(totalSeconds: number) {
     return `${minutesStr}:${secondsStr}`;
 }
 
-const codeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const codeLength = 9;
+const CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const CODE_LENGTH = 9;
 /**
  * Makes a random choice from a string of characters
  * @param source String from which to choose characters
@@ -185,8 +185,8 @@ function choose(choices: string) {
  */
 export function generateRoomCode() {
     let code = "";
-    for (let pos = 0; pos < codeLength; pos++) {
-        code += choose(codeChars);
+    for (let pos = 0; pos < CODE_LENGTH; pos++) {
+        code += choose(CODE_CHARS);
     }
     return code;
 }
