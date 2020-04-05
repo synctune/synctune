@@ -55,14 +55,18 @@
             >
                 Music Controls
             </div>
+            <!-- TODO: implement song-length and current-time props -->
             <music-controls-container 
                 id="RoomOwnerView__music-controls"
                 :can-play="audioLoaded && (timesynced || !hasClients)"
                 :is-playing="isPlaying"
                 :track-title="audioTrackTitle"
+                :song-length="230"
+                :current-time="78"
                 @play="playAudio"
                 @pause="pauseAudio"
                 @stop="stopAudio"
+                @seek="seekAudio"
             />
         </div>
 
@@ -119,6 +123,7 @@ type Methods = {
     playAudio(): void;
     pauseAudio(): void;
     stopAudio(): void;
+    seekAudio(seekTime: number): void;
     gotoHomePage(): void;
     leaveRoom(): void;
 };
@@ -131,20 +136,6 @@ export default Vue.extend({
         UploadButton,
         SyncButton,
         BackButton
-    },
-    data() {
-        return {
-            // TODO: remove
-            tempSyncing: false,
-            tempSyncProgress: 0,
-            mockClients: [
-                { id: "ad2q23eq", nickname: "Alec", status: "ready" },
-                { id: "dadawwa78", nickname: "Jeff", status: "syncing" },
-                { id: "ddwa7da", nickname: "Anto", status: "uploading", uploadProgress: 50 },
-                { id: "ddaw8vb", nickname: "Kamin", status: "loading" },
-                { id: "wdwa9f09", nickname: "Thierry Mr Long Name", status: "error" }
-            ]
-        }
     },
     computed: {
         ...mapGetters({
@@ -191,30 +182,12 @@ export default Vue.extend({
     },
     methods: {
         kickClient(clientId: string) {
-            // TODO: implement
-            console.log("Kicking client", clientId);
-
-            // // TODO: remove this stuff
-            // // Test code that randomly changes the status of the client whenever the kick button is clicked
-            // const idx = this.mockClients.findIndex((data: any) => data.id === clientId);
-            // const rand = Math.floor(Math.random() * Math.floor(5));
-            // const statusMap = ['ready', 'syncing', 'uploading', 'loading', 'error'];
-            // console.log(`Setting status of client '${clientId}'(${idx}) to '${statusMap[rand]}'`);
-            // this.mockClients[idx].status = statusMap[rand];
+            const connectionManager = this.connectionManager as ConnectionManager;
+            connectionManager.kickClient(clientId);
         },
         timesyncClients() {
             const connectionManager = this.connectionManager as ConnectionManager;
             connectionManager.synchronizeClocks();
-
-            // // TODO: remove this stuff
-            // this.tempSyncProgress = 0;
-            // this.tempSyncing = true;
-
-            // setTimeout(() => this.tempSyncProgress = 10, 700);
-            // setTimeout(() => this.tempSyncProgress = 45, 1600);
-            // setTimeout(() => this.tempSyncProgress = 80, 2200);
-            // setTimeout(() => this.tempSyncProgress = 90, 2800);
-            // setTimeout(() => { this.tempSyncProgress = 100; this.tempSyncing = false }, 3650);
         },
         onAudioFileChange(e: MouseEvent) {
             const { syncAudioFile, stopAudio }: Methods = this;
@@ -250,6 +223,10 @@ export default Vue.extend({
         stopAudio() {
             const connectionManager = this.connectionManager as ConnectionManager;
             connectionManager.sendStopSignal();
+        },
+        seekAudio(seekTime: number) {
+            // TODO: implement
+            console.log("Seek audio to", seekTime);
         },
         gotoHomePage() {
             const router = this.$router as VueRouter;
@@ -342,7 +319,7 @@ export default Vue.extend({
             width: 100%;
             max-width: $max-container-width;
 
-            // min-height: $connected-devices-min-height;
+            // min-height: $connected-devices-min-height; // TODO: remove?
 
             display: flex;
             flex-direction: column;
@@ -357,8 +334,6 @@ export default Vue.extend({
                 flex-grow: 0;
                 flex-shrink: 1;
                 min-height: 0;
-
-                // overflow: auto;
             }
         }
 

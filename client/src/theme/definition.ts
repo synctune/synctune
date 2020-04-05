@@ -55,6 +55,7 @@ export const schema: Schema = {
     // --- Component Scope Declarations ---
     // Misc components
     AudioVisualizerCircle: { $inherits: "GLOBAL" },
+    AudioSeekbar: { $inherits: "GLOBAL" },
     Container: { $inherits: "GLOBAL" },
     ArtworkThumbnail: { $inherits: "GLOBAL"},
     RoomStatus: { $inherits: "GLOBAL" },

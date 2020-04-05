@@ -144,3 +144,26 @@ export function remToPixel(rem: string): number {
     const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
     return remVal * rootPx;
 }
+
+// TODO: reference https://stackoverflow.com/questions/1322732/convert-seconds-to-hh-mm-ss-with-javascript
+/**
+ * Converts the given amount of seconds into a more readable format.
+ * 
+ * @param totalSeconds The number of seconds.
+ */
+export function displaySecondsString(totalSeconds: number) {
+    const hours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    const minutesStr = `${minutes}`.padStart(2, "0");
+    const secondsStr = `${seconds}`.padStart(2, "0");
+
+    if (hours > 0) {
+        const hoursStr = `${hours}`.padStart(2, "0");
+        return `${hoursStr}:${minutesStr}:${secondsStr}`;
+    }
+
+    return `${minutesStr}:${secondsStr}`;
+}
