@@ -24,3 +24,6 @@ NODE_ENV = "production"
 from = "/*"
 to = "/index.html"
 status = 200
+
+[[plugins]]
+package = "netlify-plugin-debug-cache"
