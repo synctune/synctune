@@ -9,7 +9,7 @@
             <div id="RoomClientView__room-code-title">
                 Room Code:
             </div>
-            <div id="RoomClientView__room-code">
+            <div id="RoomClientView__room-code" class="GLOBAL-monospace-font">
                 {{ roomName }}
             </div>
         </div>

@@ -10,7 +10,10 @@
         </button-primary>
 
         <input-field 
-            class="ButtonInputHybrid__input"
+            :class="[
+                'ButtonInputHybrid__input', 
+                (hasValue) ? 'GLOBAL-monospace-font' : null
+            ]"
             :placeholder="inputPlaceholder"
             :disabled="inputDisabled"
             :value="value"
@@ -28,6 +31,8 @@ import InputField from "@/components/ui/forms/InputField.vue";
 interface Props {
     buttonDisabled: boolean;
     inputDisabled: boolean;
+    inputPlaceholder: string;
+    value: string;
 }
 
 export default Vue.extend({
@@ -50,6 +55,12 @@ export default Vue.extend({
         },
         // v-model passthrough stuff
         value: String,
+    },
+    computed: {
+        hasValue() {
+            const { value }: Props = this;
+            return !!value;
+        }
     },
     methods: {
         onButtonClick(e: MouseEvent) {
@@ -74,6 +85,9 @@ export default Vue.extend({
         display: flex;
         flex-direction: column;
 
+        width: 100%;
+        max-width: 23rem;
+
         & /deep/ .ButtonInputHybrid__button {
             border-radius: 0.5rem 0.5rem 0 0;
 
@@ -87,8 +101,16 @@ export default Vue.extend({
 
             border-radius: 0 0 0.5rem 0.5rem;
 
+            font-size: 1.6rem;
+            line-height: 1.8rem;
+
             &:focus {
                 border-top: 0.1rem solid color-link("InputField", "accent", "secondary", 0);
+            }
+
+            &.GLOBAL-monospace-font {
+                font-size: 1.55rem;
+                letter-spacing: 0.2rem;
             }
         }
     }
