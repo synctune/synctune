@@ -9,7 +9,7 @@ base = "client/"
 # been specified, include it in the publish directory path.
 publish = "/dist/"
 # Default build command.
-command = "npm run build"
+command = "npm install && npm run build"
 
 [build.environment]
 VUE_APP_ROOM_SERVER_URL = "https://synctune.herokuapp.com"
