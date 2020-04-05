@@ -183,4 +183,6 @@ export default Vue.extend({
             }
         }
     }
+
+    @include transition-effect(slide-rr, 0.3s);
 </style>

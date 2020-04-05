@@ -30,4 +30,21 @@
             left: calc(#{$abs-target} + #{$anim-amount});
         }
     }
+
+    @if $transition == slide-rr {
+        $anim-name: slide-rr;
+        $anim-amount: 30px;
+
+        .#{$anim-name}-enter-active, .#{$anim-name}-leave-active {
+            transition: opacity $duration, transform $duration !important;
+        }
+    
+        .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+            opacity: 0;
+        }
+
+        .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+            transform: translateX($anim-amount);
+        }
+    }
 }

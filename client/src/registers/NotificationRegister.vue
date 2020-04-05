@@ -3,6 +3,7 @@
         <notifications 
             position="top right"
             group="notification"
+            animation-name="slide-rr"
             v-bind="$attrs"
         >
             <!-- This toggle system is unfortunately needed due to how Vue-Notifications works -->
