@@ -107,7 +107,6 @@ type Computed = {
     | RoomStore.Getters.id 
     | RoomStore.Getters.roomName 
     | RoomStore.Getters.timesynced
-    | RoomStore.Getters.timesyncProgressCounter
 > & Pick<AudioStore.MapGettersStructure,
     AudioStore.Getters.isPlaying
     | AudioStore.Getters.audioBuffer
@@ -154,7 +153,6 @@ export default Vue.extend({
             currentTime: AudioStore.Getters.currentTime,
             pausedAt: AudioStore.Getters.pausedAt,
             timesynced: RoomStore.Getters.timesynced,
-            timesyncProgressCounter: RoomStore.Getters.timesyncProgressCounter
         }),
         audioTrackTitle() {
             const audioFileMetadata = this.audioFileMetadata as AudioFileMetadata;
@@ -181,8 +179,7 @@ export default Vue.extend({
             });
         },
         syncProgress() {
-            const { timesyncProgressCounter }: Computed = this;
-            return timesyncProgressCounter / TIMESYNC_REPEAT / 2 * 100;
+            return null;
         },
         songLength() {
             const { audioLoaded, audioBuffer }: Computed = this;

@@ -26,7 +26,6 @@ export interface RoomState {
     connectedClients: Client[];
     roomName: string;
     timesynced: boolean;
-    timesyncProgressCounter: number;
 }
 
 export enum Getters {
@@ -37,7 +36,6 @@ export enum Getters {
     connectionManager = "connectionManager",
     roomName = "roomName",
     timesynced = "timesynced",
-    timesyncProgressCounter = "timesyncProgressCounter"
 }
 
 export enum Mutations {}
@@ -52,7 +50,6 @@ export interface MapGettersStructure {
     [Getters.connectionManager]: ConnectionManager;
     [Getters.roomName]: string;
     [Getters.timesynced]: boolean;
-    [Getters.timesyncProgressCounter]: number;
 }
 
 export interface MapMutationsStructure {}
@@ -92,16 +89,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
 
     connectionManager.addEventListener("timesyncchanged", (timesynced) => {
         Vue.set(state, "timesynced", timesynced);
-
-        // Reset progress counter if timesync is just starting
-        if (timesynced == false) {
-            Vue.set(state, "timesyncProgressCounter", 0);
-        }
-    });
-
-    connectionManager.addEventListener("timesyncsent", () => {
-        // Increment the timesync progress counter
-        Vue.set(state, "timesyncProgressCounter", state.timesyncProgressCounter + 1);
     });
 
     connectionManager.addEventListener("clienttimesyncchanged", ({ clientId, timesynced }) => {
@@ -247,8 +234,7 @@ const state: RoomState = {
     isOwner: false,
     connectedClients: [],
     roomName: "",
-    timesynced: false,
-    timesyncProgressCounter: 0
+    timesynced: false
 };
 
 setupConnectionManagerListeners(state, state.connectionManager);
@@ -274,9 +260,6 @@ const getters: GetterTree<RoomState, RootState> = {
     },
     [Getters.timesynced](state): boolean {
         return state.timesynced;
-    },
-    [Getters.timesyncProgressCounter](state): number {
-        return state.timesyncProgressCounter;
     }
 };
 
