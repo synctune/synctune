@@ -64,6 +64,7 @@ import { mapGetters } from "vuex";
 import { NICKNAME_STORAGE_KEY } from "../../constants";
 import * as RoomStore from "../../store/modules/room";
 import * as Utilities from "../../utilities";
+import ConnectionManager from '../../managers/ConnectionManager';
 
 import Container from "@/components/ui/Container.vue";
 import InputField from "@/components/ui/forms/InputField.vue";
@@ -82,6 +83,7 @@ type Computed = {
     validNickname(): boolean;
 } & Pick<RoomStore.MapGettersStructure,
     RoomStore.Getters.isConnected
+    | RoomStore.Getters.connectionManager
 >
 
 interface Methods {
@@ -113,7 +115,8 @@ export default Vue.extend({
     },
     computed: {
         ...mapGetters({
-            isConnected: RoomStore.Getters.isConnected
+            isConnected: RoomStore.Getters.isConnected,
+            connectionManager: RoomStore.Getters.connectionManager
         }),
         validRoomName() {
             const { roomName }: Data = this;
@@ -147,8 +150,11 @@ export default Vue.extend({
     },
     watch: {
         nickname(newNickname: string) {
+            const connectionManager = this.connectionManager as ConnectionManager;
+
             // Store updated nickname in local storage
             localStorage.setItem(NICKNAME_STORAGE_KEY, newNickname);
+            connectionManager.setNickname(newNickname);
         }
     }
 });

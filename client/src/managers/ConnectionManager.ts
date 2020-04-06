@@ -1156,6 +1156,15 @@ export default class ConnectionManager extends Emittable {
         return (clientData) ? clientData.nickname : null;
     }
 
+    /**
+     * Update the nickname of self.
+     * 
+     * @param newNickname The new nickname.
+     */
+    setNickname(newNickname: string) {
+        this._nickname = newNickname;
+    }
+
     // ---------------
     // --- Getters ---
     // ---------------
