@@ -36,8 +36,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapActions } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import * as ThemeStore from "./store/modules/theme";
+import * as RoomStore from "./store/modules/room";
 import { Route } from 'vue-router';
 import { DEFAULT_NAMESPACE, DEFAULT_THEME, DEFAULT_DOCUMENT_TITLE } from "./constants";
 
@@ -55,6 +56,13 @@ const { CSSPlugin, AttrPlugin } = require("gsap/all");
 interface Data {
     defaultNamespace: string;
 }
+
+type Computed = {
+
+} & Pick<RoomStore.MapGettersStructure,
+    RoomStore.Getters.isConnected
+    | RoomStore.Getters.roomName
+>
 
 type Methods = {
     instantiateThemes(): void;
@@ -87,9 +95,16 @@ export default Vue.extend({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const plugins = [ CSSPlugin, AttrPlugin ];
 
+        // Update title
         const { updateTitle }: Methods = this;
         const route = this.$route as Route;
         updateTitle(route.meta.title);
+    },
+    computed: {
+        ...mapGetters({
+            isConnected: RoomStore.Getters.isConnected,
+            roomName: RoomStore.Getters.roomName
+        })
     },
     methods: {
         ...mapActions({
@@ -119,7 +134,14 @@ export default Vue.extend({
             });
         },
         updateTitle(title: string) {
-            document.title = title || DEFAULT_DOCUMENT_TITLE;
+            const { isConnected, roomName }: Computed = this;
+
+            // Ignore given title if connected to a room
+            if (isConnected) {
+                document.title = `SyncTune | Room ${roomName}`;
+            } else {
+                document.title = title || DEFAULT_DOCUMENT_TITLE;
+            }
         }
     },
     watch: {
