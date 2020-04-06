@@ -26,7 +26,9 @@
             :button-disabled="!validRoomName || isConnected || !validNickname"
             :input-disabled="isConnected"
             input-placeholder="Enter Room Code"
-            v-model="roomName"
+            
+            :value="roomName"
+            @input="updateRoomName"
         >
             Join Room
         </button-input-hybrid>
@@ -75,6 +77,7 @@ type Computed = {
 interface Methods {
     joinRoom(): void;
     createRoom(): void;
+    updateRoomName(value: string);
 }
 
 export default Vue.extend({
@@ -127,6 +130,9 @@ export default Vue.extend({
             const id = Utilities.generateRoomCode();
 
             router.push({ path: `/room/create/${id}` }).catch(err => {});
+        },
+        updateRoomName(value: string) {
+            this.roomName = value.toUpperCase();
         }
     },
     watch: {

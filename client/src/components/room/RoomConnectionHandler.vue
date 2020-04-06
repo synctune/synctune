@@ -133,26 +133,33 @@ export default Vue.extend({
         const router = this.$router as VueRouter;
 
         const targetRoom = route.params["id"];
-        this.roomName = (targetRoom) ? targetRoom : "";
+        this.roomName = (targetRoom) ? targetRoom.toUpperCase() : "";
 
         if (isConnected && connectionManager.room !== targetRoom) {
             NotificationManager.showErrorNotification(this, "Already connected to a room.");
 
             router.push("/").catch(err => {}); // Redirect to home
+            return;
+        }
+
+        if (!targetRoom) {
+            NotificationManager.showErrorNotification(this, `No room name provided.`);
+            router.push("/").catch(err => {}); // Redirect to home
+            return;
         }
 
         connectionManager.leaveRoom();
 
         // Join the room
         if (mode === "join") {
-            connectionManager.joinRoom(targetRoom);
+            connectionManager.joinRoom(targetRoom.toUpperCase());
 
             connectionManager.addEventListener("room-not-exists", onFail);
             connectionManager.addEventListener("room-joined", onSuccess);
         } 
         // Create room
         else if (mode === "create") {
-            connectionManager.createRoom(targetRoom);
+            connectionManager.createRoom(targetRoom.toUpperCase());
 
             connectionManager.addEventListener("room-already-exists", onFail);
             connectionManager.addEventListener("room-created", onSuccess);
