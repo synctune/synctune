@@ -1,6 +1,7 @@
 <template>
     <input 
         class="InputField"
+        v-bind="$attrs"
         :type="type" 
         :disabled="disabled"
         :value="value"

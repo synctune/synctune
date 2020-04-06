@@ -14,6 +14,7 @@
                 'ButtonInputHybrid__input', 
                 (hasValue) ? 'GLOBAL-monospace-font' : null
             ]"
+            v-bind="$attrs"
             :placeholder="inputPlaceholder"
             :disabled="inputDisabled"
             :value="value"

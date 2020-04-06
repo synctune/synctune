@@ -18,6 +18,11 @@
             placeholder="Enter Nickname"
             v-model="nickname"
             :disabled="isConnected"
+
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="off" 
+            spellcheck="false"
         />
 
         <button-input-hybrid
@@ -26,9 +31,14 @@
             :button-disabled="!validRoomName || isConnected || !validNickname"
             :input-disabled="isConnected"
             input-placeholder="Enter Room Code"
-            
+
             :value="roomName"
             @input="updateRoomName"
+
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="off" 
+            spellcheck="false"
         >
             Join Room
         </button-input-hybrid>
@@ -132,7 +142,7 @@ export default Vue.extend({
             router.push({ path: `/room/create/${id}` }).catch(err => {});
         },
         updateRoomName(value: string) {
-            this.roomName = value.toUpperCase();
+            this.roomName = value.trim().toUpperCase();
         }
     },
     watch: {

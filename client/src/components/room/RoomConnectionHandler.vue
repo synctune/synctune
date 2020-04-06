@@ -148,18 +148,20 @@ export default Vue.extend({
             return;
         }
 
+        const targetRoomSanitized = targetRoom.trim().toUpperCase();
+
         connectionManager.leaveRoom();
 
         // Join the room
         if (mode === "join") {
-            connectionManager.joinRoom(targetRoom.toUpperCase());
+            connectionManager.joinRoom(targetRoomSanitized);
 
             connectionManager.addEventListener("room-not-exists", onFail);
             connectionManager.addEventListener("room-joined", onSuccess);
         } 
         // Create room
         else if (mode === "create") {
-            connectionManager.createRoom(targetRoom.toUpperCase());
+            connectionManager.createRoom(targetRoomSanitized);
 
             connectionManager.addEventListener("room-already-exists", onFail);
             connectionManager.addEventListener("room-created", onSuccess);
