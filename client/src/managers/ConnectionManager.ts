@@ -8,7 +8,7 @@ import {
     TIMESYNC_DELAY, 
     TIMESYNC_REPEAT, 
     TIMESYNC_TIMEOUT,
-    AUDIO_CHUNK_SIZE } from "../constants/generalConstants";
+    AUDIO_CHUNK_SIZE } from "../constants";
 
 axios.defaults.withCredentials = true;
 
@@ -23,6 +23,7 @@ export interface AudioFileMetadata {
 interface PlaySignalData {
     startLocation: number;
     startTime: number;
+    instant: boolean;
 }
 
 interface SyncingData {
@@ -831,43 +832,46 @@ export default class ConnectionManager extends Emittable {
      *
      * @param startLocation The location in the song to start at
      * @param delay How far in the future the start time signal should be set (in milliseconds)
+     * @param localOnly Send the play signal locally only
+     * @param instant Play instantly, ignoring any syncing precautions
      *
      * @return Returns the start timestamp
      */
-    sendPlaySignal(startLocation: number, delay = 100): number {
+    sendPlaySignal(startLocation: number, delay = 100, localOnly = false, instant = false): number {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return -1;
         }
 
-        if (!this.isOwner) {
+        if (!this.isOwner && !localOnly) {
             this.emitEvent("error", "Unable to send play signal: not room owner");
             return -1;
         }
 
         const timesync = this._timesync;
         const now = timesync.now();
-        // TODO: use synced time
-        // const now = Date.now();
         const startTime = now + delay;
 
         const data: PlaySignalData = {
             startLocation,
-            startTime
+            startTime,
+            instant
         };
 
-        const messageData: MessageData = {
-            type: "play",
-            data
-        };
-
-        const clients = this.clientIds;
-        clients.forEach(clientId => {
-            if (clientId === this._id) return;
-
-            const sendChannel = this._peerConnections[clientId].connection;
-            sendChannel.send(messageData);
-        });
+        if (!localOnly) {
+            const messageData: MessageData = {
+                type: "play",
+                data
+            };
+    
+            const clients = this.clientIds;
+            clients.forEach(clientId => {
+                if (clientId === this._id) return;
+    
+                const sendChannel = this._peerConnections[clientId].connection;
+                sendChannel.send(messageData);
+            });
+        }
 
         console.log("sending play signal"); // TODO: remove
 

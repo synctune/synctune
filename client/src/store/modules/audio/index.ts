@@ -44,6 +44,10 @@ interface PausedAtPayload {
     pausedAt: number;
 }
 
+interface TotalCompensationPayload {
+    totalCompensation: number;
+}
+
 // --- Store Type Declarations ---
 
 export interface AudioState {
@@ -57,6 +61,7 @@ export interface AudioState {
     currentTime: number;
     startedAt: number;
     pausedAt: number;
+    totalCompensation: number;
 }
 
 export enum Getters {
@@ -69,7 +74,8 @@ export enum Getters {
     audioLoaded = "audioLoaded",
     currentTime = "currentTime",
     startedAt = "startedAt",
-    pausedAt = "pausedAt"
+    pausedAt = "pausedAt",
+    totalCompensation = "totalCompensation"
 }
 
 export enum Mutations {
@@ -81,7 +87,8 @@ export enum Mutations {
     setAudioLoaded = "setAudioLoaded",
     setCurrentTime = "setCurrentTime",
     setStartedAt = "setStartedAt",
-    setPausedAt = "setPausedAt"
+    setPausedAt = "setPausedAt",
+    setTotalCompensation = "setTotalCompensation"
 }
 
 export enum Actions {
@@ -93,7 +100,8 @@ export enum Actions {
     setAudioLoaded = "setAudioLoaded",
     setCurrentTime = "setCurrentTime",
     setStartedAt = "setStartedAt",
-    setPausedAt = "setPausedAt"
+    setPausedAt = "setPausedAt",
+    setTotalCompensation = "setTotalCompensation"
 }
 
 export interface MapGettersStructure {
@@ -107,6 +115,7 @@ export interface MapGettersStructure {
     [Getters.currentTime]: number;
     [Getters.startedAt]: number;
     [Getters.pausedAt]: number;
+    [Getters.totalCompensation]: number;
 }
 
 export interface MapMutationsStructure {
@@ -119,6 +128,7 @@ export interface MapMutationsStructure {
     [Mutations.setCurrentTime](payload: CurrentTimePayload): void;
     [Mutations.setStartedAt](payload: StartedAtPayload): void;
     [Mutations.setPausedAt](payload: PausedAtPayload): void;
+    [Mutations.setTotalCompensation](payload: TotalCompensationPayload): void;
 }
 
 export interface MapActionsStructure {
@@ -131,6 +141,7 @@ export interface MapActionsStructure {
     [Actions.setCurrentTime](payload: CurrentTimePayload): void;
     [Actions.setStartedAt](payload: StartedAtPayload): void;
     [Actions.setPausedAt](payload: PausedAtPayload): void;
+    [Actions.setTotalCompensation](payload: TotalCompensationPayload): void;
 }
 
 // -------------------
@@ -149,7 +160,8 @@ const state: AudioState = {
     audioLoaded: false,
     currentTime: 0,
     startedAt: 0,
-    pausedAt: 0
+    pausedAt: 0,
+    totalCompensation: 0
 };
 
 const getters: GetterTree<AudioState, RootState> = {
@@ -182,6 +194,9 @@ const getters: GetterTree<AudioState, RootState> = {
     },
     [Getters.pausedAt](state): number {
         return state.pausedAt;
+    },
+    [Getters.totalCompensation](state): number {
+        return state.totalCompensation;
     }
 };
 
@@ -213,6 +228,9 @@ const mutations: MutationTree<AudioState> = {
     [Mutations.setPausedAt](state, { pausedAt }: PausedAtPayload) {
         Vue.set(state, "pausedAt", pausedAt);
     },
+    [Mutations.setTotalCompensation](state, { totalCompensation }: TotalCompensationPayload) {
+        Vue.set(state, "totalCompensation", totalCompensation);
+    }
 };
 
 const actions: ActionTree<AudioState, RootState> = {
@@ -243,6 +261,9 @@ const actions: ActionTree<AudioState, RootState> = {
     [Actions.setPausedAt]({ commit }, payload: PausedAtPayload) {
         commit(Mutations.setPausedAt, payload);
     },
+    [Actions.setTotalCompensation]({ commit }, payload: TotalCompensationPayload) {
+        commit(Mutations.setTotalCompensation, payload);
+    }
 };
 
 const storeModule: Module<AudioState, RootState> = {

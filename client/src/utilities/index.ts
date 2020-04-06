@@ -190,3 +190,14 @@ export function generateRoomCode() {
     }
     return code;
 }
+
+/**
+ * Clamps a number by b and c
+ * 
+ * @param a The value to clamp
+ * @param b The lower bound value
+ * @param c The upper bound value
+ */
+export function clamp(a: number, b: number, c: number) {
+    return Math.max(b, Math.min(a, c));
+}

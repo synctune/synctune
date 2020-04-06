@@ -134,7 +134,7 @@ export default Vue.extend({
             const { isLoaded }: Computed = this;
             const seekbarEl = this.$refs.seekbarEl as HTMLElement;
 
-            if (!isLoaded) return;
+            if (!isLoaded || !seekbarEl) return;
 
             const posPercent = event.offsetX / seekbarEl.offsetWidth;
             const seekToTime = songLength! * posPercent;
@@ -144,14 +144,14 @@ export default Vue.extend({
         onSeekMouseMove(event: MouseEvent) {
             const seekbarEl = this.$refs.seekbarEl as HTMLElement;
 
+            if (!seekbarEl) return;
+
             const posPercent = event.offsetX / seekbarEl.offsetWidth * 100;
 
             this.displayPreview = true;
             this.previewPercent = posPercent;
         },
         onSeekMouseLeave() {
-            const seekbarEl = this.$refs.seekbarEl as HTMLElement;
-
             this.displayPreview = false;
             this.previewPercent = 0;
         }

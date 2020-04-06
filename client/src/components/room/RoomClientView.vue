@@ -53,8 +53,9 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import { mapState, mapGetters, mapActions } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
+import { AUDIO_COMPENSATE_AMOUNT } from "../../constants";
 
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import BackButton from "@/components/ui/button/BackButton.vue";
@@ -71,6 +72,10 @@ type Computed = {
     AudioStore.Getters.isPlaying
     | AudioStore.Getters.audioFileMetadata
     | AudioStore.Getters.audioLoaded
+    | AudioStore.Getters.audioContext
+    | AudioStore.Getters.audioBuffer
+    | AudioStore.Getters.startedAt
+    | AudioStore.Getters.totalCompensation
 >;
 
 type Methods = {
@@ -78,7 +83,10 @@ type Methods = {
     onLeaveRoom(): void;
     compensateForwards(): void;
     compensateBackwards(): void;
-} 
+    compensateAudio(compensationAmount: number): void;
+} & Pick<AudioStore.MapActionsStructure, 
+    AudioStore.Actions.setTotalCompensation
+>
 
 export default Vue.extend({
     components: {
@@ -94,6 +102,10 @@ export default Vue.extend({
             isPlaying: AudioStore.Getters.isPlaying,
             audioFileMetadata: AudioStore.Getters.audioFileMetadata,
             audioLoaded: AudioStore.Getters.audioLoaded,
+            audioContext: AudioStore.Getters.audioContext,
+            audioBuffer: AudioStore.Getters.audioBuffer,
+            startedAt: AudioStore.Getters.startedAt,
+            totalCompensation: AudioStore.Getters.totalCompensation
         }),
         audioTrackTitle() {
             const audioFileMetadata = this.audioFileMetadata as AudioFileMetadata;
@@ -101,6 +113,9 @@ export default Vue.extend({
         },
     },
     methods: {
+        ...mapActions({
+            setTotalCompensation: AudioStore.Actions.setTotalCompensation
+        }),
         gotoHomePage() {
             const router = this.$router as VueRouter;
             router.push("/").catch(err => {});
@@ -110,10 +125,24 @@ export default Vue.extend({
             connectionManager.leaveRoom();
         },
         compensateForwards() {
-            // TODO: implement
+            const { compensateAudio }: Methods = this;
+            compensateAudio(AUDIO_COMPENSATE_AMOUNT);
         },
         compensateBackwards() {
-            // TODO: implement
+            const { compensateAudio }: Methods = this;
+            compensateAudio(-1 * AUDIO_COMPENSATE_AMOUNT);
+        },
+        compensateAudio(compensationAmount: number) {
+            const { audioContext, audioBuffer, startedAt, totalCompensation }: Computed = this;
+            const { setTotalCompensation }: Methods = this;
+            const connectionManager = this.connectionManager as ConnectionManager;
+
+            // Update total compensation
+            const newTotalCompensation = totalCompensation + compensationAmount;
+            setTotalCompensation({ totalCompensation: newTotalCompensation });
+
+            // Play audio at newly compensated time
+            connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, true, true);
         }
     }
 })

@@ -44,7 +44,7 @@ import themes from "./theme/themes";
 import ThemeProvider from "./components/wrappers/ThemeProvider.vue";
 import RoomStatus from "./components/sticky/RoomStatus.vue";
 import AudioPlayer from "./components/sticky/AudioPlayer.vue";
-import { DEFAULT_NAMESPACE, DEFAULT_THEME } from "./constants/generalConstants";
+import { DEFAULT_NAMESPACE, DEFAULT_THEME } from "./constants";
 import NotificationRegister from "@/registers/NotificationRegister.vue";
 
 // No type declarations for these

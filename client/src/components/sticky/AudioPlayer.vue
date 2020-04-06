@@ -4,6 +4,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import * as Utilities from "../../utilities";
 import { mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
@@ -38,13 +39,14 @@ type Computed = {}
         | AudioStore.Getters.currentTime
         | AudioStore.Getters.startedAt
         | AudioStore.Getters.pausedAt
+        | AudioStore.Getters.totalCompensation
     >;
 
 type Methods = {
     setupConnectionManagerListeners(connectionManager: ConnectionManager): void;
     loadAudioFile(audioFile: Blob): void;
     unloadAudioFile(): void;
-    playAudio(startLocation: number, startTime: number): void;
+    playAudio(startLocation: number, startTime: number, instant: boolean): void;
     pauseAudio(): void;
     stopAudio(): void;
     onCanPlayThrough(): void;
@@ -86,6 +88,7 @@ export default Vue.extend({
             currentTime: AudioStore.Getters.currentTime,
             startedAt: AudioStore.Getters.startedAt,
             pausedAt: AudioStore.Getters.pausedAt,
+            totalCompensation: AudioStore.Getters.totalCompensation
         })
     },
     mounted() {
@@ -136,7 +139,7 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("playsignalreceived", (data) => {
-                playAudio(data.startLocation, data.startTime);
+                playAudio(data.startLocation, data.startTime, data.instant);
             });
 
             connectionManager.addEventListener("pausesignalreceived", (sentTime) => {
@@ -256,7 +259,7 @@ export default Vue.extend({
                 playAudio(cachedPlaySignal.startLocation, cachedPlaySignal.startTime);
             }
         },
-        async playAudio(startLocation: number, startTime: number) {
+        async playAudio(startLocation: number, startTime: number, instant: boolean) {
             console.log("Received play signal", startLocation); // TODO: remove
 
             const { cachedPlaySignal }: Data = this;
@@ -311,13 +314,9 @@ export default Vue.extend({
             setAudioSource({ audioSource: newAudioSource });
             let offset = startLocation;
 
-            // Ignore locally saved pause location if not the room owner
-            if (!connectionManager.isOwner) {
-                offset = startLocation;
-            }
-
             // Overshoot is the amount of milliseconds we overshot the target delay by
             const startAudio = (overshoot = 0) => {
+                const { totalCompensation, audioBuffer }: Computed = this;
                 console.log(">> Playing audio at", offset, "with overshoot", overshoot); // TODO: remove
 
                 // Stop any audio that may be already playing
@@ -327,8 +326,9 @@ export default Vue.extend({
                     prevAudioSource.stop();
                 }
 
-                // Start the audio from the given offset, accounting for any overshoot
-                newAudioSource.start(0, offset + (overshoot / 1000));
+                // Start the audio from the given offset, accounting for any overshoot and manual compensation
+                const startTime = Utilities.clamp(offset + (overshoot / 1000) + totalCompensation, 0, audioBuffer.duration);
+                newAudioSource.start(0, startTime);
 
                 setStartedAt({ startedAt: audioContext.currentTime - offset });
                 setPausedAt({ pausedAt: 0 });
@@ -338,21 +338,25 @@ export default Vue.extend({
                 startCurrTimeUpdator();
             }
 
-            const startDelay = startTime - connectionManager.now();
-            // If we received a start time that already passed
-            if (startDelay <= 0) {
-                // We need to attempt to make up for it by seeking forward by 
-                // however much time we missed
-                offset += -1 * (startDelay / 1000);
-
+            if (instant) {
                 startAudio();
-            } 
-            // Otherwise we need to wait until the our time reaches the start time
-            else {
-                const timeout = new HighResolutionTimeout(startDelay, (overshoot) => {
-                    startAudio(overshoot);
-                });
-                timeout.start();
+            } else {
+                const startDelay = startTime - connectionManager.now();
+                // If we received a start time that already passed
+                if (startDelay <= 0) {
+                    // We need to attempt to make up for it by seeking forward by 
+                    // however much time we missed
+                    offset += -1 * (startDelay / 1000);
+
+                    startAudio();
+                } 
+                // Otherwise we need to wait until the our time reaches the start time
+                else {
+                    const timeout = new HighResolutionTimeout(startDelay, (overshoot) => {
+                        startAudio(overshoot);
+                    });
+                    timeout.start();
+                }
             }
         },
         async pauseAudio() {

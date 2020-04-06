@@ -49,7 +49,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import { mapGetters } from "vuex";
-import { NICKNAME_STORAGE_KEY } from "../../constants/generalConstants";
+import { NICKNAME_STORAGE_KEY } from "../../constants";
 import * as RoomStore from "../../store/modules/room";
 import * as Utilities from "../../utilities";
 

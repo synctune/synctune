@@ -55,7 +55,7 @@
             >
                 Music Controls
             </div>
-            <!-- TODO: implement song-length and current-time props -->
+
             <music-controls-container 
                 id="RoomOwnerView__music-controls"
                 :can-play="audioLoaded && (timesynced || !hasClients)"
@@ -86,7 +86,7 @@ import VueRouter from 'vue-router';
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
-import { AUDIO_CHUNK_SIZE, TIMESYNC_REPEAT } from "../../constants/generalConstants";
+import { AUDIO_CHUNK_SIZE, TIMESYNC_REPEAT } from "../../constants";
 
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import ConnectedDevicesContainer, { Client as ContainerClient } from "./owner/ConnectedDevicesContainer.vue";
