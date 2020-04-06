@@ -4,7 +4,7 @@
             {{ prefixText }}
         </div>
 
-        <div id="RoomConnectionHandler__room-name">
+        <div id="RoomConnectionHandler__room-name" class="GLOBAL-monospace-font">
             {{ roomName }}
         </div>
 

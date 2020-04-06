@@ -254,7 +254,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
     $max-container-width: 45rem;
-    $connected-devices-min-height: 18rem;
     $vertical-margins: 1rem;
 
     #RoomOwnerView {
@@ -331,14 +330,8 @@ export default Vue.extend({
             width: 100%;
             max-width: $max-container-width;
 
-            // min-height: $connected-devices-min-height; // TODO: remove?
-
             display: flex;
             flex-direction: column;
-
-            & #RoomOwnerView__connected-devices-title {
-                
-            }
 
             & #RoomOwnerView__connected-devices {
                 min-height: 3rem;
@@ -352,18 +345,10 @@ export default Vue.extend({
         & #RoomOwnerView__music-controls-container {
             width: 100%;
             max-width: $max-container-width;
-
-            & #RoomOwnerView__music-controls-title {
-
-            }
-
-            & #RoomOwnerView__music-controls {
-
-            }
         }
 
         & #RoomOwnerView__leave-room {
-            
+            margin-bottom: 1rem;
         }
     }
 </style>

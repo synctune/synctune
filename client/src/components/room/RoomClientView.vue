@@ -209,5 +209,9 @@ export default Vue.extend({
             width: 100%;
             max-width: $max-container-width;
         }
+
+        & #RoomClientView__leave-room {
+            margin-bottom: 1rem;
+        }
     }
 </style>
