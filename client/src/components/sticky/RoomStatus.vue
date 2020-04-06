@@ -121,10 +121,18 @@ export default Vue.extend({
             const { audioFile, audioFileMetadata }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
 
-            if (audioFile && audioFileMetadata) {
-                console.log("syncing existing audio file to new client", clientId); // TODO: remove
-                connectionManager.syncAudioFile(audioFile, audioFileMetadata, [clientId]);
-            }
+            const TAG = `room-status-init-audio-sync-${clientId}`;
+
+            // Sync audio file once the intial timesync is complete
+            connectionManager.addEventListener("timesyncchanged", (timesynced) => {
+                if (timesynced && audioFile && audioFileMetadata) {
+                    console.log("syncing existing audio file to new client", clientId); // TODO: remove
+                    connectionManager.syncAudioFile(audioFile, audioFileMetadata, [clientId]);
+
+                    // Clear event listener for this client (so it doesn't get triggered again if a manual sync is run)
+                    connectionManager.removeEventListenersByTag("timesyncchanged", TAG);
+                }
+            }, TAG);
         },
         onToRoomClick() {
             // Go to room page

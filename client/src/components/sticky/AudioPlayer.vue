@@ -256,7 +256,7 @@ export default Vue.extend({
 
             if (cachedPlaySignal) {
                 console.log("Playing cached play signal", cachedPlaySignal); // TODO: remove
-                playAudio(cachedPlaySignal.startLocation, cachedPlaySignal.startTime);
+                playAudio(cachedPlaySignal.startLocation, cachedPlaySignal.startTime, false);
             }
         },
         async playAudio(startLocation: number, startTime: number, instant: boolean) {
@@ -327,7 +327,7 @@ export default Vue.extend({
                 }
 
                 // Start the audio from the given offset, accounting for any overshoot and manual compensation
-                const startTime = Utilities.clamp(offset + (overshoot / 1000) + totalCompensation, 0, audioBuffer.duration);
+                const startTime = Utilities.clamp(offset + (overshoot / 1000) + totalCompensation, 0, audioBuffer!.duration);
                 newAudioSource.start(0, startTime);
 
                 setStartedAt({ startedAt: audioContext.currentTime - offset });
