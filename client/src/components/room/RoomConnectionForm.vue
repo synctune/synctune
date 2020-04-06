@@ -89,7 +89,7 @@ type Computed = {
 interface Methods {
     joinRoom(): void;
     createRoom(): void;
-    updateRoomName(value: string);
+    updateRoomName(value: string): void;
 }
 
 export default Vue.extend({
