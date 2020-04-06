@@ -327,7 +327,7 @@ export default Vue.extend({
                 }
 
                 // Start the audio from the given offset, accounting for any overshoot and manual compensation
-                const startTime = Utilities.clamp(offset + (overshoot / 1000) + totalCompensation, 0, audioBuffer!.duration);
+                const startTime = Math.max(offset + (overshoot / 1000) + totalCompensation, 0);
                 newAudioSource.start(0, startTime);
 
                 setStartedAt({ startedAt: audioContext.currentTime - offset });
