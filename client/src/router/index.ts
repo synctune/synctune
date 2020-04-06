@@ -12,22 +12,34 @@ const routes: RouteConfig[] = [
     {
         path: "/",
         name: "home",
-        component: Home
+        component: Home,
+        meta: {
+            title: "SyncTune | Extend Your Sound"
+        }
     },
     {
         path: "/room",
         name: "room",
-        component: Room
+        component: Room,
+        meta: {
+            title: "SyncTune | Room"
+        }
     },
     {
         path: "/room/join/:id",
         name: "room-join",
-        component: RoomJoin
+        component: RoomJoin,
+        meta: {
+            title: "SyncTune | Joining Room"
+        }
     },
     {
         path: "/room/create/:id",
         name: "room-create",
-        component: RoomCreate
+        component: RoomCreate,
+        meta: {
+            title: "SyncTune | Creating Room"
+        }
     }
 ];
 

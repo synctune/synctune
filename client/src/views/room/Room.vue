@@ -10,8 +10,9 @@ import Vue from 'vue';
 import { mapState, mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
-import VueRouter from 'vue-router';
+import VueRouter, { Route } from 'vue-router';
 import * as NotificationManager from "../../managers/NotificationManager";
+import { DEFAULT_DOCUMENT_TITLE } from "../../constants";
 
 import RoomOwnerView from "@/components/room/RoomOwnerView.vue";
 import RoomClientView from "@/components/room/RoomClientView.vue";
@@ -20,6 +21,7 @@ type Computed = {
 } & Pick<RoomStore.MapGettersStructure, 
     | RoomStore.Getters.isConnected 
     | RoomStore.Getters.isOwner
+    | RoomStore.Getters.roomName
 >
 
 
@@ -32,10 +34,12 @@ export default Vue.extend({
         ...mapGetters({
             isConnected: RoomStore.Getters.isConnected,
             isOwner: RoomStore.Getters.isOwner,
+            roomName: RoomStore.Getters.roomName
         })
     },
     mounted() {
-        const { isConnected }: Computed = this;
+        const { isConnected, roomName }: Computed = this;
+
         if (!isConnected) {
             const router = this.$router as VueRouter;
 
@@ -44,6 +48,10 @@ export default Vue.extend({
             NotificationManager.showErrorNotification(this, "Error: not connected to a room");
             return;
         }
+
+        // Update title
+        const route = this.$route as Route;
+        document.title = `SyncTune | Room ${roomName}` || DEFAULT_DOCUMENT_TITLE;
     }
 });
 </script>

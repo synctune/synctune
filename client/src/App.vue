@@ -38,13 +38,14 @@
 import Vue from 'vue';
 import { mapActions } from "vuex";
 import * as ThemeStore from "./store/modules/theme";
+import { Route } from 'vue-router';
+import { DEFAULT_NAMESPACE, DEFAULT_THEME, DEFAULT_DOCUMENT_TITLE } from "./constants";
 
 import themes from "./theme/themes";
 
 import ThemeProvider from "./components/wrappers/ThemeProvider.vue";
 import RoomStatus from "./components/sticky/RoomStatus.vue";
 import AudioPlayer from "./components/sticky/AudioPlayer.vue";
-import { DEFAULT_NAMESPACE, DEFAULT_THEME } from "./constants";
 import NotificationRegister from "@/registers/NotificationRegister.vue";
 
 // No type declarations for these
@@ -58,6 +59,7 @@ interface Data {
 type Methods = {
     instantiateThemes(): void;
     instantiateNamespaces(): void;
+    updateTitle(title: string): void;
 } & Pick<ThemeStore.MapActionsStructure,
     ThemeStore.Actions.addTheme
     | ThemeStore.Actions.addNamespace
@@ -84,6 +86,10 @@ export default Vue.extend({
         // NOTE: this prevents the CSSPlugin and the AttrPlugin from getting tree shaked
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const plugins = [ CSSPlugin, AttrPlugin ];
+
+        const { updateTitle }: Methods = this;
+        const route = this.$route as Route;
+        updateTitle(route.meta.title);
     },
     methods: {
         ...mapActions({
@@ -111,6 +117,15 @@ export default Vue.extend({
                 targetTheme: DEFAULT_THEME,
                 override: true
             });
+        },
+        updateTitle(title: string) {
+            document.title = title || DEFAULT_DOCUMENT_TITLE;
+        }
+    },
+    watch: {
+        '$route'(to: Route, from: Route) {
+            const { updateTitle }: Methods = this;
+            updateTitle(to.meta.title);
         }
     }
 });
