@@ -18,7 +18,8 @@
         <audio-visualizer-circle 
             id="RoomClientView__audio-visualizer"
             :disabled="!isPlaying || !audioLoaded"
-            :audio-context="null"
+            :audio-context="audioContext"
+            :audio-source="audioSource"
         />
 
         <div id="RoomClientView__current-song-container">
@@ -74,6 +75,7 @@ type Computed = {
     | AudioStore.Getters.audioLoaded
     | AudioStore.Getters.audioContext
     | AudioStore.Getters.audioBuffer
+    | AudioStore.Getters.audioSource
     | AudioStore.Getters.startedAt
     | AudioStore.Getters.totalCompensation
 >;
@@ -104,6 +106,7 @@ export default Vue.extend({
             audioLoaded: AudioStore.Getters.audioLoaded,
             audioContext: AudioStore.Getters.audioContext,
             audioBuffer: AudioStore.Getters.audioBuffer,
+            audioSource: AudioStore.Getters.audioSource,
             startedAt: AudioStore.Getters.startedAt,
             totalCompensation: AudioStore.Getters.totalCompensation
         }),

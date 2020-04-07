@@ -5,7 +5,10 @@
             (disabled) ? 'disabled' : null
         ]"
     >
-        <div class="AudioVisualizerCircle__container">
+        <div 
+            class="AudioVisualizerCircle__container"
+            ref="containerEl"
+        >
             <!-- TODO: implement visualizer bars in here -->
         </div>
     </div>
@@ -13,18 +16,22 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import AudioMotionAnalyzer from "audiomotion-analyzer";
 
 interface Data {
-    analyzerNode: AnalyserNode | null;
+    visualizerInstance: AudioMotionAnalyzer | null;
 }
 
 interface Props {
     disabled: boolean;
     audioContext: AudioContext;
+    audioSource: AudioBufferSourceNode | null;
 }
 
 interface Methods {
-    setupAudioContextListener(audioContext: AudioContext): void;
+    createVisualizerInstance(): AudioMotionAnalyzer;
+    attachVisualizerInstance(audioSource: AudioBufferSourceNode): void;
+    deatchVisualizerInstance(audioSource: AudioBufferSourceNode | null): void;
 }
 
 export default Vue.extend({
@@ -35,38 +42,116 @@ export default Vue.extend({
         },
         audioContext: {
             type: AudioContext,
-            default: null // TODO: change to required
+            required: true
+        },
+        audioSource: {
+            type: AudioBufferSourceNode,
+            default: null
         }
     },
     data() {
         return {
-            // Note: I haven't looked into setting up this kind of stuff for a while
-            // so this "analyzer node" stuff might be coming right out of my...
-            // TODO: put analyzer node from the web audio api that is currently
-            // being used to display the audio of
-            analyzerNode: null
+            visualizerInstance: null
         }
     },
     methods: {
-        setupAudioContextListener(audioContext: AudioContext) {
-            let { analyzerNode }: Data = this as any;
-            // Disconnect the analyzer node from a previous context (if it exists)
-            if (analyzerNode !== null) analyzerNode.disconnect();
-            // Make a new analyzer node to listen to the current audio context
-            analyzerNode = audioContext.createAnalyser();
-            // const source = audioContext.createMediaStreamSource();
-            // Update the data state with the new node
+        createVisualizerInstance(): AudioMotionAnalyzer {
+            const { audioContext, audioSource }: Props = this as any;
+            const containerEl = this.$refs.containerEl as HTMLElement;
+            
+            const radius = 10;
+
+            const instance = new AudioMotionAnalyzer(containerEl, {
+                audioCtx: audioContext, 
+                mode: 6, // 1/3rd octave bands
+                fftSize: 8192,
+                smoothing: 0.9,
+                barSpace: 0.2,
+                minDecibles: -200,
+                maxDecibels: -20,
+                minFreq: 20,
+                maxFreq: 20000,
+                reflexRatio: 0.5,
+                reflexAlpha: 1,
+                reflexFit: true,
+                showFPS: false,
+                showLeds: false,
+                showPeaks: false,
+                showScale: false,
+                showBgColor: true,
+                useAlpha: true,
+                rectRadius: {
+                    tl: radius,
+                    tr: radius, 
+                    bl: 0, 
+                    br: 0
+                }
+            });
+
+            instance.registerGradient("synctune", {
+                bgColor: "rgba(0, 0, 0, 0)",
+                colorStops: [
+                    { pos: 0, color: 'rgba(44, 44, 44, 0.6)' }, 
+                    { pos: 1, color: 'rgba(44, 44, 44, 0.6)' }
+                ]
+            });
+
+            instance.gradient = "synctune";
+
+            // Make sure the analyzer is never connected to the audio context
+            instance.analyzer.disconnect(instance.audioCtx.destination);
+
+            return instance;
         },
+        attachVisualizerInstance(audioSource: AudioBufferSourceNode) {
+            const { visualizerInstance }: Data = this as any;
+
+            if (!visualizerInstance) {
+                return;
+            }
+            
+            const analyzer = visualizerInstance.analyzer;
+            const context = visualizerInstance.audioCtx;
+            audioSource.connect(analyzer);
+            
+            // Make sure the analyzer is never connected to the audio context
+            try {
+                analyzer.disconnect(context.destination);
+            } catch(err) {}
+        },
+        // TODO: this method not needed?
+        deatchVisualizerInstance(audioSource: AudioBufferSourceNode | null) {
+            const { visualizerInstance }: Data = this as any;
+
+            if (audioSource && visualizerInstance) {
+                const analyzer = visualizerInstance.analyzer;
+                audioSource.disconnect(analyzer);
+            }
+        }
     },
     mounted() {
-        const { audioContext }: Props = this;
-        const { setupAudioContextListener }: Methods = this;
-        setupAudioContextListener(audioContext);
+        const { audioSource }: Props = this;
+        const { createVisualizerInstance, attachVisualizerInstance }: Methods = this;
+        this.visualizerInstance = createVisualizerInstance();
+
+        if (audioSource) {
+            attachVisualizerInstance(audioSource);
+        }
+    },
+    beforeDestroy() {
+        const { audioSource }: Props = this;
+        const { deatchVisualizerInstance }: Methods = this;
+        deatchVisualizerInstance(audioSource);
     },
     watch: {
-        audioContext(newAudioContext: AudioContext) {
-            const { setupAudioContextListener }: Methods = this;
-            setupAudioContextListener(newAudioContext);
+        audioSource(newAudioSource: AudioBufferSourceNode | null) {
+            const { attachVisualizerInstance, deatchVisualizerInstance }: Methods = this;
+
+            if (newAudioSource) {
+                attachVisualizerInstance(newAudioSource);
+            } else {
+                deatchVisualizerInstance(newAudioSource);
+            }
         }
     }
 });
@@ -118,6 +203,19 @@ export default Vue.extend({
                 background: linear-gradient(135deg, color-link("AudioVisualizerCircle", "gradient_disabled", "start") 0%, color-link("AudioVisualizerCircle", "gradient_disabled", "end") 100%);
 
                 transition: opacity $transition-time;
+            }
+
+            & /deep/ canvas {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+
+                transform: translate(-50%, -50%);
+
+                width: 100%;
+                height: 60%;
+
+                clip-path: circle(60.5% at 50% 50%);
             }
         }
 
