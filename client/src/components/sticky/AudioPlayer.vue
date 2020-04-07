@@ -406,6 +406,7 @@ export default Vue.extend({
             audioSource.connect(audioContext.destination);
             audioSource.start();
             audioSource.stop();
+            audioSource.disconnect();
 
             console.log("AudioPlayer: Doing preload fakeout"); // TODO: remove
         },

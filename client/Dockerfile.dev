@@ -1,7 +1,7 @@
 # Client development container
 FROM node:alpine
 WORKDIR /app
-RUN apk add --no-cache git
+RUN apk add --no-cache git nano
 COPY ./package*.json ./
 RUN npm install
 COPY . .
