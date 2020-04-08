@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { createClient } from "redis";
+import crypto from "crypto";
 import KEYS from "../../keys";
 
 const A_DAY = 86400;
@@ -27,7 +28,7 @@ export const getRoomOwnerPeerId = (req: Request, res: Response) => {
 // @200 on success
 export const createRoom = (req: Request, res: Response) => {
     const { roomName, selfId } = req.body;
-    const userId = req.sessionID; //cant ever be null
+    const secret = crypto.randomBytes(20).toString("hex");
     redisClient.exists(roomName, (err, exists) => {
         if (err) {
             console.log("createRoom Redis error:", err);
@@ -39,8 +40,8 @@ export const createRoom = (req: Request, res: Response) => {
             roomName,
             "ownerPeerId",
             selfId,
-            "ownerSessionId",
-            userId!,
+            "ownerSecret",
+            secret,
             (err, _) => {
                 if (err) {
                     console.log("createRoom Redis error:", err);
@@ -51,6 +52,11 @@ export const createRoom = (req: Request, res: Response) => {
                         console.log("createRoom Redis error:", err);
                         return res.status(500).end("Error with Redis");
                     }
+                    res.cookie("secret", secret, {
+                        httpOnly: true,
+                        secure: KEYS.IS_PROD,
+                        sameSite: "none",
+                    });
                     return res.end("OK");
                 });
             }
@@ -71,12 +77,20 @@ export const closeRoom = (req: Request, res: Response) => {
             console.log("closeRoom Redis error:", err);
             return res.status(500).end("Error with Redis");
         }
-        if (!roomData)
+
+        if (!roomData) {
             return res.status(404).end(`No room with name ${roomName}`);
-        if (roomData.ownerSessionId !== req.sessionID)
+        }
+
+        if (
+            "secret" in req.cookies &&
+            roomData.ownerSecret !== req.cookies.secret
+        ) {
             return res
                 .status(501)
                 .end("You can't delete this room since you don't own it");
+        }
+
         redisClient.del(roomName, (err, numDel) => {
             if (err) {
                 console.log("closeRoom Redis error:", err);
