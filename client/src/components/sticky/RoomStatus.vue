@@ -51,6 +51,7 @@ type Computed = {
 } & Pick<RoomStore.MapGettersStructure,
     RoomStore.Getters.isConnected
     | RoomStore.Getters.connectionManager
+    | RoomStore.Getters.connectedClients
 > & Pick<AudioStore.MapGettersStructure,
     AudioStore.Getters.audioFile
     | AudioStore.Getters.audioFileMetadata
@@ -78,6 +79,7 @@ export default Vue.extend({
         ...mapGetters({
             isConnected: RoomStore.Getters.isConnected,
             connectionManager: RoomStore.Getters.connectionManager,
+            connectedClients: RoomStore.Getters.connectedClients,
             audioFile: AudioStore.Getters.audioFile,
             audioFileMetadata: AudioStore.Getters.audioFileMetadata,
             audioLoaded: AudioStore.Getters.audioLoaded,
@@ -135,11 +137,10 @@ export default Vue.extend({
                     audioFileMetadata, 
                     isPlaying,
                     audioContext,
-                    startedAt }: Computed = this;
+                    startedAt,
+                    connectedClients }: Computed = this;
 
-                if (syncedClientID !== clientId) {
-                    return;
-                }
+                if (syncedClientID !== clientId) return;
 
                 // If audio is playing, send the play signal to the newly connected client
                 if (isPlaying) {
@@ -147,13 +148,24 @@ export default Vue.extend({
                     connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, false, false, false, [clientId]);
                 }
 
+                // if (timesynced && audioFile && audioFileMetadata) {
+                // const clientData = connectedClients.find(data => data.id === clientId);
+                // if (clientData && clientData.state == "ready" && timesynced && audioFile && audioFileMetadata) {
                 if (timesynced && audioFile && audioFileMetadata) {
                     console.log("syncing existing audio file to new client", clientId); // TODO: remove
                     connectionManager.syncAudioFile(audioFile, audioFileMetadata, false, [clientId]);
 
-                    // Clear event listener for this client (so our listeners don't get triggered again)
-                    connectionManager.removeEventListenersByTag("timesyncchanged", TAG);
+                    // Clear event listeners for this client (so our listeners don't get triggered again)
+                    connectionManager.removeEventListenersByTag("clienttimesyncchanged", TAG);
+                    connectionManager.removeEventListenersByTag("clientreadytoplay", TAG);
                 }
+            }, TAG);
+
+            connectionManager.addEventListener("clientreadytoplay", (readyClientId) => {
+                if (readyClientId !== clientId) return;
+                // Clear event listeners for this client (so our listeners don't get triggered again)
+                connectionManager.removeEventListenersByTag("clienttimesyncchanged", TAG);
+                connectionManager.removeEventListenersByTag("clientreadytoplay", TAG);
             }, TAG);
         },
         onToRoomClick() {

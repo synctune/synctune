@@ -155,6 +155,8 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("room-left", () => {
+                const { audioContext }: Computed = this;
+
                 stopAudio();
                 unloadAudioFile();
             });

@@ -201,6 +201,8 @@ export default Vue.extend({
             const target = e.target as HTMLInputElement;
             const audioFile = target.files ? target.files[0] : null;
 
+            console.log("ON AUDIO FILE CHANGE"); // TODO: remove
+
             if (audioFile) {
                 stopAudio();
                 syncAudioFile(audioFile);

@@ -32,6 +32,10 @@ interface IsPlayingPayload {
     playing: boolean;
 }
 
+interface AudioContextPayload {
+    audioContext: AudioContext;
+}
+
 interface CurrentTimePayload {
     currentTime: number;
 }
@@ -80,6 +84,7 @@ export enum Getters {
 
 export enum Mutations {
     setIsPlaying = "setIsPlaying",
+    setAudioContext = "setAudioContext",
     setAudioBuffer = "setAudioBuffer",
     setAudioSource = "setAudioSource",
     setAudioFile = "setAudioFile",
@@ -93,6 +98,7 @@ export enum Mutations {
 
 export enum Actions {
     setIsPlaying = "setIsPlaying",
+    setAudioContext = "setAudioContext",
     setAudioBuffer = "setAudioBuffer",
     setAudioSource = "setAudioSource",
     setAudioFile = "setAudioFile",
@@ -120,6 +126,7 @@ export interface MapGettersStructure {
 
 export interface MapMutationsStructure {
     [Mutations.setIsPlaying](payload: IsPlayingPayload): void;
+    [Mutations.setAudioContext](payload: AudioContextPayload): void;
     [Mutations.setAudioBuffer](payload: AudioBufferPayload): void;
     [Mutations.setAudioSource](payload: AudioSourcePayload ): void;
     [Mutations.setAudioFile](payload: AudioFilePayload): void;
@@ -133,6 +140,7 @@ export interface MapMutationsStructure {
 
 export interface MapActionsStructure {
     [Actions.setIsPlaying](payload: IsPlayingPayload): void;
+    [Actions.setAudioContext](payload: AudioContextPayload): void;
     [Actions.setAudioBuffer](payload: AudioBufferPayload): void;
     [Actions.setAudioSource](payload: AudioSourcePayload): void;
     [Actions.setAudioFile](payload: AudioFilePayload): void;
@@ -204,6 +212,9 @@ const mutations: MutationTree<AudioState> = {
     [Mutations.setIsPlaying](state, { playing }: IsPlayingPayload) {
         Vue.set(state, "isPlaying", playing);
     },
+    [Mutations.setAudioContext](state, { audioContext }: AudioContextPayload){
+        Vue.set(state, "audioContext", audioContext);
+    },
     [Mutations.setAudioBuffer](state, { audioBuffer }: AudioBufferPayload) {
         Vue.set(state, "audioBuffer", audioBuffer);
     },
@@ -236,6 +247,9 @@ const mutations: MutationTree<AudioState> = {
 const actions: ActionTree<AudioState, RootState> = {
     [Actions.setIsPlaying]({ commit }, payload: IsPlayingPayload) {
         commit(Mutations.setIsPlaying, payload);
+    },
+    [Actions.setAudioContext]({ commit }, payload: AudioContextPayload) {
+        commit(Mutations.setAudioContext, payload);
     },
     [Actions.setAudioBuffer]({ commit }, payload: AudioBufferPayload) {
         commit(Mutations.setAudioBuffer, payload);
