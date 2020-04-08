@@ -87,7 +87,7 @@ export const closeRoom = (req: Request, res: Response) => {
             roomData.ownerSecret !== req.cookies.secret
         ) {
             return res
-                .status(501)
+                .status(401)
                 .end("You can't delete this room since you don't own it");
         }
 
