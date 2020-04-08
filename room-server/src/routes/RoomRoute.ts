@@ -55,7 +55,7 @@ export const createRoom = (req: Request, res: Response) => {
                     res.cookie("secret", secret, {
                         httpOnly: true,
                         secure: KEYS.IS_PROD,
-                        sameSite: false,
+                        sameSite: "none",
                     });
                     return res.end("OK");
                 });
