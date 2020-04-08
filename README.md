@@ -103,7 +103,8 @@ Below are some useful NPM scripts for development
 
 -   `reverse-proxy`: the reverse-proxy container using Nginx
 -   `client`: the Vue frontend SPA container
--   `room-server`: the Node JS signalling server container
+-   `room-server`: the Node JS room server container
+-   `peer-server`: the signalling server container
 
 #### Commands
 
