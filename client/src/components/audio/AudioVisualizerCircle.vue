@@ -18,8 +18,11 @@
 import Vue from 'vue';
 import AudioMotionAnalyzer, { Options as AudioMotionOptions } from "audiomotion-analyzer";
 
+const BASE_RADIUS = 5;
+
 interface Data {
     visualizerInstance: AudioMotionAnalyzer | null;
+    currRadius: number;
 }
 
 interface Props {
@@ -51,7 +54,8 @@ export default Vue.extend({
     },
     data() {
         return {
-            visualizerInstance: null
+            visualizerInstance: null,
+            currRadius: 5
         }
     },
     methods: {
@@ -59,9 +63,9 @@ export default Vue.extend({
             const { audioContext, audioSource }: Props = this as any;
             const containerEl = this.$refs.containerEl as HTMLElement;
             
-            const radius = 5;
+            const radius = Math.floor(BASE_RADIUS * window.devicePixelRatio);
 
-            const instance = new AudioMotionAnalyzer(containerEl, {
+            const options: AudioMotionOptions = {
                 audioCtx: audioContext, 
                 mode: 6, // 1/3rd octave bands
                 fftSize: 8192,
@@ -86,7 +90,9 @@ export default Vue.extend({
                     bl: 0, 
                     br: 0
                 }
-            });
+            };
+
+            const instance = new AudioMotionAnalyzer(containerEl, options);
 
             instance.registerGradient("synctune", {
                 bgColor: "rgba(0, 0, 0, 0)",
@@ -95,8 +101,6 @@ export default Vue.extend({
                     { pos: 1, color: 'rgba(44, 44, 44, 0.6)' }
                 ]
             });
-
-            
 
             instance.gradient = "synctune";
 
