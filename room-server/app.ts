@@ -24,7 +24,6 @@ if (KEYS.IS_PROD) {
 }
 
 // room server
-app.get("/test", (req, res) => res.end("It works!"));
 
 app.get("/rooms/:roomName", getRoomOwnerPeerId);
 
