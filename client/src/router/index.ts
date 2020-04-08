@@ -5,6 +5,7 @@ import Home from "../views/Home.vue";
 import Room from "../views/room/Room.vue";
 import RoomJoin from "../views/room/RoomJoin.vue";
 import RoomCreate from "../views/room/RoomCreate.vue";
+import PageNotFound from "../views/PageNotFound.vue";
 
 Vue.use(VueRouter);
 
@@ -39,6 +40,14 @@ const routes: RouteConfig[] = [
         component: RoomCreate,
         meta: {
             title: "SyncTune | Creating Room"
+        }
+    },
+    {
+        path: "*",
+        name: "404",
+        component: PageNotFound,
+        meta: {
+            title: "SyncTune | Page Not Found"
         }
     }
 ];

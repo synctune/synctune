@@ -9,7 +9,7 @@
             class="AudioVisualizerCircle__container"
             ref="containerEl"
         >
-            <!-- TODO: implement visualizer bars in here -->
+            <!-- Visualizer canvas gets injected here -->
         </div>
     </div>
 </template>
