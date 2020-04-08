@@ -29,6 +29,7 @@ interface PlaySignalData {
 interface SyncingData {
     audioFile: Blob;
     clients: string[];
+    syncSelf: boolean;
 }
 
 export interface MessageData {
@@ -740,9 +741,10 @@ export default class ConnectionManager extends Emittable {
      *
      * @param audioFile The audio file blob.
      * @param metadata The metadata for the audio file.
+     * @param syncSelf Sync the audio file to self as well (i.e. the audio file was changed and we want to update our own version)
      * @param clients The target clients to sync the audio file to. If not given then all clients are synced.
      */
-    syncAudioFile(audioFile: Blob, metadata: AudioFileMetadata, clients?: string[]) {
+    syncAudioFile(audioFile: Blob, metadata: AudioFileMetadata, syncSelf = true, clients?: string[]) {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return;
@@ -763,7 +765,8 @@ export default class ConnectionManager extends Emittable {
 
         const data: SyncingData = {
             audioFile: audioFile,
-            clients: targetClients
+            clients: targetClients,
+            syncSelf
         };
 
         this.emitEvent("audiofilesyncing", data);
@@ -834,10 +837,12 @@ export default class ConnectionManager extends Emittable {
      * @param delay How far in the future the start time signal should be set (in milliseconds)
      * @param localOnly Send the play signal locally only
      * @param instant Play instantly, ignoring any syncing precautions
+     * @param sendSelf Send the signal to self (only want this as false if the audio is already playing and we want to tell another client to start playing)
+     * @param clients The target clients to send the signal to. If not given then all clients are sent the signal.
      *
      * @return Returns the start timestamp
      */
-    sendPlaySignal(startLocation: number, delay = 100, localOnly = false, instant = false): number {
+    sendPlaySignal(startLocation: number, delay = 100, localOnly = false, instant = false, sendSelf = true, clients?: string[]): number {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return -1;
@@ -863,9 +868,10 @@ export default class ConnectionManager extends Emittable {
                 type: "play",
                 data
             };
+
+            const targetClients = clients ? clients : this.clientIds;
     
-            const clients = this.clientIds;
-            clients.forEach(clientId => {
+            targetClients.forEach(clientId => {
                 if (clientId === this._id) return;
     
                 const sendChannel = this._peerConnections[clientId].connection;
@@ -873,18 +879,20 @@ export default class ConnectionManager extends Emittable {
             });
         }
 
-        console.log("sending play signal"); // TODO: remove
-
-        // Send play signal to self
-        this.emitEvent("playsignalreceived", data);
+        if (sendSelf) {
+            // Send play signal to self
+            this.emitEvent("playsignalreceived", data);
+        }
 
         return startTime;
     }
 
     /**
      * Sends the pause signal to all connected clients
+     * @param sendSelf Send the signal to self.
+     * @param clients The target clients to send the signal to. If not given then all clients are sent the signal.
      */
-    sendPauseSignal() {
+    sendPauseSignal(sendSelf = true, clients?: string[]) {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return -1;
@@ -903,22 +911,26 @@ export default class ConnectionManager extends Emittable {
             data: now
         };
 
-        const clients = this.clientIds;
-        clients.forEach(clientId => {
+        const targetClients = clients ? clients : this.clientIds;
+        targetClients.forEach(clientId => {
             if (clientId === this._id) return;
 
             const sendChannel = this._peerConnections[clientId].connection;
             sendChannel.send(messageData);
         });
 
-        // Send pause signal to self
-        this.emitEvent("pausesignalreceived", now);
+        if (sendSelf) {
+            // Send pause signal to self
+            this.emitEvent("pausesignalreceived", now);
+        }
     }
 
     /**
      * Sends the stop signal to all connected clients
+     * @param sendSelf Send the signal to self.
+     * @param clients The target clients to send the signal to. If not given then all clients are sent the signal.
      */
-    sendStopSignal() {
+    sendStopSignal(sendSelf = true, clients?: string[]) {
         if (!this.isConnected) {
             this.emitEvent("error", "Not connected to a room");
             return -1;
@@ -937,16 +949,18 @@ export default class ConnectionManager extends Emittable {
             data: now
         };
 
-        const clients = this.clientIds;
-        clients.forEach(clientId => {
+        const targetClients = clients ? clients : this.clientIds;
+        targetClients.forEach(clientId => {
             if (clientId === this._id) return;
 
             const sendChannel = this._peerConnections[clientId].connection;
             sendChannel.send(messageData);
         });
 
-        // Send stop signal to self
-        this.emitEvent("stopsignalreceived", now);
+        if (sendSelf) {
+            // Send stop signal to self
+            this.emitEvent("stopsignalreceived", now);
+        }
     }
 
     /**

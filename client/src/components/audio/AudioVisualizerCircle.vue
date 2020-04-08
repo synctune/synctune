@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import AudioMotionAnalyzer from "audiomotion-analyzer";
+import AudioMotionAnalyzer, { Options as AudioMotionOptions } from "audiomotion-analyzer";
 
 interface Data {
     visualizerInstance: AudioMotionAnalyzer | null;
@@ -59,7 +59,7 @@ export default Vue.extend({
             const { audioContext, audioSource }: Props = this as any;
             const containerEl = this.$refs.containerEl as HTMLElement;
             
-            const radius = 10;
+            const radius = 5;
 
             const instance = new AudioMotionAnalyzer(containerEl, {
                 audioCtx: audioContext, 
@@ -67,7 +67,7 @@ export default Vue.extend({
                 fftSize: 8192,
                 smoothing: 0.9,
                 barSpace: 0.2,
-                minDecibles: -200,
+                minDecibels: -65,
                 maxDecibels: -20,
                 minFreq: 20,
                 maxFreq: 20000,
@@ -95,6 +95,8 @@ export default Vue.extend({
                     { pos: 1, color: 'rgba(44, 44, 44, 0.6)' }
                 ]
             });
+
+            
 
             instance.gradient = "synctune";
 
@@ -125,7 +127,9 @@ export default Vue.extend({
 
             if (audioSource && visualizerInstance) {
                 const analyzer = visualizerInstance.analyzer;
-                audioSource.disconnect(analyzer);
+                try {
+                    audioSource.disconnect(analyzer);
+                } catch(err) {}
             }
         }
     },

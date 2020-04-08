@@ -28,6 +28,7 @@ type Computed = {}
     & Pick<RoomStore.MapGettersStructure,
         | RoomStore.Getters.connectionManager
         | RoomStore.Getters.isConnected
+        | RoomStore.Getters.timesynced
     > 
     & Pick<AudioStore.MapGettersStructure,
         AudioStore.Getters.isPlaying 
@@ -79,6 +80,7 @@ export default Vue.extend({
         ...mapGetters({
             connectionManager: RoomStore.Getters.connectionManager,
             isConnected: RoomStore.Getters.isConnected,
+            timesynced: RoomStore.Getters.timesynced,
             isPlaying: AudioStore.Getters.isPlaying,
             audioContext: AudioStore.Getters.audioContext,
             audioBuffer: AudioStore.Getters.audioBuffer,
@@ -126,7 +128,9 @@ export default Vue.extend({
                 setAudioFileMetadata({ audioFileMetadata: metadata });
             });
 
-            connectionManager.addEventListener("audiofilesyncing", ({ audioFile, clients }) => {
+            connectionManager.addEventListener("audiofilesyncing", ({ audioFile, clients, syncSelf }) => {
+                if (!syncSelf) return;
+
                 // Unload existing audiofile, if one is loaded
                 unloadAudioFile();
 
@@ -156,7 +160,9 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("timesyncchanged", (timesynced) => {
-                if (timesynced == true) {
+                const { audioLoaded }: Computed = this;
+
+                if (timesynced == true && audioLoaded) {
                     // Run the cached play signal, if it exists
                     const { runCachedPlaySignal }: Methods = this;
                     runCachedPlaySignal();
@@ -218,10 +224,14 @@ export default Vue.extend({
                     // Send ready to play signal
                     const connectionManager = this.connectionManager as ConnectionManager;
                     if (!connectionManager.isOwner) {
+                        const { timesynced }: Computed = this;
+
                         connectionManager.sendReadyToPlaySignal(connectionManager.id!);
 
-                        // Run the cached play signal, if it exists
-                        runCachedPlaySignal();
+                        if (timesynced) {
+                            // Run the cached play signal, if it exists
+                            runCachedPlaySignal();
+                        }
                     }
                 });
             });
@@ -292,7 +302,7 @@ export default Vue.extend({
             // Clear cached play signal
             this.cachedPlaySignal = null;
 
-            doPreloadFakeout();
+            // doPreloadFakeout(); // TODO: need this?
 
             const prevAudioSource = audioSource;
 
@@ -344,6 +354,8 @@ export default Vue.extend({
                 const startDelay = startTime - connectionManager.now();
                 // If we received a start time that already passed
                 if (startDelay <= 0) {
+                    console.log("Playing with start delay of", startDelay, "starTime", startTime, "now()", connectionManager.now());
+
                     // We need to attempt to make up for it by seeking forward by 
                     // however much time we missed
                     offset += -1 * (startDelay / 1000);
@@ -381,6 +393,9 @@ export default Vue.extend({
             setIsPlaying({ playing: false });
             stopCurrTimeUpdator();
 
+            // Clear the cached play signal, if there is one
+            this.cachedPlaySignal = null;
+
             if (audioSource) {
                 audioSource.onended = () => {};
                 audioSource.disconnect();
@@ -399,7 +414,13 @@ export default Vue.extend({
             setAudioLoaded({ loaded: true });
         },
         doPreloadFakeout() {
-            const { audioContext, audioBuffer }: Computed = this;
+            const { 
+                audioContext, 
+                audioBuffer, 
+                isPlaying }: Computed = this;
+
+            // Do not run if we are already playing audio
+            if (isPlaying) return;
 
             const audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;

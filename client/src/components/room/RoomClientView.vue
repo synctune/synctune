@@ -145,7 +145,7 @@ export default Vue.extend({
             setTotalCompensation({ totalCompensation: newTotalCompensation });
 
             // Play audio at newly compensated time
-            connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, true, true);
+            connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, true, true, true);
         }
     }
 })

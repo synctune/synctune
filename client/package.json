@@ -8,7 +8,7 @@
         "lint": "vue-cli-service lint"
     },
     "dependencies": {
-        "audiomotion-analyzer": "github:alex-greff/audioMotion-analyzer#7e186efb0d3933ab5f566db8f96869e59ac9c904",
+        "audiomotion-analyzer": "github:alex-greff/audioMotion-analyzer#55c34c9ffc2a0f5ff2aa9b29cac383a985563d1d",
         "axios": "^0.19.2",
         "color": "^3.1.2",
         "core-js": "^3.6.4",

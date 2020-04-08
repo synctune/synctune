@@ -55,6 +55,9 @@ type Computed = {
     AudioStore.Getters.audioFile
     | AudioStore.Getters.audioFileMetadata
     | AudioStore.Getters.audioLoaded
+    | AudioStore.Getters.isPlaying
+    | AudioStore.Getters.audioContext
+    | AudioStore.Getters.startedAt
 >
 
 type Methods = {
@@ -77,7 +80,10 @@ export default Vue.extend({
             connectionManager: RoomStore.Getters.connectionManager,
             audioFile: AudioStore.Getters.audioFile,
             audioFileMetadata: AudioStore.Getters.audioFileMetadata,
-            audioLoaded: AudioStore.Getters.audioLoaded
+            audioLoaded: AudioStore.Getters.audioLoaded,
+            isPlaying: AudioStore.Getters.isPlaying,
+            audioContext: AudioStore.Getters.audioContext,
+            startedAt: AudioStore.Getters.startedAt
         }),
         trackTitleDisplay() {
             const { audioLoaded }: Computed = this;
@@ -118,18 +124,34 @@ export default Vue.extend({
             router.push('/').catch(err => {});
         },
         onClientRtcJoined(clientId: string) {
-            const { audioFile, audioFileMetadata }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
 
             const TAG = `room-status-init-audio-sync-${clientId}`;
 
             // Sync audio file once the intial timesync is complete
-            connectionManager.addEventListener("timesyncchanged", (timesynced) => {
+            connectionManager.addEventListener("clienttimesyncchanged", ({ clientId: syncedClientID, timesynced }) => {
+                const { 
+                    audioFile, 
+                    audioFileMetadata, 
+                    isPlaying,
+                    audioContext,
+                    startedAt }: Computed = this;
+
+                if (syncedClientID !== clientId) {
+                    return;
+                }
+
+                // If audio is playing, send the play signal to the newly connected client
+                if (isPlaying) {
+                    console.log("Sending catch-up play signal to", clientId); // TODO: remove
+                    connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, false, false, false, [clientId]);
+                }
+
                 if (timesynced && audioFile && audioFileMetadata) {
                     console.log("syncing existing audio file to new client", clientId); // TODO: remove
-                    connectionManager.syncAudioFile(audioFile, audioFileMetadata, [clientId]);
+                    connectionManager.syncAudioFile(audioFile, audioFileMetadata, false, [clientId]);
 
-                    // Clear event listener for this client (so it doesn't get triggered again if a manual sync is run)
+                    // Clear event listener for this client (so our listeners don't get triggered again)
                     connectionManager.removeEventListenersByTag("timesyncchanged", TAG);
                 }
             }, TAG);

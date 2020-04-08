@@ -215,13 +215,13 @@ export default Vue.extend({
                 type: audioFile.type
             };
 
-            connectionManager.syncAudioFile(audioFile, metadata);
+            connectionManager.syncAudioFile(audioFile, metadata, true);
         },
         playAudio() {
             const { pausedAt }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
             
-            connectionManager.sendPlaySignal(pausedAt, 100);
+            connectionManager.sendPlaySignal(pausedAt, 100, false, false, true);
         },
         pauseAudio() {
             const connectionManager = this.connectionManager as ConnectionManager;
@@ -235,7 +235,7 @@ export default Vue.extend({
             const { isPlaying }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
 
-            connectionManager.sendPlaySignal(seekTime, 100);
+            connectionManager.sendPlaySignal(seekTime, 100, false, false, true);
         },
         gotoHomePage() {
             const router = this.$router as VueRouter;
