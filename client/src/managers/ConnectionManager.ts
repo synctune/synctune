@@ -56,10 +56,6 @@ interface CreateRoomData {
     selfId: string;
 }
 
-interface DeleteRoomData {
-    selfId: string;
-}
-
 interface GetRoomResponse {
     ownerId: string;
 }
@@ -685,11 +681,8 @@ export default class ConnectionManager extends Emittable {
 
         if (this.isOwner) {
             // Attempt to delete the room on the server
-            const data: DeleteRoomData = {
-                selfId: this._peer.id
-            };
             try {
-                await axios.delete(`${KEYS.ROOM_SERVER_URL}/rooms/${this._roomName!}`, {data});
+                await axios.delete(`${KEYS.ROOM_SERVER_URL}/rooms/${this._roomName!}`);
                 console.log("Successfully deleted room", this._roomName); // TODO: remove
             } catch(err) {
                 console.log("Unable to delete room", this._roomName); // TODO: remove
