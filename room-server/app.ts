@@ -2,35 +2,26 @@ import * as http from "http";
 import cors from "cors";
 import express from "express";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import {
     getRoomOwnerPeerId,
     createRoom,
-    closeRoom
+    closeRoom,
 } from "./src/routes/RoomRoute";
-import session from "express-session";
 import KEYS from "./keys";
 
 const app = express();
-const server = http.createServer(app);
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 if (KEYS.IS_PROD) {
     app.use(
         cors({
             origin: KEYS.CLIENT_HOST_PATH,
-            credentials: true
+            credentials: true,
         })
     );
-    app.set("trust proxy", 1);
 }
-app.use(
-    session({
-        secret: KEYS.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: true,
-        cookie: { httpOnly: true, secure: KEYS.IS_PROD, sameSite: true }
-    })
-);
 
 // room server
 app.get("/test", (req, res) => res.end("It works!"));
@@ -42,4 +33,4 @@ app.post("/rooms/create", createRoom);
 app.delete("/rooms/:roomName", closeRoom);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT);
+http.createServer(app).listen(PORT);
