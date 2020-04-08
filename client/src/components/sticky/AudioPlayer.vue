@@ -483,7 +483,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     #AudioPlayer {
         position: absolute;
     }

@@ -171,14 +171,14 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $spin-reset-time: 1s;
     $spin-duration: 1s;
 
     .SyncButton {
         position: relative;
 
-        & /deep/ .SyncButton__icon {
+        & .SyncButton__icon {
             // animation-name: icon-reset;
             // animation-duration: $spin-reset-time;
             // animation-fill-mode: both;
@@ -186,7 +186,7 @@ export default Vue.extend({
             // transition: transform $spin-time;
         }
 
-        & /deep/ .SyncButton__loader-container {
+        & .SyncButton__loader-container {
             position: absolute;
             top: 0;
             left: 0;
@@ -197,7 +197,7 @@ export default Vue.extend({
         }
 
         &.syncing {
-            & /deep/ .SyncButton__icon {
+            & .SyncButton__icon {
                 // animation-name: icon-spin;
                 // animation-duration: $spin-duration;
                 // animation-iteration-count: infinite;

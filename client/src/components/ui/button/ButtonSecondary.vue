@@ -22,7 +22,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .ButtonSecondary {
         $accent-size: 0.5rem;
         $radius-amount: 0.5rem;
@@ -41,7 +41,7 @@ export default Vue.extend({
 
         transition: color $modifer-duration;
 
-        & /deep/ a {
+        & a {
 
             margin: 0 $accent-size 0 $accent-size;
 
@@ -88,7 +88,7 @@ export default Vue.extend({
         &.disabled {
             color: color-link("ButtonSecondary", "text", "disabled");
 
-            & /deep/ a {
+            & a {
                 background-color: color-link("ButtonSecondary", "background", "disabled");
             }
 
@@ -98,13 +98,13 @@ export default Vue.extend({
         }   
 
         &:hover:not(.disabled) {
-            & /deep/ a {
+            & a {
                 background-color: color-link("ButtonSecondary", "accent", "tertiary");
             }
         }
 
         &:active:not(.disabled) {
-            & /deep/ a {
+            & a {
                 background-color: color-link("ButtonSecondary", "selected", "secondary");
 
                 transition: background-color $modifer-duration;

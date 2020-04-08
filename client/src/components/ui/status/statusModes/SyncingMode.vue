@@ -24,9 +24,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .SyncingMode {
-        & /deep/ .SyncingMode__spinner circle {
+        & .SyncingMode__spinner circle {
             stroke: color-link("SyncingMode", "sync_status", "syncing");
         }
     }

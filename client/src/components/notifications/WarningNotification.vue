@@ -28,7 +28,7 @@ export default Vue.extend({
     .WarningNotification.WarningNotification {
         background-color: color-link("WarningNotification", "warning", "background");
 
-        & /deep/ .WarningNotification__text {
+        & .WarningNotification__text {
             color: color-link("WarningNotification", "warning", "text");
         }
     }

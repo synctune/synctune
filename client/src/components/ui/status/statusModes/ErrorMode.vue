@@ -24,9 +24,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .ErrorMode {
-        & /deep/ .ErrorMode__ring circle {
+        & .ErrorMode__ring circle {
             stroke: color-link("ErrorMode", "sync_status", "error");
         }
     }

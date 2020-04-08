@@ -63,7 +63,7 @@ export default Vue.extend({
             height: 100%;
         }
 
-        & /deep/ svg {
+        & svg {
             display: block;
 
             width: 100%;

@@ -60,9 +60,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .CompensateBackwardsButton {
-        & /deep/ .CompensateBackwardsButton__container {
+        & .CompensateBackwardsButton__container {
             display: flex;
             flex-direction: row;
             justify-content: center;

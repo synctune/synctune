@@ -88,11 +88,11 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .CurrentSongContainer {
         width: 100%;
 
-        & /deep/ .CurrentSongContainer__container {
+        & .CurrentSongContainer__container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -103,7 +103,7 @@ export default Vue.extend({
                 margin-bottom: 1rem;
             }
 
-            & /deep/ .CurrentSongContainer__song-title {
+            & .CurrentSongContainer__song-title {
                 font-size: 1.8rem;
                 font-weight: 500;
 
@@ -112,7 +112,7 @@ export default Vue.extend({
                 color: color-link("CurrentSongContainer", "text", "primary");
             }
 
-            & /deep/ .CurrentSongContainer__compensation-controls {
+            & .CurrentSongContainer__compensation-controls {
                 display: flex;
                 flex-direction: row;
                 justify-content: center;
@@ -124,7 +124,7 @@ export default Vue.extend({
                 }
             }
 
-            & /deep/ .CurrentSongContainer__compensate-info-blurb {
+            & .CurrentSongContainer__compensate-info-blurb {
                 font-size: 1.2rem;
                 text-align: center;
 
@@ -133,7 +133,7 @@ export default Vue.extend({
         }
 
         &:not(.audio-loaded) {
-            & /deep/ .CurrentSongContainer__song-title {
+            & .CurrentSongContainer__song-title {
                 color: color-link("CurrentSongContainer", "text", "disabled");
             }
         }

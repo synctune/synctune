@@ -37,7 +37,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .ButtonPrimary {
         $hover-duration: 0.7s;
         $select-duration: 0.5s;
@@ -60,7 +60,7 @@ export default Vue.extend({
 
         transition: opacity $hover-duration, box-shadow $hover-duration;
 
-        & /deep/ a {
+        & a {
             display: flex;
             flex-direction: column;
             align-items: center;

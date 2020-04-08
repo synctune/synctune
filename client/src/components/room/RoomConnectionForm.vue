@@ -160,14 +160,14 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .RoomConnection__super-container {
         max-width: 50rem;
         width: 100%;
     }
 
     // Note this is a trick to increase specificity
-    /deep/ .RoomConnectionForm.RoomConnectionForm {
+    .RoomConnectionForm.RoomConnectionForm {
         $padding-top: 5rem;
         $padding-sides: 1rem;
         

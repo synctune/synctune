@@ -66,7 +66,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     #Home {
         position: relative;
         display: flex;

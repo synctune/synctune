@@ -40,7 +40,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .InputField {
         $transition-time: 0.5s;
         $blur-amount: 7px;

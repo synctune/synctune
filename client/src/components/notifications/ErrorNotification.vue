@@ -28,7 +28,7 @@ export default Vue.extend({
     .ErrorNotification.ErrorNotification {
         background-color: color-link("ErrorNotification", "error", "background");
 
-        & /deep/ .ErrorNotification__text {
+        & .ErrorNotification__text {
             color: color-link("ErrorNotification", "error", "text");
         }
     }

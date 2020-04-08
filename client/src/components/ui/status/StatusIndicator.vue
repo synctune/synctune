@@ -139,7 +139,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .StatusIndicator {
         flex-grow: 0;
         flex-shrink: 0;

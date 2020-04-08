@@ -92,7 +92,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $spin-duration: 4.8s;
     $cycle-duration: 1.2s;
     $color-duration: 6s;

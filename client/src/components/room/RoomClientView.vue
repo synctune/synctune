@@ -151,7 +151,7 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $max-container-width: 45rem;
     $connected-devices-min-height: 18rem;
     $vertical-margins: 1rem;

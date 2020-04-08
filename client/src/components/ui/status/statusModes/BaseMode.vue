@@ -40,7 +40,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .BaseMode {
         position: relative;
         display: flex;
@@ -50,7 +50,7 @@ export default Vue.extend({
 
         border-radius: 50%;
 
-        & /deep/ .BaseMode__icon {
+        & .BaseMode__icon {
             position: absolute;
             left: 50%;
             top: 50%;
@@ -58,7 +58,7 @@ export default Vue.extend({
             transform: translate(-50%, -50%);
         }
 
-        & /deep/ .BaseMode__outline {
+        & .BaseMode__outline {
             width: 100%;
             height: 100%;
         }

@@ -57,7 +57,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $size: 3rem;
     $outline-thickness: 3px;
     $anim-time: 0.3s;

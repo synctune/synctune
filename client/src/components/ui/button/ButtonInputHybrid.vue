@@ -81,7 +81,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .ButtonInputHybrid {
         display: flex;
         flex-direction: column;
@@ -89,7 +89,7 @@ export default Vue.extend({
         width: 100%;
         max-width: 23rem;
 
-        & /deep/ .ButtonInputHybrid__button {
+        & .ButtonInputHybrid__button {
             border-radius: 0.5rem 0.5rem 0 0;
 
             & .ButtonInputHybrid__button-disabled-overlay {

@@ -42,7 +42,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .CircularIconButton {
         & .CircularIconButton__icon {
             width: 100%;

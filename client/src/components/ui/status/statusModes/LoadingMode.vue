@@ -24,9 +24,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .LoadingMode {
-        & /deep/ .LoadingMode__spinner circle {
+        & .LoadingMode__spinner circle {
             stroke: color-link("LoadingMode", "sync_status", "loading");
         }
     }

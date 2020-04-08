@@ -113,11 +113,11 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .MusicControlsContainer {
         width: 100%;
 
-        & /deep/ .MusicControlsContainer__container {
+        & .MusicControlsContainer__container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -128,7 +128,7 @@ export default Vue.extend({
                 margin-bottom: 1rem;
             }
 
-            & /deep/ .MusicControlsContainer__song-title {
+            & .MusicControlsContainer__song-title {
                 font-size: 1.8rem;
                 font-weight: 500;
 
@@ -137,7 +137,7 @@ export default Vue.extend({
                 color: color-link("MusicControlsContainer", "text", "primary");
             }
 
-            & /deep/ .MusicControlsContainer__controls {
+            & .MusicControlsContainer__controls {
                 display: flex;
                 flex-direction: row;
                 justify-content: center;
@@ -151,7 +151,7 @@ export default Vue.extend({
         }
 
         &:not(.track-loaded) {
-            & /deep/ .MusicControlsContainer__song-title {
+            & .MusicControlsContainer__song-title {
                 color: color-link("MusicControlsContainer", "text", "disabled");
             }
         }

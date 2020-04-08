@@ -53,9 +53,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .UploadingMode {
-        & /deep/ .UploadingMode__loader circle {
+        & .UploadingMode__loader circle {
             stroke: color-link("UploadingMode", "sync_status", "uploading");
         }
     }

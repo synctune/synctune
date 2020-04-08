@@ -50,7 +50,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     #Room {
         padding: 0 3rem;
 

@@ -52,7 +52,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $radius-amount: 0.7rem;
 
     .Container {

@@ -28,7 +28,7 @@ export default Vue.extend({
     .SuccessNotification.SuccessNotification {
         background-color: color-link("SuccessNotification", "success", "background");
 
-        & /deep/ .SuccessNotification__text {
+        & .SuccessNotification__text {
             color: color-link("SuccessNotification", "success", "text");
         }
     }

@@ -52,7 +52,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .SvgRing {
         & circle {
             transform-origin: 50% 50%;

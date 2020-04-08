@@ -78,14 +78,14 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .ConnectedDevicesContainer {
         width: 100%;
 
         display: flex;
         flex-direction: column;
 
-        & /deep/ .ConnectedDevicesContainer__container {
+        & .ConnectedDevicesContainer__container {
             flex-grow: 0;
             flex-shrink: 1;
             min-height: 0;

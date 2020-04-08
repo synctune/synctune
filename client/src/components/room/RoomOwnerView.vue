@@ -249,7 +249,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $max-container-width: 45rem;
     $vertical-margins: 1rem;
 

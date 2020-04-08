@@ -27,7 +27,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>  
+<style lang="scss">  
     $max-size: 14rem;
     $note-padding: 2rem;
 

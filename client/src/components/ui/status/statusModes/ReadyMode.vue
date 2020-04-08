@@ -24,9 +24,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     .ReadyMode {
-        & /deep/ .ReadyMode__ring circle {
+        & .ReadyMode__ring circle {
             stroke: color-link("ReadyMode", "sync_status", "ready");
         }
     }

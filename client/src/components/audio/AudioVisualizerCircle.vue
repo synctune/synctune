@@ -161,7 +161,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $max-width: 30rem;
     $transition-time: 0.3s;
 
@@ -209,7 +209,7 @@ export default Vue.extend({
                 transition: opacity $transition-time;
             }
 
-            & /deep/ canvas {
+            & canvas {
                 position: absolute;
                 top: 50%;
                 left: 50%;

@@ -28,7 +28,7 @@ export default Vue.extend({
     .InfoNotification.InfoNotification {
         background-color: color-link("InfoNotification", "info", "background");
 
-        & /deep/ .InfoNotification__text {
+        & .InfoNotification__text {
             color: color-link("InfoNotification", "info", "text");
         }
     }

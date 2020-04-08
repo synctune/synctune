@@ -165,7 +165,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $max-width: 40rem;
     $artwork-thumbnail-max-width: 5rem;
 
@@ -183,7 +183,7 @@ export default Vue.extend({
         .RoomStatus {
             width: 100%;
 
-            & /deep/ .RoomStatus__container {
+            & .RoomStatus__container {
                 display: flex;
                 flex-direction: row;
                 justify-content: space-between;
@@ -212,7 +212,7 @@ export default Vue.extend({
             }
 
             &:not(.audio-loaded) {
-                & /deep/ .RoomStatus__container .RoomStatus__song-title {
+                & .RoomStatus__container .RoomStatus__song-title {
                     color: color-link("CurrentSongContainer", "text", "disabled");
                 }
             }

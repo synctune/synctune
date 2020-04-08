@@ -159,7 +159,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     $gen-transition-time: 0.3s;
     $seek-transition-time: 0.1s;
     $radius-amount: 0.35rem;
