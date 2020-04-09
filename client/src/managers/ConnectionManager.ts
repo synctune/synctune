@@ -205,28 +205,46 @@ export default class ConnectionManager extends Emittable {
     }
 
     private setupPeerListeners(peer: Peer) {
-        peer.on("connection", (conn) => { // When a remote peer connects with us
-            const clientData = this.addPeerConnection(conn);
-
+        // When a remote peer connects with us
+        peer.on("connection", (conn) => { 
+            // When the data connection is ready to be used
             conn.on("open", () => {
+                const clientData = this.addPeerConnection(conn);
+                const clientId = clientData.clientId;
+
                 if (this.isOwner) {
                     this.emitEvent("client-joined", clientData);
                 }
-            });
 
-            conn.on("close", () => {
-                // If the client is still marked as in the room (ie connection was not closed by us)
-                // then disconnect it now
-                if (this._peerConnections[clientData.clientId]) {
-                    // Handle if the client was timesyncing at it left prematurely
-                    const deleted = this._timesyncingClientIds.delete(clientData.clientId);
-                    if (this._timesyncingClientIds.size === 0 && deleted) {
-                        this._timesynced = true;
-                        this.emitEvent("timesyncchanged", true);
-                    }
-
-                    this.emitEvent("client-left", clientData);
+                // Add peer to peer list
+                const timesync = this._timesync;
+                const peerList = timesync.options.peers as string[];
+                if (!peerList.includes(clientId)) {
+                    peerList.push(clientId);
+                    console.log("Added peer", clientId, "to timesync", this._timesync); // TODO: remove
                 }
+                timesync.options.peers = peerList;
+
+                // Run the sync process
+                setTimeout(() => {
+                    timesync.sync();
+                }, INITIATOR_TIMESYNC_DELAY);
+
+                // Setup close connection handler
+                conn.on("close", () => {
+                    // If the client is still marked as in the room (ie connection was not closed by us)
+                    // then disconnect it now
+                    if (this._peerConnections[clientId]) {
+                        // Handle if the client was timesyncing at it left prematurely
+                        const deleted = this._timesyncingClientIds.delete(clientId);
+                        if (this._timesyncingClientIds.size === 0 && deleted) {
+                            this._timesynced = true;
+                            this.emitEvent("timesyncchanged", true);
+                        }
+    
+                        this.emitEvent("client-left", clientData);
+                    }
+                });
             });
         });
     }
@@ -506,28 +524,6 @@ export default class ConnectionManager extends Emittable {
                     break;
             }
         });
-
-        conn.on("open", () => {
-            console.log("Data channel ready with", clientId); // TODO: remove
-
-            // Add peer to peer list
-            const timesync = this._timesync;
-            const peerList = timesync.options.peers as string[];
-            if (!peerList.includes(clientId)) {
-                peerList.push(clientId);
-                console.log("Added peer", clientId, "to timesync", this._timesync); // TODO: remove
-            }
-            timesync.options.peers = peerList;
-
-            // Run the sync process
-            setTimeout(() => {
-                timesync.sync();
-            }, INITIATOR_TIMESYNC_DELAY);
-        });
-
-        conn.on("error", (err) => {
-            this.emitEvent("error", err);
-        });
     }
 
     // ----------------------
@@ -623,7 +619,7 @@ export default class ConnectionManager extends Emittable {
                     nickname: this._nickname
                 }
                 
-                const conn = peer.connect(ownerId, { metadata: peerMetadata });
+                const conn = peer.connect(ownerId, { metadata: peerMetadata, reliable: true });
 
                 console.log('Connecting to peer', ownerId); // TODO: remove
 
@@ -837,7 +833,7 @@ export default class ConnectionManager extends Emittable {
                 const sendChannel = this._peerConnections[clientId].connection;
                 sendChannel.send(messageData);
 
-                // console.log("Sent chunk to", clientId, chunk); // TODO: remove
+                console.log("Sent chunk to", clientId); // TODO: remove
             });
 
             currOffset += chunk.byteLength;
