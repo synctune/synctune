@@ -6,7 +6,7 @@ The deployed site can be found at [synctune.app](https://synctune.app/)
 
 ## Demo
 
-YouTube link: TODO: put in
+YouTube link: https://youtu.be/8_DliIMWoOM
 
 
 ## Introduction
