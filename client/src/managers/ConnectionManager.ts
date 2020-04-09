@@ -264,6 +264,20 @@ export default class ConnectionManager extends Emittable {
         };
 
         timesync.on("sync", (state) => {
+            if (!this.isConnected) {
+                return;
+            }
+
+            console.log(`Timesync: new sync state '${state}'`); // TODO: remove
+
+            if (state === "start") {
+                this._timesynced = false;
+                this.emitEvent("timesyncchanged", false);
+            } else if (state === "end") {
+                this._timesynced = true;
+                this.emitEvent("timesyncchanged", true);
+            }
+
             if (!this.isOwner) {
                 // Send message to host client indicating that we are synced
                 const messageData: MessageData = {
@@ -279,18 +293,6 @@ export default class ConnectionManager extends Emittable {
         
                     console.log("Sent client synced message to", clientData.clientId); // TODO: remove
                 });
-            }
-        });
-
-        timesync.on("sync", (state) => {
-            console.log(`Timesync: new sync state '${state}'`); // TODO: remove
-
-            if (state === "start") {
-                this._timesynced = false;
-                this.emitEvent("timesyncchanged", false);
-            } else if (state === "end") {
-                this._timesynced = true;
-                this.emitEvent("timesyncchanged", true);
             }
         });
 
