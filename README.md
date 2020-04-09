@@ -16,7 +16,7 @@ Synctune is a web application that uses WebRTC to allow for music synchronizatio
 
 ## Browser Support
 
-For the best and most consistent experience, we recommend using Chrome. Firefox should also work but it is sometimes a little finicky when establishing WebRTC connections.
+For the best and most consistent experience, we recommend using Chrome. Due to a bug with PeerJS, Firefox does not always work.
 
 
 ## Project Contributors
@@ -114,8 +114,12 @@ Below are some useful NPM scripts for development
 -   `stop:[environment]`: stops the given environment
 -   `shell:[service]`: opens an interactive shell into the given running service container
 
-### Common Debugging Tips
+## Common Debugging Tips
 
-#### RTC Connections do not Appear
+### Hanging on Room Joining Screen
 
-**Solution:** clear the cache (especially on Chrome). Sometimes the Vue dev server messes up the RTC connections by not closing them properly when the hot reload feature runs.
+**Solution 1:** try reloading the webpage, if that does not work try restarting your browser.
+
+**Solution 2:** if solution 1 does not work, try clearing the cache for the webpage.
+
+**Solution 3:** if neither of these solutions works on the client device, try doing them to the host device as well.
