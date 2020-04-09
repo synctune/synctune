@@ -118,8 +118,9 @@ Below are some useful NPM scripts for development
 
 ### Hanging on Room Joining Screen
 
-**Solution 1:** try reloading the webpage, if that does not work try restarting your browser.
+Possible Solutions:
 
-**Solution 2:** if solution 1 does not work, try clearing the cache for the webpage.
-
-**Solution 3:** if neither of these solutions works on the client device, try doing them to the host device as well.
+* disconnect any other RTC-based apps running in the browser (we found that Messenger calls would stop some devices from joining)
+* try reloading the web page of the joining client
+* try restarting the browser for the client and/or room owner
+* try clearing the webpage's cache
