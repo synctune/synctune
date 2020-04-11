@@ -114,10 +114,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("audiofilesyncing", ({ clients }) => {
-        
         const connectedClientsCopy = [ ...state.connectedClients ];
-
-        console.log("SETTING AUDIO FILE SYNCING FOR CLIENTS", clients); // TODO: remove
 
         // Set all target clients to downloading state
         clients.forEach(clientId => {
@@ -128,8 +125,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
             const idx = connectedClientsCopy.findIndex(data => data.id === clientId);
 
             if (idx >= 0) {
-                console.log(`$> Setting client ${clientId} to 'uploading'`); // TODO: remove
-
                 const clientData = connectedClientsCopy[idx];
                 clientData._prevState = clientData.state;
                 clientData.state = "uploading";
@@ -163,8 +158,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         // Set to loading state
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
-            console.log(`$> Setting client ${clientId} to 'loading'`); // TODO: remove
-
             const clientData = { ...state.connectedClients[idx] };
             clientData._prevState = clientData.state;
             clientData.state = "loading";
@@ -180,8 +173,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         // Set to ready state
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
-            console.log(`$> Setting client ${clientId} to 'ready'`); // TODO: remove
-
             const clientData = { ...state.connectedClients[idx] };
             clientData._prevState = clientData.state;
             clientData.state = "ready";

@@ -221,7 +221,6 @@ export default class ConnectionManager extends Emittable {
                 const peerList = timesync.options.peers as string[];
                 if (!peerList.includes(clientId)) {
                     peerList.push(clientId);
-                    console.log("Added peer", clientId, "to timesync", this._timesync); // TODO: remove
                 }
                 timesync.options.peers = peerList;
 
@@ -252,12 +251,9 @@ export default class ConnectionManager extends Emittable {
     private setupTimesync(timesync: Timesync) {
         // Override send function to hook up with our data channel as the transport
         timesync.send = (to, data, timeout): Promise<void> => {
-            console.log("Timesync: running send");
-
             return new Promise((resolve, reject) => {
                 const sendChannel = this._peerConnections[to].connection;
                 if (!sendChannel) {
-                    console.log("Timesync: Send rejected, no send channel"); // TODO: remove
                     return reject();
                 }
 
@@ -269,7 +265,6 @@ export default class ConnectionManager extends Emittable {
                 let intervalId: number | null = null;
                 if (timeout) {
                     intervalId = setInterval(() => {
-                        console.log("Timesync: Rejected for timeout"); // TODO: remove
                         reject();
                     }, timeout);
                 }
@@ -279,11 +274,9 @@ export default class ConnectionManager extends Emittable {
 
                     this.emitEvent("timesyncsent", null);
 
-                    console.log("Timesync: resolving send message", data); // TODO: remove
                     if (intervalId) clearInterval(intervalId);
                     resolve();
                 } catch(err) {
-                    console.log("Timesync: Rejecting for error", err); // TODO: remove
                     if (intervalId) clearInterval(intervalId);
                     reject();
                 }
@@ -294,8 +287,6 @@ export default class ConnectionManager extends Emittable {
             if (!this.isConnected) {
                 return;
             }
-
-            console.log(`Timesync: new sync state '${state}'`); // TODO: remove
 
             if (state === "start") {
                 this._timesynced = false;
@@ -317,14 +308,8 @@ export default class ConnectionManager extends Emittable {
         
                     // Send close warning signal to other client
                     connection.send(messageData);
-        
-                    console.log("Sent client synced message to", clientData.clientId); // TODO: remove
                 });
             }
-        });
-
-        timesync.on("error", (error) => {
-            console.log("Timesync: error", error); // TODO: remove
         });
     }
 
@@ -332,8 +317,6 @@ export default class ConnectionManager extends Emittable {
         const clientId = conn.peer;
 
         const peerMetadata = conn.metadata as PeerMetadata;
-
-        console.log("Connection Metadata with client", clientId, conn.metadata); // TODO: remove
 
         // Add the peer
         const clientData: ClientData = {
@@ -353,11 +336,6 @@ export default class ConnectionManager extends Emittable {
         conn.on("data", (rawData) => {
             const messageData = rawData as MessageData;
 
-            // TODO: remove
-            if (messageData.type !== "audiochunk" && messageData.type !== "audiochunkreceived") {
-                console.log("Received message from", clientId, messageData);
-            }
-
             switch(messageData.type) {
                 case "audiometadata":
                     try {
@@ -367,8 +345,6 @@ export default class ConnectionManager extends Emittable {
                         this._expectedAudioFileSize = metadata.size;
                         this._receivedChunks = [];
                         this._receivedSize = 0;
-
-                        console.log("ConnectionManager: sending audiometadatareceived"); // TODO: remove
 
                         this.emitEvent("audiometadatareceived", metadata);
 
@@ -438,8 +414,6 @@ export default class ConnectionManager extends Emittable {
                 case "closeconnection":
                     const leavingClientID = messageData.data as string;
                     const connection = this._peerConnections[leavingClientID]?.connection;
-
-                    console.log("Received client leaving message to", leavingClientID); // TODO: remove
 
                     if (connection) {
                         connection.close();
@@ -517,8 +491,6 @@ export default class ConnectionManager extends Emittable {
                     this._timesync.sync();
                     break;
                 case "timesync":
-                    console.log(`Timesync: Received timesync message from '${clientId}'`, messageData.data); // TODO: remove
-
                     // Notify timesync that sync data has been sent to it
                     this._timesync.receive(clientId, messageData.data);
                     break;
@@ -621,8 +593,6 @@ export default class ConnectionManager extends Emittable {
                 
                 const conn = peer.connect(ownerId, { metadata: peerMetadata, reliable: true });
 
-                console.log('Connecting to peer', ownerId); // TODO: remove
-
                 conn.on("open", () => {
                     this.addPeerConnection(conn);
 
@@ -633,7 +603,6 @@ export default class ConnectionManager extends Emittable {
                     const peerList = [ ...this._timesync.options.peers as string[]];
                     if (!peerList.includes(ownerId)) {
                         peerList.push(ownerId);
-                        console.log("Added peer", ownerId, "to timesync", this._timesync); // TODO: remove
                     }
 
                     // Reinitialize timesync instance
@@ -694,8 +663,6 @@ export default class ConnectionManager extends Emittable {
 
             // Send close warning signal to other client
             connection.send(messageData);
-
-            console.log("Sent client leaving message to", clientData.clientId); // TODO: remove
         });
 
         // Clear peer connections table
@@ -708,9 +675,7 @@ export default class ConnectionManager extends Emittable {
             // Attempt to delete the room on the server
             try {
                 await axios.delete(`${KEYS.ROOM_SERVER_URL}/rooms/${this._roomName!}`);
-                console.log("Successfully deleted room", this._roomName); // TODO: remove
             } catch(err) {
-                console.log("Unable to delete room", this._roomName); // TODO: remove
                 this.emitEvent("error", `Unable to delete room ${this._roomName}`);
             }
         }
@@ -803,10 +768,7 @@ export default class ConnectionManager extends Emittable {
             };
 
             const sendChannel = this._peerConnections[clientId].connection;
-            console.log("metadata: send channel", sendChannel); // TODO: remove
             sendChannel.send(messageData);
-
-            // console.log("Sent metadata to", clientId, metadata); // TODO: remove
         });
 
         this.emitEvent("audiometadatasent", metadata);
@@ -832,8 +794,6 @@ export default class ConnectionManager extends Emittable {
             targetClients.forEach(clientId => {
                 const sendChannel = this._peerConnections[clientId].connection;
                 sendChannel.send(messageData);
-
-                console.log("Sent chunk to", clientId); // TODO: remove
             });
 
             currOffset += chunk.byteLength;
@@ -845,7 +805,6 @@ export default class ConnectionManager extends Emittable {
                 readSlice(currOffset);
             } else {
                 // The entire file is sent
-                console.log("Audio file sent"); // TODO: remove
                 this.emitEvent("audiofilesent", audioFile);
             }
         });
@@ -1007,12 +966,9 @@ export default class ConnectionManager extends Emittable {
         const sendChannel = this._peerConnections[toId].connection;
 
         if (!sendChannel) {
-            console.log("Unable to send audio metadata receive signal to", toId); // TODO: remove
             this.emitEvent("error", `Unable to send audio metadata received signal to ${toId}`);
             return;
         }
-
-        console.log("Sending audiometadatareceived to", toId); // TODO: remove
 
         const messageData: MessageData = {
             type: "audiometadatareceived",
@@ -1042,12 +998,9 @@ export default class ConnectionManager extends Emittable {
         const sendChannel = this._peerConnections[toId].connection;
 
         if (!sendChannel) {
-            console.log("Unable to send audio chunk receive signal to", toId); // TODO: remove
             this.emitEvent("error", `Unable to send audio chunk received signal to ${toId}`);
             return;
         }
-
-        console.log("Sending audiochunkreceived to", toId); // TODO: remove
 
         const messageData: MessageData = {
             type: "audiochunkreceived",
@@ -1077,12 +1030,9 @@ export default class ConnectionManager extends Emittable {
         const sendChannel = this._peerConnections[toId].connection;
 
         if (!sendChannel) {
-            console.log("Unable to send audio receive signal to", toId); // TODO: remove
             this.emitEvent("error", `Unable to send audio file received signal to ${toId}`);
             return;
         }
-
-        console.log("Sending audiofilereceived to", toId); // TODO: remove
 
         const messageData: MessageData = {
             type: "audiofilereceived",
@@ -1112,12 +1062,9 @@ export default class ConnectionManager extends Emittable {
             const syncSendChannel = this._peerConnections[otherId].connection;
 
             if (!syncSendChannel) {
-                console.log("Unable to send ready to play signal to", otherId); // TODO: remove
                 this.emitEvent("error", `Unable to send ready to play signal to ${otherId}`);
                 return;
             }
-
-            console.log("Sending readytoplay to", otherId); // TODO: remove
 
             const messageData: MessageData = {
                 type: "readytoplay",
