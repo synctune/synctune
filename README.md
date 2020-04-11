@@ -56,13 +56,12 @@ Device-specific audio delay issues (that can't be fixed with time synchronizatio
 ## Top 5 Technical Challenges
 1. **Time Synchronization:** getting this right was very tricky process as any small hiccup can cause desynchronization to occur. We ended up using [timesync](https://www.npmjs.com/package/timesync) to synchronize the clocks between all the connected clients in a room which allowed us to send time-synchronized play signals to each client.
 2. **Accurate setTimeout Callbacks:** one inherit flaw of JavaScript's event-driven architecture is that [setTimeout](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout) is not entirely accurate and can have overshoots of up to around `50ms`. Since we needed accurate asynchronous timeouts for handling playing audio at the right time we needed to find a solution for this. 
-3. **Audio Data Synchronization between Clients:** one issue that we came across was that Chrome has a limit on the file size of a data blob that it will send over a WebRTC connection, and will fail silently. We ended up having to split the file into small chunks that were sent over the WebRTC connection before being pieced back together on the other side.
-4. **Inconsistencies with Web Audio API between Devices:** while testing we found two major device-specific issues that would break audio synchronization:
+3. **Inconsistencies with Web Audio API between Devices:** while testing we found two major device-specific issues that would break audio synchronization:
     
     1. Some devices have audio drivers that go to "sleep" when inactive which causes a slight delay for the audio to be played upon "waking up". As a result oftentimes the first audio being played on the device was heavily de-synced. Fortunately, simply stopping and starting the audio would fix this issue.
     
     2. Other devices would just always have a delay from the time the start method call was run and the time the audio actually started playing, no matter what. To fix this, we implemented a manual correction system that the connected client devices can use to manually re-sync their audio back up.
-
+4. **Audio Data Synchronization between Clients:** one issue that we came across was that Chrome has a limit on the file size of a data blob that it will send over a WebRTC connection, and will fail silently. We ended up having to split the file into small chunks that were sent over the WebRTC connection before being pieced back together on the other side.
 5. **Key Libraries Missing Needed Features:**
 
     1. The library used for clock synchronization ([Timesync](https://www.npmjs.com/package/timesync)) and the audio-visualizer library ([AudioMotion-Analyzer](https://www.npmjs.com/package/audiomotion-analyzer)) both did not have any TypeScript declaration files written for them so we had to write them ourselves. 
