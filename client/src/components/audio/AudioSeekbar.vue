@@ -43,7 +43,6 @@
 </template>
 
 <script lang="ts">
-// TODO: reference https://codepen.io/himalayasingh/pen/QZKqOX
 import Vue from 'vue';
 import * as Utilities from "../../utilities";
 

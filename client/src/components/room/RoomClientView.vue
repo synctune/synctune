@@ -120,7 +120,7 @@ export default Vue.extend({
         }),
         gotoHomePage() {
             const router = this.$router as VueRouter;
-            router.push("/").catch(err => {});
+            router.push("/").catch(() => {});
         },
         leaveRoom() {
             const connectionManager = this.connectionManager as ConnectionManager;
@@ -135,7 +135,7 @@ export default Vue.extend({
             compensateAudio(-1 * AUDIO_COMPENSATE_AMOUNT);
         },
         compensateAudio(compensationAmount: number) {
-            const { audioContext, audioBuffer, startedAt, totalCompensation }: Computed = this;
+            const { audioContext, startedAt, totalCompensation }: Computed = this;
             const { setTotalCompensation }: Methods = this;
             const connectionManager = this.connectionManager as ConnectionManager;
 

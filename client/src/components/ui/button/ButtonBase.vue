@@ -98,44 +98,21 @@ export default {
     .Button {
         display: inline-block;
 
-        // TODO: cleanup
-
-        // font-weight: 600;
-
-        // color: color-link("ButtonBase", "text_color", "primary");
-        // background-color: color-link("ButtonBase", "accent_color", "primary");
-
-        // transition: background-color 0.5s;
-
         border: 0;
         outline: none;
-        // border-radius: 0.7rem;
 
         text-align: center;
 
         & > a {
             cursor: pointer;
             display: inline-block;
-            // padding: 1rem 3rem;
             
             text-decoration: none;
-            // color: color-link("ButtonBase", "text_color", "primary");
-        }
-
-        &:hover {
-            // background-color: color-link("ButtonBase", "selected_color", "primary");
         }
 
         &.disabled, &:disabled {
             & > a {
                 cursor: initial;
-                // color: color-link("ButtonBase", "text_color", "secondary");
-            }
-
-            // background-color: color-link("ButtonBase", "disabled_color", "primary");
-
-            &:hover {
-                // background-color: color-link("ButtonBase", "disabled_color", "primary");
             }
         }
     }

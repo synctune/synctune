@@ -17,7 +17,6 @@
 </template>
 
 <script lang="ts">
-// TODO: reference https://css-tricks.com/building-progress-ring-quickly/
 import Vue from 'vue';
 
 interface Props {

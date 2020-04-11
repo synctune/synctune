@@ -60,7 +60,7 @@ export default Vue.extend({
     },
     methods: {
         createVisualizerInstance(): AudioMotionAnalyzer {
-            const { audioContext, audioSource }: Props = this as any;
+            const { audioContext }: Props = this as any;
             const containerEl = this.$refs.containerEl as HTMLElement;
             
             const radius = Math.floor(BASE_RADIUS * window.devicePixelRatio);
