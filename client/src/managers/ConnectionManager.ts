@@ -620,7 +620,6 @@ export default class ConnectionManager extends Emittable {
                 });
 
                 conn.on("error", (err) => {
-                    console.log("Error", err);
                     this.emitEvent("error", err);
                 });
             } else {
@@ -745,7 +744,6 @@ export default class ConnectionManager extends Emittable {
         }
 
         if (audioFile.size === 0) {
-            console.log("Cannot send empty file"); // TODO: handle
             this.emitEvent("error", "Cannot send empty file");
             return;
         }
