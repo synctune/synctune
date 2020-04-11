@@ -29,16 +29,12 @@
 
 <script lang="ts">
 import RoomConnectionForm from "@/components/room/RoomConnectionForm.vue";
-import Container from "@/components/ui/Container.vue";
-
-import * as NotificationManager from "../managers/NotificationManager";
 
 import Vue from 'vue';
 export default Vue.extend({
     name: "Home",
     components: {
-        RoomConnectionForm,
-        Container
+        RoomConnectionForm
     },
     computed: {
         crowdImageStyles() {

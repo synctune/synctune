@@ -89,7 +89,7 @@ export default {
             },
             text_inverted: {
                 primary: LIGHT_1,
-                secondary: LIGHT_1, // TODO: pick a different color
+                secondary: LIGHT_4,
                 disabled: LIGHT_3
             },
             accent: {

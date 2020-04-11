@@ -139,7 +139,7 @@ export default Vue.extend({
         }
     },
     watch: {
-        '$route'(to: Route, from: Route) {
+        '$route'(to: Route) {
             const { updateTitle }: Methods = this;
             updateTitle(to.meta.title);
         }

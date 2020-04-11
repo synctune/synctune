@@ -81,12 +81,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapState, mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 import VueRouter from 'vue-router';
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import ConnectionManager, { AudioFileMetadata } from '../../managers/ConnectionManager';
-import { AUDIO_CHUNK_SIZE, TIMESYNC_REPEAT } from "../../constants";
+import { AUDIO_CHUNK_SIZE } from "../../constants";
 
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import ConnectedDevicesContainer, { Client as ContainerClient } from "./owner/ConnectedDevicesContainer.vue";
@@ -232,14 +232,13 @@ export default Vue.extend({
             connectionManager.sendStopSignal();
         },
         seekAudio(seekTime: number) {
-            const { isPlaying }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
 
             connectionManager.sendPlaySignal(seekTime, 100, false, false, true);
         },
         gotoHomePage() {
             const router = this.$router as VueRouter;
-            router.push("/").catch(err => {});
+            router.push("/").catch(() => {});
         },
         leaveRoom() {
             const connectionManager = this.connectionManager as ConnectionManager;

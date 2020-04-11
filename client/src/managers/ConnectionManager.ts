@@ -884,8 +884,7 @@ export default class ConnectionManager extends Emittable {
             return -1;
         }
 
-        // TODO: use synced time
-        const now = Date.now();
+        const now = this._timesync.now();
 
         const messageData: MessageData = {
             type: "pause",
@@ -922,8 +921,7 @@ export default class ConnectionManager extends Emittable {
             return -1;
         }
 
-        // TODO: use synced time
-        const now = Date.now();
+        const now = this._timesync.now();
 
         const messageData: MessageData = {
             type: "stop",
@@ -1106,7 +1104,6 @@ export default class ConnectionManager extends Emittable {
             data: null
         };
 
-        // TODO: might have to stagger start times here too
         targetClients.forEach(clientId => {
             const clientData = this._peerConnections[clientId];
 

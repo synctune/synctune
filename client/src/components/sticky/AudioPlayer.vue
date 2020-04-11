@@ -4,7 +4,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import * as Utilities from "../../utilities";
 import { mapGetters, mapActions } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
@@ -126,7 +125,7 @@ export default Vue.extend({
                 setAudioFileMetadata({ audioFileMetadata: metadata });
             });
 
-            connectionManager.addEventListener("audiofilesyncing", ({ audioFile, clients, syncSelf }) => {
+            connectionManager.addEventListener("audiofilesyncing", ({ audioFile, syncSelf }) => {
                 if (!syncSelf) return;
 
                 // Unload existing audiofile, if one is loaded
@@ -143,17 +142,15 @@ export default Vue.extend({
                 playAudio(data.startLocation, data.startTime, data.instant);
             });
 
-            connectionManager.addEventListener("pausesignalreceived", (sentTime) => {
+            connectionManager.addEventListener("pausesignalreceived", () => {
                 pauseAudio();
             });
 
-            connectionManager.addEventListener("stopsignalreceived", (sentTime) => {
+            connectionManager.addEventListener("stopsignalreceived", () => {
                 stopAudio();
             });
 
             connectionManager.addEventListener("room-left", () => {
-                const { audioContext }: Computed = this;
-
                 stopAudio();
                 unloadAudioFile();
             });
@@ -265,7 +262,6 @@ export default Vue.extend({
             }
         },
         async playAudio(startLocation: number, startTime: number, instant: boolean) {
-            const { cachedPlaySignal }: Data = this;
             const { audioContext, audioBuffer, audioLoaded, audioSource }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
             const { 
@@ -273,7 +269,6 @@ export default Vue.extend({
                 setIsPlaying, 
                 setStartedAt, 
                 setPausedAt, 
-                doPreloadFakeout, 
                 startCurrTimeUpdator,
                 stopAudio }: Methods = this;
 
@@ -315,7 +310,7 @@ export default Vue.extend({
 
             // Overshoot is the amount of milliseconds we overshot the target delay by
             const startAudio = (overshoot = 0) => {
-                const { totalCompensation, audioBuffer }: Computed = this;
+                const { totalCompensation }: Computed = this;
                 // Stop any audio that may be already playing
                 if (prevAudioSource) {
                     prevAudioSource.onended = () => {};
@@ -359,7 +354,7 @@ export default Vue.extend({
         async pauseAudio() {
             const { audioContext }: Computed = this;
             const { startedAt }: Computed = this;
-            const { setIsPlaying, stopAudio, setPausedAt }: Methods = this;
+            const { stopAudio, setPausedAt }: Methods = this;
 
             const elapsedTime = audioContext.currentTime - startedAt;
             setPausedAt({ pausedAt: elapsedTime });
@@ -370,8 +365,6 @@ export default Vue.extend({
             const { 
                 setAudioSource, 
                 setIsPlaying, 
-                setStartedAt, 
-                setPausedAt, 
                 stopCurrTimeUpdator }: Methods = this;
 
             
