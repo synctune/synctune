@@ -136,7 +136,6 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("audiofilereceived", (audioFile) => {
-                console.log("AudioPlayer: audiofilereceived");
                 loadAudioFile(audioFile);
             });
 
@@ -342,8 +341,6 @@ export default Vue.extend({
                 const startDelay = startTime - connectionManager.now();
                 // If we received a start time that already passed
                 if (startDelay <= 0) {
-                    console.log("Playing with start delay of", startDelay, "starTime", startTime, "now()", connectionManager.now());
-
                     // We need to attempt to make up for it by seeking forward by 
                     // however much time we missed
                     offset += -1 * (startDelay / 1000);

@@ -103,8 +103,6 @@ export default Vue.extend({
         const { setupConnectionManagerListeners }: Methods = this;
         const connectionManager = this.connectionManager as ConnectionManager;
 
-        console.log("RoomStatus: setting up connection manager listeners", connectionManager);
-
         setupConnectionManagerListeners(connectionManager);
     },
     methods: {

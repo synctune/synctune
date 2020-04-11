@@ -14,7 +14,6 @@ export const getRoomOwnerPeerId = (req: Request, res: Response) => {
     const roomName = req.params.roomName;
     redisClient.hgetall(roomName, (err, roomData) => {
         if (err) {
-            console.log("getRoomOwner Redis error:", err);
             return res.status(500).end("Error with Redis");
         }
         if (!roomData)
