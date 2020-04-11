@@ -115,7 +115,6 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("client-joined", ({ clientId }) => {
-                console.log("Room Status: client-joined"); // TODO: remove
                 const { onClientRtcJoined }: Methods = this;
                 onClientRtcJoined(clientId);
             });
@@ -144,7 +143,6 @@ export default Vue.extend({
 
                 // If audio is playing, send the play signal to the newly connected client
                 if (isPlaying) {
-                    console.log("Sending catch-up play signal to", clientId); // TODO: remove
                     connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, false, false, false, [clientId]);
                 }
 
@@ -152,7 +150,6 @@ export default Vue.extend({
                 // const clientData = connectedClients.find(data => data.id === clientId);
                 // if (clientData && clientData.state == "ready" && timesynced && audioFile && audioFileMetadata) {
                 if (timesynced && audioFile && audioFileMetadata) {
-                    console.log("syncing existing audio file to new client", clientId); // TODO: remove
                     connectionManager.syncAudioFile(audioFile, audioFileMetadata, false, [clientId]);
 
                     // Clear event listeners for this client (so our listeners don't get triggered again)

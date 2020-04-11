@@ -50,7 +50,6 @@ type Methods = {
     playAudio(startLocation: number, startTime: number, instant: boolean): void;
     pauseAudio(): void;
     stopAudio(): void;
-    onCanPlayThrough(): void;
     doPreloadFakeout(): void;
     runCachedPlaySignal(): void;
     startCurrTimeUpdator(): void;
@@ -95,7 +94,6 @@ export default Vue.extend({
     },
     mounted() {
         const connectionManager = this.connectionManager as ConnectionManager;
-        console.log("AudioPlayer: Setting up connection manager listeners", connectionManager); // TODO: remove
         const { setupConnectionManagerListeners }: Methods = this;
         setupConnectionManagerListeners(connectionManager);
     },
@@ -179,7 +177,6 @@ export default Vue.extend({
                 setAudioLoaded, 
                 setAudioBuffer,
                 setIsPlaying, 
-                onCanPlayThrough,
                 setStartedAt,
                 setPausedAt,
                 doPreloadFakeout,
@@ -210,7 +207,6 @@ export default Vue.extend({
                 audioContext.decodeAudioData(arrBuffer, (audioBuffer) => {
                     // If a cancellation was requested, then oblige and don't load the audio
                     if (cancellationToken.requestedCancellation) {
-                        console.log("CANCELLATION REQUESTED, CANCELLING"); // TODO: remove
                         cancellationToken.completedCancellation();
                         return;
                     }
@@ -246,7 +242,6 @@ export default Vue.extend({
                 setAudioFileMetadata, 
                 setAudioLoaded, 
                 setIsPlaying, 
-                onCanPlayThrough, 
                 setStartedAt, 
                 setPausedAt }: Methods = this;
 
@@ -267,13 +262,10 @@ export default Vue.extend({
             const { playAudio }: Methods = this;
 
             if (cachedPlaySignal) {
-                console.log("Playing cached play signal", cachedPlaySignal); // TODO: remove
                 playAudio(cachedPlaySignal.startLocation, cachedPlaySignal.startTime, false);
             }
         },
         async playAudio(startLocation: number, startTime: number, instant: boolean) {
-            console.log("Received play signal", startLocation); // TODO: remove
-
             const { cachedPlaySignal }: Data = this;
             const { audioContext, audioBuffer, audioLoaded, audioSource }: Computed = this;
             const connectionManager = this.connectionManager as ConnectionManager;
@@ -287,8 +279,6 @@ export default Vue.extend({
                 stopAudio }: Methods = this;
 
             if (!audioLoaded || !(connectionManager.timesynced || !connectionManager.hasClients)) {
-                console.warn("Unable to play, audio file not loaded / time not synced... caching"); // TODO: remove
-
                 // Cache the play signal
                 const newCachedPlaySignal: CachedPlaySignal = {
                     startLocation,
@@ -303,8 +293,6 @@ export default Vue.extend({
 
             // Clear cached play signal
             this.cachedPlaySignal = null;
-
-            // doPreloadFakeout(); // TODO: need this?
 
             const prevAudioSource = audioSource;
 
@@ -329,8 +317,6 @@ export default Vue.extend({
             // Overshoot is the amount of milliseconds we overshot the target delay by
             const startAudio = (overshoot = 0) => {
                 const { totalCompensation, audioBuffer }: Computed = this;
-                console.log(">> Playing audio at", offset, "with overshoot", overshoot); // TODO: remove
-
                 // Stop any audio that may be already playing
                 if (prevAudioSource) {
                     prevAudioSource.onended = () => {};
@@ -410,11 +396,6 @@ export default Vue.extend({
                 setAudioSource({ audioSource: null });
             }
         },
-        onCanPlayThrough() { // TODO: remove
-            const { setAudioLoaded }: Methods = this;
-            console.log("canplaythrough audio file"); // TODO: remove
-            setAudioLoaded({ loaded: true });
-        },
         doPreloadFakeout() {
             const { 
                 audioContext, 
@@ -430,8 +411,6 @@ export default Vue.extend({
             audioSource.start();
             audioSource.stop();
             audioSource.disconnect();
-
-            console.log("AudioPlayer: Doing preload fakeout"); // TODO: remove
         },
         startCurrTimeUpdator() {
             const { currTimeUpdatorId }: Data = this;

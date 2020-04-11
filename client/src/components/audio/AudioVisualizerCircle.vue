@@ -125,7 +125,6 @@ export default Vue.extend({
                 analyzer.disconnect(context.destination);
             } catch(err) {}
         },
-        // TODO: this method not needed?
         deatchVisualizerInstance(audioSource: AudioBufferSourceNode | null) {
             const { visualizerInstance }: Data = this as any;
 

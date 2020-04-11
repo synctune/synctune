@@ -14,7 +14,6 @@
             </div>
         </div>
 
-        <!-- TODO: pass in audio analyzer node -->
         <audio-visualizer-circle 
             id="RoomClientView__audio-visualizer"
             :disabled="!isPlaying || !audioLoaded"
