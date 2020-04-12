@@ -1,4 +1,3 @@
-// TODO: reference https://stackoverflow.com/questions/37624144/is-there-a-way-to-short-circuit-async-await-flow
 import Emittable from '@/events/Emittable';
 
 interface CancellationTokenEventMap {

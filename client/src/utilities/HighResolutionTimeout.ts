@@ -1,5 +1,3 @@
-// TODO: reference https://gist.github.com/jvlppm/b4fd92e4579d59d0a9ea5656b865e0d2 (adapted from)
-
 export default class HighResolutionTimeout {
     private duration: number;
     private tickDuration: number;

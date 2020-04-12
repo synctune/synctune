@@ -5,16 +5,13 @@ module.exports = {
     },
     extends: [
         "plugin:vue/essential",
-        // "eslint:recommended",
         "@vue/typescript/recommended",
-        // "@vue/prettier",
-        // "@vue/prettier/@typescript-eslint"
     ],
     parserOptions: {
         ecmaVersion: 2020
     },
     rules: {
-        "no-console": process.env.NODE_ENV === "production" ? "warn" : "off", // TODO: switch back to error
+        "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
         "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
         "vue/script-indent": ["error", 4, {
             "baseIndent": 0,
@@ -32,6 +29,8 @@ module.exports = {
         "@typescript-eslint/no-empty-function": "warn",
         "@typescript-eslint/triple-slash-reference": "warn",
         "@typescript-eslint/no-this-alias": "off",
-        "@typescript-eslint/no-non-null-assertion": "off"
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-empty-interface": "off"
     }
 };

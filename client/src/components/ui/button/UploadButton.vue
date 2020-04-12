@@ -28,7 +28,6 @@
 </template>
 
 <script lang="ts">
-// TODO: reference https://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/
 import Vue from 'vue';
 import IconBase from "@/components/ui/icons/IconBase.vue";
 
@@ -70,7 +69,7 @@ export default Vue.extend({
         });
     },
     methods: {
-        onClick(e: MouseEvent) {
+        onClick() {
             const { disabled }: Props = this;
             const { dialogOpen }: Data = this;
 

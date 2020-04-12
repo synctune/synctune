@@ -22,9 +22,7 @@
 </template>
 
 <script lang="ts">
-// TODO: reference https://codepen.io/kamtr0n/pen/PoqGpod
 import Vue from 'vue';
-import * as Utilities from "../../../utilities";
 
 interface Props {
     radius: number;

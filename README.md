@@ -6,7 +6,7 @@ The deployed site can be found at [synctune.app](https://synctune.app/)
 
 ## Demo
 
-YouTube link: TODO: put in
+YouTube link: https://youtu.be/-JTE2tHGL1w
 
 
 ## Introduction
@@ -16,7 +16,7 @@ Synctune is a web application that uses WebRTC to allow for music synchronizatio
 
 ## Browser Support
 
-For the best and most consistent experience, we recommend using Chrome. Firefox should also work but it is sometimes a little finicky when establishing WebRTC connections.
+For the best and most consistent experience, we recommend using Chrome. Due to a bug with PeerJS, Firefox does not always work.
 
 
 ## Project Contributors
@@ -56,13 +56,12 @@ Device-specific audio delay issues (that can't be fixed with time synchronizatio
 ## Top 5 Technical Challenges
 1. **Time Synchronization:** getting this right was very tricky process as any small hiccup can cause desynchronization to occur. We ended up using [timesync](https://www.npmjs.com/package/timesync) to synchronize the clocks between all the connected clients in a room which allowed us to send time-synchronized play signals to each client.
 2. **Accurate setTimeout Callbacks:** one inherit flaw of JavaScript's event-driven architecture is that [setTimeout](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout) is not entirely accurate and can have overshoots of up to around `50ms`. Since we needed accurate asynchronous timeouts for handling playing audio at the right time we needed to find a solution for this. 
-3. **Audio Data Synchronization between Clients:** one issue that we came across was that Chrome has a limit on the file size of a data blob that it will send over a WebRTC connection, and will fail silently. We ended up having to split the file into small chunks that were sent over the WebRTC connection before being pieced back together on the other side.
-4. **Inconsistencies with Web Audio API between Devices:** while testing we found two major device-specific issues that would break audio synchronization:
+3. **Inconsistencies with Web Audio API between Devices:** while testing we found two major device-specific issues that would break audio synchronization:
     
     1. Some devices have audio drivers that go to "sleep" when inactive which causes a slight delay for the audio to be played upon "waking up". As a result oftentimes the first audio being played on the device was heavily de-synced. Fortunately, simply stopping and starting the audio would fix this issue.
     
     2. Other devices would just always have a delay from the time the start method call was run and the time the audio actually started playing, no matter what. To fix this, we implemented a manual correction system that the connected client devices can use to manually re-sync their audio back up.
-
+4. **Audio Data Synchronization between Clients:** one issue that we came across was that Chrome has a limit on the file size of a data blob that it will send over a WebRTC connection, and will fail silently. We ended up having to split the file into small chunks that were sent over the WebRTC connection before being pieced back together on the other side.
 5. **Key Libraries Missing Needed Features:**
 
     1. The library used for clock synchronization ([Timesync](https://www.npmjs.com/package/timesync)) and the audio-visualizer library ([AudioMotion-Analyzer](https://www.npmjs.com/package/audiomotion-analyzer)) both did not have any TypeScript declaration files written for them so we had to write them ourselves. 
@@ -114,8 +113,13 @@ Below are some useful NPM scripts for development
 -   `stop:[environment]`: stops the given environment
 -   `shell:[service]`: opens an interactive shell into the given running service container
 
-### Common Debugging Tips
+## Common Debugging Tips
 
-#### RTC Connections do not Appear
+### Hanging on Room Joining Screen
 
-**Solution:** clear the cache (especially on Chrome). Sometimes the Vue dev server messes up the RTC connections by not closing them properly when the hot reload feature runs.
+Possible Solutions:
+
+* disconnect any other RTC-based apps running in the browser (we found that Messenger calls would stop some devices from joining)
+* try reloading the web page of the joining client
+* try restarting the browser for the client and/or room owner
+* try clearing the webpage's cache

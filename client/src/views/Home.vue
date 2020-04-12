@@ -29,16 +29,12 @@
 
 <script lang="ts">
 import RoomConnectionForm from "@/components/room/RoomConnectionForm.vue";
-import Container from "@/components/ui/Container.vue";
-
-import * as NotificationManager from "../managers/NotificationManager";
 
 import Vue from 'vue';
 export default Vue.extend({
     name: "Home",
     components: {
-        RoomConnectionForm,
-        Container
+        RoomConnectionForm
     },
     computed: {
         crowdImageStyles() {
@@ -46,22 +42,6 @@ export default Vue.extend({
                 backgroundImage: `url(${require("@/assets/crowd.png")})`
             }
         }
-    },
-    mounted() {
-        // TODO: remove this
-        // const duration = 3000 * 1000;
-        // setTimeout(() => {
-        //     NotificationManager.showErrorNotification(this, "Some error", { duration });
-        // }, 50);
-        // setTimeout(() => {
-        //     NotificationManager.showWarningNotification(this, "Some Warning", { duration });
-        // }, 150);
-        // setTimeout(() => {
-        //     NotificationManager.showSuccessNotification(this, "Some Success", { duration });
-        // }, 250);
-        // setTimeout(() => {
-        //     NotificationManager.showInfoNotification(this, "Some Info", { duration });
-        // }, 350);
     }
 });
 </script>

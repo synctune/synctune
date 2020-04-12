@@ -81,7 +81,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("client-left", ({ clientId }) => {
-        console.log("Room store: client left", clientId);
         // Remove client from the clients list
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) Vue.delete(state.connectedClients, idx);
@@ -114,10 +113,7 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
     }, ROOM_STORE_TAG);
 
     connectionManager.addEventListener("audiofilesyncing", ({ clients }) => {
-        
         const connectedClientsCopy = [ ...state.connectedClients ];
-
-        console.log("SETTING AUDIO FILE SYNCING FOR CLIENTS", clients); // TODO: remove
 
         // Set all target clients to downloading state
         clients.forEach(clientId => {
@@ -128,8 +124,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
             const idx = connectedClientsCopy.findIndex(data => data.id === clientId);
 
             if (idx >= 0) {
-                console.log(`$> Setting client ${clientId} to 'uploading'`); // TODO: remove
-
                 const clientData = connectedClientsCopy[idx];
                 clientData._prevState = clientData.state;
                 clientData.state = "uploading";
@@ -163,14 +157,27 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         // Set to loading state
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
-            console.log(`$> Setting client ${clientId} to 'loading'`); // TODO: remove
-
             const clientData = { ...state.connectedClients[idx] };
             clientData._prevState = clientData.state;
             clientData.state = "loading";
             Vue.set(state.connectedClients, idx, clientData);
         }
     }, ROOM_STORE_TAG);
+
+    connectionManager.addEventListener("clientaudiofileloadfail", (clientId) => {
+        if (clientId === connectionManager.id) {
+            return;
+        }
+
+        // Set to loading state
+        const idx = state.connectedClients.findIndex(data => data.id === clientId);
+        if (idx >= 0) {
+            const clientData = { ...state.connectedClients[idx] };
+            clientData._prevState = clientData.state;
+            clientData.state = "error";
+            Vue.set(state.connectedClients, idx, clientData);
+        }
+    });
 
     connectionManager.addEventListener("clientreadytoplay", (clientId) => {
         if (clientId === connectionManager.id) {
@@ -180,8 +187,6 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         // Set to ready state
         const idx = state.connectedClients.findIndex(data => data.id === clientId);
         if (idx >= 0) {
-            console.log(`$> Setting client ${clientId} to 'ready'`); // TODO: remove
-
             const clientData = { ...state.connectedClients[idx] };
             clientData._prevState = clientData.state;
             clientData.state = "ready";

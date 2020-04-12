@@ -31,14 +31,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 import * as RoomStore from "../../store/modules/room";
 import * as AudioStore from "../../store/modules/audio";
 import VueRouter, { Route } from 'vue-router';
 import ConnectionManager, { AudioFileMetadata } from "../../managers/ConnectionManager";
 
 import Container from "@/components/ui/Container.vue";
-import IconClickable from "@/components/ui/icons/IconClickable.vue";
 import ArtworkThumbnail from "@/components/ui/ArtworkThumbnail.vue";
 import NextButton from "@/components/ui/button/NextButton.vue";
 
@@ -71,7 +70,6 @@ type Methods = {
 export default Vue.extend({
     components: {
         Container,
-        IconClickable,
         ArtworkThumbnail,
         NextButton
     },
@@ -103,8 +101,6 @@ export default Vue.extend({
         const { setupConnectionManagerListeners }: Methods = this;
         const connectionManager = this.connectionManager as ConnectionManager;
 
-        console.log("RoomStatus: setting up connection manager listeners", connectionManager);
-
         setupConnectionManagerListeners(connectionManager);
     },
     methods: {
@@ -115,15 +111,20 @@ export default Vue.extend({
             });
 
             connectionManager.addEventListener("client-joined", ({ clientId }) => {
-                console.log("Room Status: client-joined"); // TODO: remove
                 const { onClientRtcJoined }: Methods = this;
                 onClientRtcJoined(clientId);
+            });
+
+            connectionManager.addEventListener("client-left", ({ clientId }) => {
+                const TAG = `room-status-init-audio-sync-${clientId}`;
+                connectionManager.removeEventListenersByTag("clienttimesyncchanged", TAG);
+                connectionManager.removeEventListenersByTag("clientreadytoplay", TAG);
             });
         },
         onRoomLeft() {
             // Go back to home page
             const router = this.$router as VueRouter;
-            router.push('/').catch(err => {});
+            router.push('/').catch(() => {});
         },
         onClientRtcJoined(clientId: string) {
             const connectionManager = this.connectionManager as ConnectionManager;
@@ -137,22 +138,16 @@ export default Vue.extend({
                     audioFileMetadata, 
                     isPlaying,
                     audioContext,
-                    startedAt,
-                    connectedClients }: Computed = this;
+                    startedAt }: Computed = this;
 
                 if (syncedClientID !== clientId) return;
 
                 // If audio is playing, send the play signal to the newly connected client
                 if (isPlaying) {
-                    console.log("Sending catch-up play signal to", clientId); // TODO: remove
                     connectionManager.sendPlaySignal(audioContext.currentTime - startedAt, 0, false, false, false, [clientId]);
                 }
 
-                // if (timesynced && audioFile && audioFileMetadata) {
-                // const clientData = connectedClients.find(data => data.id === clientId);
-                // if (clientData && clientData.state == "ready" && timesynced && audioFile && audioFileMetadata) {
                 if (timesynced && audioFile && audioFileMetadata) {
-                    console.log("syncing existing audio file to new client", clientId); // TODO: remove
                     connectionManager.syncAudioFile(audioFile, audioFileMetadata, false, [clientId]);
 
                     // Clear event listeners for this client (so our listeners don't get triggered again)
@@ -171,7 +166,7 @@ export default Vue.extend({
         onToRoomClick() {
             // Go to room page
             const router = this.$router as VueRouter;
-            router.push('/room').catch(err => {});
+            router.push('/room').catch(() => {});
         }
     }
 });

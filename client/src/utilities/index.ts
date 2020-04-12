@@ -110,7 +110,6 @@ export function isDirection(direction: string) {
     return ["right", "left", "up", "down"].indexOf(direction) !== -1;
 }
 
-// TODO: reference https://davidwalsh.name/javascript-debounce-function
 export function debounce(func: Function, wait: number, immediate?: boolean) {
     let timeout: number | undefined;
     return function(...args: any[]) {
@@ -126,7 +125,6 @@ export function debounce(func: Function, wait: number, immediate?: boolean) {
     };
 }
 
-// TODO: reference https://stackoverflow.com/questions/36532307/rem-px-in-javascript
 /**
  * Converts a rem string value to its equivalent in pixels.
  * 
@@ -145,7 +143,6 @@ export function remToPixel(rem: string): number {
     return remVal * rootPx;
 }
 
-// TODO: reference https://stackoverflow.com/questions/1322732/convert-seconds-to-hh-mm-ss-with-javascript
 /**
  * Converts the given amount of seconds into a more readable format.
  * 
