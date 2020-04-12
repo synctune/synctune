@@ -7,12 +7,10 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapState, mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 import * as RoomStore from "../../store/modules/room";
-import * as AudioStore from "../../store/modules/audio";
 import VueRouter from 'vue-router';
 import * as NotificationManager from "../../managers/NotificationManager";
-import { DEFAULT_DOCUMENT_TITLE } from "../../constants";
 
 import RoomOwnerView from "@/components/room/RoomOwnerView.vue";
 import RoomClientView from "@/components/room/RoomClientView.vue";
@@ -42,7 +40,7 @@ export default Vue.extend({
             const router = this.$router as VueRouter;
 
             // Redirect back to home page and give an error message
-            router.push("/").catch(err => {});
+            router.push("/").catch(() => {});
             NotificationManager.showErrorNotification(this, "Error: not connected to a room");
             return;
         }

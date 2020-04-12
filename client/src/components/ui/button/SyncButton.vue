@@ -152,7 +152,6 @@ export default Vue.extend({
             }
         },
         disabled(newDisabled: boolean) {
-            const { syncing }: Props = this;
             const { stopSyncingSpinAnim }: Methods = this;
 
             if (newDisabled == true) {

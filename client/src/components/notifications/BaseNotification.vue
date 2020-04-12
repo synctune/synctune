@@ -43,12 +43,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import IconClickable from "@/components/ui/icons/IconClickable.vue";
-import IconBase from "@/components/ui/icons/IconBase.vue";
 
 export default Vue.extend({
     components: {
-        IconClickable,
-        IconBase
+        IconClickable
     },
     props: {
         // Passed in from Vue-Notifications
