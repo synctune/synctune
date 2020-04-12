@@ -19,8 +19,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters, mapActions } from "vuex";
-import { Getters, Actions, MapGettersStructure, MapActionsStructure } from "../../store/modules/room";
+import { mapGetters } from "vuex";
+import { Getters, MapGettersStructure } from "../../store/modules/room";
 import VueRouter, { Route } from 'vue-router';
 import ConnectionManager, { RoomData } from '../../managers/ConnectionManager';
 import * as NotificationManager from "../../managers/NotificationManager";
@@ -77,13 +77,13 @@ export default Vue.extend({
         }
     },
     methods: {
-        onSuccess(room: RoomData) {
+        onSuccess() {
             const { clearEventListeners }: Methods = this;
             const router = this.$router as VueRouter;
 
             clearEventListeners();
 
-            router.push(`/room`).catch(err => {});
+            router.push(`/room`).catch(() => {});
         },
         onFail(roomName: string) {
             const { mode }: Props = this;
@@ -99,7 +99,7 @@ export default Vue.extend({
 
             // Go back to home page
             const router = this.$router as VueRouter;
-            router.push(`/`).catch(err => {});
+            router.push(`/`).catch(() => {});
         },
         onError() {
             const { clearEventListeners }: Methods = this;
@@ -110,7 +110,7 @@ export default Vue.extend({
 
             // Go back to home page
             const router = this.$router as VueRouter;
-            router.push(`/`).catch(err => {});
+            router.push(`/`).catch(() => {});
         },
         clearEventListeners() {
             const connectionManager = this.connectionManager as ConnectionManager;
@@ -138,13 +138,13 @@ export default Vue.extend({
         if (isConnected && connectionManager.room !== targetRoom) {
             NotificationManager.showErrorNotification(this, "Already connected to a room.");
 
-            router.push("/").catch(err => {}); // Redirect to home
+            router.push("/").catch(() => {}); // Redirect to home
             return;
         }
 
         if (!targetRoom) {
             NotificationManager.showErrorNotification(this, `No room name provided.`);
-            router.push("/").catch(err => {}); // Redirect to home
+            router.push("/").catch(() => {}); // Redirect to home
             return;
         }
 
