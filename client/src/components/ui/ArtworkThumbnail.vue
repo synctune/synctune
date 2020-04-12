@@ -11,12 +11,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import IconBase from "@/components/ui/icons/IconBase.vue";
 
 export default Vue.extend({
-    components: {
-        IconBase
-    },
     computed: {
         noteIconStyles() {
             return {

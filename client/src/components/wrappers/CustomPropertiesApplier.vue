@@ -72,14 +72,14 @@ export default Vue.extend({
     watch: {
         // Watch for when useRoot changes
         useRoot(nextUseRoot: boolean) {
-            const { useRoot, useEl, el, properties }: Props = this;
+            const { useEl, el, properties }: Props = this;
             const { validateProps, updateRootStyles }: Methods = this;
             validateProps(nextUseRoot, useEl, el);
             updateRootStyles(nextUseRoot, properties);
         },
         // Watch for when useEl changes
         useEl(nextUseEl: boolean) {
-            const { useRoot, useEl, el, properties }: Props = this;
+            const { useRoot, el, properties }: Props = this;
             const { validateProps, updateUseElementStyles }: Methods = this;
             validateProps(useRoot, nextUseEl, el);
             updateUseElementStyles(nextUseEl, el, properties);

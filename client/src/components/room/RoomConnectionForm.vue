@@ -68,7 +68,6 @@ import ConnectionManager from '../../managers/ConnectionManager';
 
 import Container from "@/components/ui/Container.vue";
 import InputField from "@/components/ui/forms/InputField.vue";
-import ButtonPrimary from "@/components/ui/button/ButtonPrimary.vue";
 import ButtonSecondary from "@/components/ui/button/ButtonSecondary.vue";
 import ButtonInputHybrid from "@/components/ui/button/ButtonInputHybrid.vue";
 
@@ -96,7 +95,6 @@ export default Vue.extend({
     components: {
         Container,
         InputField,
-        ButtonPrimary,
         ButtonSecondary,
         ButtonInputHybrid
     },
@@ -134,7 +132,7 @@ export default Vue.extend({
             const { roomName }: Data = this;
             const router = this.$router as VueRouter;
 
-            router.push({ path: `/room/join/${roomName}` }).catch(err => {});
+            router.push({ path: `/room/join/${roomName}` }).catch(() => {});
         },
         createRoom() {
             const router = this.$router as VueRouter;
@@ -142,7 +140,7 @@ export default Vue.extend({
             // Generate a name for the room
             const id = Utilities.generateRoomCode();
 
-            router.push({ path: `/room/create/${id}` }).catch(err => {});
+            router.push({ path: `/room/create/${id}` }).catch(() => {});
         },
         updateRoomName(value: string) {
             this.roomName = value.trim().toUpperCase();
