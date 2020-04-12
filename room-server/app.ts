@@ -9,7 +9,7 @@ import {
     closeRoom,
 } from "./src/routes/RoomRoute";
 import KEYS from "./keys";
-import sslRedirect from "heroku-ssl-redirect";
+const sslRedirect = require("heroku-ssl-redirect");
 
 const app = express();
 app.use(bodyParser.json());
