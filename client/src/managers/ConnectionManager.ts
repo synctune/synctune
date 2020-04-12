@@ -37,6 +37,7 @@ export interface MessageData {
         | "audiometadatareceived"
         | "audiochunkreceived"
         | "audiofilereceived" 
+        | "audiofileloadfailed"
         | "readytoplay" 
         | "play" 
         | "pause" 
@@ -115,6 +116,7 @@ interface ConnectionManagerEventMap {
     "audiometadatareceived": AudioFileMetadata;
     "audiochunkreceived": ArrayBuffer;
     "audiofilereceived": Blob;
+    "audiofileloadfailed": null;
 
     "playsignalreceived": PlaySignalData;
     "pausesignalreceived": number;
@@ -122,6 +124,7 @@ interface ConnectionManagerEventMap {
 
     "clientreceivedaudiometadata": string;
     "clientreceivedaudiofile": string;
+    "clientaudiofileloadfail": string;
     "clientreceivedaudiochunk": string;
     "clientreadytoplay": string;
     "clienttimesyncchanged": Omit<ClientData, "connection">;
@@ -294,9 +297,7 @@ export default class ConnectionManager extends Emittable {
         };
 
         timesync.on("sync", (state) => {
-            if (!this.isConnected) {
-                return;
-            }
+            if (!this.isConnected) return;
 
             if (state === "start") {
                 this._timesynced = false;
@@ -344,6 +345,8 @@ export default class ConnectionManager extends Emittable {
 
     private setupPeerConnectionListeners(clientId: string, conn: Peer.DataConnection) {
         conn.on("data", (rawData) => {
+            if (!this.isConnected) return;
+
             const messageData = rawData as MessageData;
 
             switch(messageData.type) {
@@ -409,6 +412,9 @@ export default class ConnectionManager extends Emittable {
                     const afrReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreceivedaudiofile", afrReceivedClientId);
                     break;
+                case "audiofileloadfailed":
+                    const aflfReceivedClientId = messageData.data as string;
+                    this.emitEvent("clientaudiofileloadfail", aflfReceivedClientId);
                 case "audiochunkreceived":
                     const acrReceivedClientId = messageData.data as string;
                     this.emitEvent("clientreceivedaudiochunk", acrReceivedClientId);
@@ -523,6 +529,11 @@ export default class ConnectionManager extends Emittable {
             return;
         }
 
+        // Clear audio chunk related data
+        this._expectedAudioFileSize = null;
+        this._receivedChunks = [];
+        this._receivedSize = 0;
+
         // Reinitialize timesync instance
         this._timesync.destroy();
         this._timesync = this.createTimesyncInstance([]);
@@ -580,6 +591,11 @@ export default class ConnectionManager extends Emittable {
             this.emitEvent("already-in-room", this._roomName!);
             return;
         }
+
+        // Clear audio chunk related data
+        this._expectedAudioFileSize = null;
+        this._receivedChunks = [];
+        this._receivedSize = 0;
 
         try {
             const res = await axios.get<GetRoomResponse>(`${KEYS.ROOM_SERVER_URL}/rooms/${roomName}`);
@@ -647,7 +663,7 @@ export default class ConnectionManager extends Emittable {
                     this.emitEvent("error", `Unsupported status code: ${response.status}`);
                 }
             } else {
-                this.emitEvent("error", err)
+                this.emitEvent("error", err);
             }
         }
     }
@@ -679,6 +695,11 @@ export default class ConnectionManager extends Emittable {
 
         // Clear timesync peer list
         this._timesync.options.peers = [];
+
+        // Clear audio chunk related data
+        this._expectedAudioFileSize = null;
+        this._receivedChunks = [];
+        this._receivedSize = 0;
 
         if (this.isOwner) {
             // Attempt to delete the room on the server
@@ -800,8 +821,10 @@ export default class ConnectionManager extends Emittable {
 
             // Send chunk to each client
             targetClients.forEach(clientId => {
-                const sendChannel = this._peerConnections[clientId].connection;
-                sendChannel.send(messageData);
+                const sendChannel = this._peerConnections[clientId]?.connection;
+                if (sendChannel) {
+                    sendChannel.send(messageData);
+                }
             });
 
             currOffset += chunk.byteLength;
@@ -809,7 +832,7 @@ export default class ConnectionManager extends Emittable {
             this.emitEvent("audiochunksent", chunk);
 
             // If we still have more file to send, read the next chunk
-            if (currOffset < audioFile.size) {
+            if (currOffset < audioFile.size && this.isConnected) {
                 readSlice(currOffset);
             } else {
                 // The entire file is sent
@@ -1074,6 +1097,39 @@ export default class ConnectionManager extends Emittable {
 
             const messageData: MessageData = {
                 type: "readytoplay",
+                data: selfId
+            }
+
+            syncSendChannel.send(messageData);
+        });
+    }
+
+    /**
+     * Sends a signal back to the room owner that the audio file was unable to be loaded
+     * 
+     * @param selfId The id of self
+     */
+    sendAudioFileLoadFailedSignal(selfId: string)  {
+        if (!this.isConnected) {
+            this.emitEvent("error", "Not connected to a room");
+            return;
+        }
+
+        if (this.isOwner) {
+            this.emitEvent("error", "Unable to send ready to play signal: not a client");
+            return;
+        }
+
+        this.clientIds.forEach(otherId => {
+            const syncSendChannel = this._peerConnections[otherId].connection;
+
+            if (!syncSendChannel) {
+                this.emitEvent("error", `Unable to send ready to play signal to ${otherId}`);
+                return;
+            }
+
+            const messageData: MessageData = {
+                type: "audiofileloadfailed",
                 data: selfId
             }
 

@@ -164,6 +164,21 @@ function setupConnectionManagerListeners(state: RoomState, connectionManager: Co
         }
     }, ROOM_STORE_TAG);
 
+    connectionManager.addEventListener("clientaudiofileloadfail", (clientId) => {
+        if (clientId === connectionManager.id) {
+            return;
+        }
+
+        // Set to loading state
+        const idx = state.connectedClients.findIndex(data => data.id === clientId);
+        if (idx >= 0) {
+            const clientData = { ...state.connectedClients[idx] };
+            clientData._prevState = clientData.state;
+            clientData.state = "error";
+            Vue.set(state.connectedClients, idx, clientData);
+        }
+    });
+
     connectionManager.addEventListener("clientreadytoplay", (clientId) => {
         if (clientId === connectionManager.id) {
             return;

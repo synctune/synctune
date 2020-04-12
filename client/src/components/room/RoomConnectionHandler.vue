@@ -27,6 +27,8 @@ import * as NotificationManager from "../../managers/NotificationManager";
 
 import CircleSpinner from "@/components/ui/spinners/CircleSpinner.vue";
 
+const CONNECTION_MANAGER_TAG = 'room-connection-handler';
+
 type Props = {
     mode: "join" | "create";
 }
@@ -114,13 +116,12 @@ export default Vue.extend({
         },
         clearEventListeners() {
             const connectionManager = this.connectionManager as ConnectionManager;
-            const { onSuccess, onFail, onError }: Methods = this;
 
-            connectionManager.removeEventListener("room-not-exists", onFail);
-            connectionManager.removeEventListener("room-already-exists", onFail);
-            connectionManager.removeEventListener("room-joined", onSuccess);
-            connectionManager.removeEventListener("room-created", onSuccess);
-            connectionManager.removeEventListener("error", onError);
+            connectionManager.removeEventListenersByTag("room-not-exists", CONNECTION_MANAGER_TAG);
+            connectionManager.removeEventListenersByTag("room-already-exists", CONNECTION_MANAGER_TAG);
+            connectionManager.removeEventListenersByTag("room-joined", CONNECTION_MANAGER_TAG);
+            connectionManager.removeEventListenersByTag("room-created", CONNECTION_MANAGER_TAG);
+            connectionManager.removeEventListenersByTag("error", CONNECTION_MANAGER_TAG);
         }
     },
     mounted() {
