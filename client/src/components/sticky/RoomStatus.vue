@@ -114,6 +114,12 @@ export default Vue.extend({
                 const { onClientRtcJoined }: Methods = this;
                 onClientRtcJoined(clientId);
             });
+
+            connectionManager.addEventListener("client-left", ({ clientId }) => {
+                const TAG = `room-status-init-audio-sync-${clientId}`;
+                connectionManager.removeEventListenersByTag("clienttimesyncchanged", TAG);
+                connectionManager.removeEventListenersByTag("clientreadytoplay", TAG);
+            });
         },
         onRoomLeft() {
             // Go back to home page

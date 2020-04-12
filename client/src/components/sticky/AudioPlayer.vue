@@ -28,6 +28,7 @@ type Computed = {}
         | RoomStore.Getters.connectionManager
         | RoomStore.Getters.isConnected
         | RoomStore.Getters.timesynced
+        | RoomStore.Getters.isOwner
     > 
     & Pick<AudioStore.MapGettersStructure,
         AudioStore.Getters.isPlaying 
@@ -79,6 +80,7 @@ export default Vue.extend({
             connectionManager: RoomStore.Getters.connectionManager,
             isConnected: RoomStore.Getters.isConnected,
             timesynced: RoomStore.Getters.timesynced,
+            isOwner: RoomStore.Getters.isOwner,
             isPlaying: AudioStore.Getters.isPlaying,
             audioContext: AudioStore.Getters.audioContext,
             audioBuffer: AudioStore.Getters.audioBuffer,
@@ -177,6 +179,7 @@ export default Vue.extend({
                 setPausedAt,
                 doPreloadFakeout,
                 runCachedPlaySignal }: Methods = this;
+            const connectionManager = this.connectionManager as ConnectionManager;
 
             setAudioFile({ audioFile });
 
@@ -200,34 +203,41 @@ export default Vue.extend({
             fileReader.addEventListener("load", (event) => {
                 const arrBuffer = event.target?.result as ArrayBuffer;
 
-                audioContext.decodeAudioData(arrBuffer, (audioBuffer) => {
-                    // If a cancellation was requested, then oblige and don't load the audio
-                    if (cancellationToken.requestedCancellation) {
-                        cancellationToken.completedCancellation();
-                        return;
-                    }
-
-                    setAudioBuffer({ audioBuffer: audioBuffer });
-                    setAudioLoaded({ loaded: true });
-
-                    // This is meant to stop a bug where a massive amount of delay occurs when
-                    // playing an audio clip for the first time
-                    doPreloadFakeout();
-
-
-                    // Send ready to play signal
-                    const connectionManager = this.connectionManager as ConnectionManager;
-                    if (!connectionManager.isOwner) {
-                        const { timesynced }: Computed = this;
-
-                        connectionManager.sendReadyToPlaySignal(connectionManager.id!);
-
-                        if (timesynced) {
-                            // Run the cached play signal, if it exists
-                            runCachedPlaySignal();
+                try {
+                    audioContext.decodeAudioData(arrBuffer, (audioBuffer) => {
+                        // If a cancellation was requested, then oblige and don't load the audio
+                        if (cancellationToken.requestedCancellation) {
+                            cancellationToken.completedCancellation();
+                            return;
                         }
-                    }
-                });
+
+                        setAudioBuffer({ audioBuffer: audioBuffer });
+                        setAudioLoaded({ loaded: true });
+
+                        // This is meant to stop a bug where a massive amount of delay occurs when
+                        // playing an audio clip for the first time
+                        doPreloadFakeout();
+
+                        // Send ready to play signal
+                        const connectionManager = this.connectionManager as ConnectionManager;
+                        if (!connectionManager.isOwner) {
+                            const { timesynced }: Computed = this;
+
+                            connectionManager.sendReadyToPlaySignal(connectionManager.id!);
+
+                            if (timesynced) {
+                                // Run the cached play signal, if it exists
+                                runCachedPlaySignal();
+                            }
+                        }
+                    });
+                } catch(err) {
+                    const { isOwner }: Computed = this;
+
+                    if (isOwner) return;
+
+                    connectionManager.sendAudioFileLoadFailedSignal(connectionManager.id);
+                }
             });
         },
         unloadAudioFile() {
