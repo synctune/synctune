@@ -5,7 +5,7 @@ module.exports = {
         watchOptions: {
             poll: true
         },
-        progress: false 
+        progress: false,
     },
     css: {
         loaderOptions: {
