@@ -21,7 +21,6 @@
         "crypto": "^1.0.1",
         "express": "^4.17.1",
         "express-session": "^1.17.0",
-        "heroku-ssl-redirect": "0.0.4",
         "peer": "^0.5.1",
         "redis": "^3.0.2",
         "socket.io": "^2.3.0"

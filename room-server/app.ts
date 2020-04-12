@@ -9,12 +9,22 @@ import {
     closeRoom,
 } from "./src/routes/RoomRoute";
 import KEYS from "./keys";
-const sslRedirect = require("heroku-ssl-redirect");
+
+function sslRedirect(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) {
+    if (req.headers["x-forwarded-proto"] != "https") {
+        res.end("Please use https");
+    } else {
+        next();
+    }
+}
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(sslRedirect())
 
 if (KEYS.IS_PROD) {
     app.use(
@@ -23,6 +33,7 @@ if (KEYS.IS_PROD) {
             credentials: true,
         })
     );
+    app.use(sslRedirect);
 }
 
 // room server
