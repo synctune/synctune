@@ -22,6 +22,8 @@
             id="Home__room-connection-form"
         />
 
+        <nfc-test />
+
         <!-- Used to level out where flexbox puts the room-connection-form on the screen -->
         <div id="Home__placeholder"></div>
     </div>
@@ -29,12 +31,14 @@
 
 <script lang="ts">
 import RoomConnectionForm from "@/components/room/RoomConnectionForm.vue";
+import NfcTest from "@/components/test/NfcTest.vue";
 
 import Vue from 'vue';
 export default Vue.extend({
     name: "Home",
     components: {
-        RoomConnectionForm
+        RoomConnectionForm,
+        NfcTest
     },
     computed: {
         crowdImageStyles() {
