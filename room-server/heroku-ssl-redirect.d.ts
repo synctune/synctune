@@ -1,4 +1,3 @@
-import * as express from 'express';
-
-declare function sslRedirect(): express.RequestHandler;
-declare module "heroku-ssl-redirect";
+declare module "heroku-ssl-redirect" {
+    export default function main(): any
+}
