@@ -8,7 +8,7 @@ const A_DAY = 86400;
 const redisClient = createClient(KEYS.REDIS_URL);
 
 const roomNameInvalid = (roomName: String) =>
-    roomName === null || !isString(roomName) || roomName.length !== 9;
+    roomName === null || !isString(roomName);
 const peerIdInvalid = (peerId: String) =>
     peerId === null || !isString(peerId) || peerId.length === 0;
 
