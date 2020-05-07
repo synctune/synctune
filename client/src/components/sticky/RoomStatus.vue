@@ -187,6 +187,8 @@ export default Vue.extend({
         max-width: $max-width;
         width: 100%;
 
+        z-index: 2;
+
         .RoomStatus {
             width: 100%;
 
