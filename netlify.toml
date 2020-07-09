@@ -13,9 +13,9 @@ command = "npm run build"
 
 [build.environment]
 VUE_APP_ROOM_SERVER_URL = "https://synctune-roomserver.herokuapp.com"
-VUE_APP_PEERJS_HOST = "0.peerjs.com"
+VUE_APP_PEERJS_HOST = "34.72.169.136"
 VUE_APP_PEERJS_PATH = "/"
-VUE_APP_PEERJS_PORT = "443"
+VUE_APP_PEERJS_PORT = "8080"
 NODE_ENV = "production"
 
 # The following redirect is intended for use with most SPAs that handle
