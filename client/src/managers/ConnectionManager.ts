@@ -173,7 +173,7 @@ export default class ConnectionManager extends Emittable {
             }
         };
 
-        const peer = new Peer(id, options);
+        const peer = new Peer(id);
         this._peer = peer;
 
         this._id = peer.id;
