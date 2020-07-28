@@ -160,7 +160,6 @@ export default class ConnectionManager extends Emittable {
             host: KEYS.PEERJS_HOST,
             path: KEYS.PEERJS_PATH,
             port: KEYS.PEERJS_PORT,
-            secure: false,
             config: {
                 iceServers: [
                     { urls: [
@@ -173,7 +172,7 @@ export default class ConnectionManager extends Emittable {
             }
         };
 
-        const peer = new Peer(id);
+        const peer = new Peer(id, options);
         this._peer = peer;
 
         this._id = peer.id;
