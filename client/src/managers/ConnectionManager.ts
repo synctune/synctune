@@ -160,7 +160,7 @@ export default class ConnectionManager extends Emittable {
             host: KEYS.PEERJS_HOST,
             path: KEYS.PEERJS_PATH,
             port: KEYS.PEERJS_PORT,
-            secure: true,
+            secure: KEYS.PEERJS_SECURE,
             // config: {
             //     iceServers: [
             //         { urls: [

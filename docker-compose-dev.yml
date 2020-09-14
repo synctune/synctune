@@ -46,6 +46,7 @@ services:
             - VUE_APP_PEERJS_HOST=/
             - VUE_APP_PEERJS_PATH=/peer-server
             - VUE_APP_PEERJS_PORT=3050
+            - VUE_APP_PEERJS_SECURE=false
         networks:
             - app-network
         hostname: client
