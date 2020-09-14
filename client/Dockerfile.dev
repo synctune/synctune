@@ -1,7 +1,7 @@
 # Client development container
 FROM node:alpine
 WORKDIR /app
-RUN apk add --no-cache git nano
+RUN apk add --no-cache git nano python2 make g++
 COPY ./package*.json ./
 RUN npm install
 COPY . .
