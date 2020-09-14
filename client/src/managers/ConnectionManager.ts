@@ -161,16 +161,16 @@ export default class ConnectionManager extends Emittable {
             path: KEYS.PEERJS_PATH,
             port: KEYS.PEERJS_PORT,
             secure: KEYS.PEERJS_SECURE,
-            // config: {
-            //     iceServers: [
-            //         { urls: [
-            //             'stun:stun.l.google.com:19302', 
-            //             'stun:stun2.l.google.com:19302', 
-            //             'stun:stun3.l.google.com:19302', 
-            //             'stun:stun4.l.google.com:19302'
-            //         ] },
-            //     ]
-            // }
+            config: {
+                iceServers: [
+                    { urls: [
+                        'stun:stun.l.google.com:19302', 
+                        'stun:stun2.l.google.com:19302', 
+                        'stun:stun3.l.google.com:19302', 
+                        'stun:stun4.l.google.com:19302'
+                    ] },
+                ]
+            }
         };
 
         const peer = new Peer(id, options);
