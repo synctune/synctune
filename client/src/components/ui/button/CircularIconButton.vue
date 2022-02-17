@@ -44,6 +44,10 @@ export default Vue.extend({
 
 <style lang="scss">
     .CircularIconButton {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         & .CircularIconButton__icon {
             width: 100%;
             height: 100%;

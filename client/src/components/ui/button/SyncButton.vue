@@ -177,12 +177,12 @@ export default Vue.extend({
     .SyncButton {
         position: relative;
 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         & .SyncButton__icon {
-            // animation-name: icon-reset;
-            // animation-duration: $spin-reset-time;
-            // animation-fill-mode: both;
-            
-            // transition: transform $spin-time;
+
         }
 
         & .SyncButton__loader-container {
@@ -197,29 +197,10 @@ export default Vue.extend({
 
         &.syncing {
             & .SyncButton__icon {
-                // animation-name: icon-spin;
-                // animation-duration: $spin-duration;
-                // animation-iteration-count: infinite;
-                // animation-timing-function: linear;
-                // animation-fill-mode: forwards;
+                
             }   
         }
     }
-
-    // @keyframes icon-reset {
-    //     100% {
-    //         transform: rotate(0deg);
-    //     }
-    // }
-
-    // @keyframes icon-spin {
-    //     0% {
-    //       transform: rotate(0deg);
-    //     }
-    //     100% {
-    //       transform: rotate(-360deg);
-    //     }
-    // }
 
     // Transition effects
     @include transition-effect(fade, 0.3s);
