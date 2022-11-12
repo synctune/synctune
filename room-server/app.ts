@@ -29,7 +29,7 @@ app.use(cookieParser());
 if (KEYS.IS_PROD) {
     app.use(
         cors({
-            origin: KEYS.CLIENT_HOST_PATH,
+            origin: KEYS.CLIENT_HOST_PATHS,
             credentials: true,
         })
     );
