@@ -11,7 +11,6 @@
 
 FROM peerjs/peerjs-server
 RUN apk --no-cache add certbot && npm install -g peer
-WORKDIR /app
 COPY ./entrypoint.sh entrypoint.sh
-RUN ["chmod", "+x", "/app/entrypoint.sh"]
+RUN ["chmod", "+x", "./entrypoint.sh"]
 ENTRYPOINT ./entrypoint.sh
