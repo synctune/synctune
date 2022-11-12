@@ -3,7 +3,7 @@ function parseClientHostPaths(): string | string[] {
     if (!hostPathsRaw) return "/";
 
     try {
-        hostPathsParsed = JSON.parse(hostPathsRaw);
+        const hostPathsParsed = JSON.parse(hostPathsRaw);
         if (typeof hostPathsParsed === "string" || Array.isArray(hostPathsParsed)) {
             return hostPathsParsed;
         } else {
