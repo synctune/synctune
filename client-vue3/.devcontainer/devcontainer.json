@@ -1,7 +1,7 @@
 {
-  "name": "Client",
+  "name": "Client Vue3",
   "dockerComposeFile": ["..\\..\\docker-compose-dev.yml"],
-  "service": "client",
+  "service": "client-vue3",
   "workspaceFolder": "/app",
   "shutdownAction": "none",
   "extensions": [
@@ -10,6 +10,7 @@
     "esbenp.prettier-vscode",
     "naumovs.color-highlight",
     "wayou.vscode-todo-highlight",
-    "octref.vetur"
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin"
   ]
 }
