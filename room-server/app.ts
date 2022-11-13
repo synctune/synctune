@@ -26,14 +26,15 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-console.log(`Allowed CORS domains: ${KEYS.CLIENT_HOST_PATHS?.join(",")}`);
+console.log(`Allowed CORS domains: ${KEYS.CLIENT_HOST_PATHS?.join(", ")}`);
 
 if (KEYS.IS_PROD) {
     app.use(
         cors({
-            // TODO: fix
+            // TODO: remove
             // origin: KEYS.CLIENT_HOST_PATHS,
-            origin: ["https://synctune.app", "https://synctune-client.onrender.com"],
+            // origin: ["https://synctune.app", "https://synctune-client.onrender.com"],
+            origin: KEYS.CLIENT_HOST_PATHS ?? undefined,
             credentials: true,
         })
     );
