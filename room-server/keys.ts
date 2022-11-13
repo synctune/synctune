@@ -1,5 +1,5 @@
 function parseClientHostPaths(): string | string[] {
-    const hostPathsRaw = process.env.CLIENT_HOST_PATH;
+    const hostPathsRaw = process.env.CLIENT_HOST_PATHS;
     if (!hostPathsRaw) return "/";
 
     try {
