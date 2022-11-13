@@ -1,0 +1,15 @@
+{
+  "name": "Client",
+  "dockerComposeFile": ["..\\..\\docker-compose-dev.yml"],
+  "service": "client",
+  "workspaceFolder": "/app",
+  "shutdownAction": "none",
+  "extensions": [
+    "streetsidesoftware.code-spell-checker",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "naumovs.color-highlight",
+    "wayou.vscode-todo-highlight",
+    "octref.vetur"
+  ]
+}
