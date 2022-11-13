@@ -26,6 +26,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+console.log(`Allowed CORS domains: ${KEYS.CLIENT_HOST_PATHS}`);
+
 if (KEYS.IS_PROD) {
     app.use(
         cors({
