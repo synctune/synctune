@@ -33,7 +33,7 @@ if (KEYS.IS_PROD) {
         cors({
             // TODO: fix
             // origin: KEYS.CLIENT_HOST_PATHS,
-            origin: "https://synctune-client.onrender.com",
+            origin: ["https://synctune.app", "https://synctune-client.onrender.com"],
             credentials: true,
         })
     );
