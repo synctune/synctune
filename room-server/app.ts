@@ -31,9 +31,6 @@ console.log(`Allowed CORS domains: ${KEYS.CLIENT_HOST_PATHS?.join(", ")}`);
 if (KEYS.IS_PROD) {
     app.use(
         cors({
-            // TODO: remove
-            // origin: KEYS.CLIENT_HOST_PATHS,
-            // origin: ["https://synctune.app", "https://synctune-client.onrender.com"],
             origin: KEYS.CLIENT_HOST_PATHS ?? undefined,
             credentials: true,
         })
