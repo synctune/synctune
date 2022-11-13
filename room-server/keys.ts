@@ -1,16 +1,18 @@
-function parseClientHostPaths(): string | string[] {
+function parseClientHostPaths(): string[] | null {
     const hostPathsRaw = process.env.CLIENT_HOST_PATHS;
-    if (!hostPathsRaw) return "/";
+    if (!hostPathsRaw) return null;
 
     try {
         const hostPathsParsed = JSON.parse(hostPathsRaw);
-        if (typeof hostPathsParsed === "string" || Array.isArray(hostPathsParsed)) {
+        if (typeof hostPathsParsed === "string") {
+            return [hostPathsParsed];
+        } else if (Array.isArray(hostPathsParsed)) {
             return hostPathsParsed;
         } else {
             throw `Invalid CLIENT_HOST_PATH value: ${hostPathsRaw}`;
         }
     } catch(err) {
-        return "/";
+        return null;
     }
 }
 
