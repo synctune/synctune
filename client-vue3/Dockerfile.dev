@@ -1,0 +1,10 @@
+# Client development container
+# Dealing with node-gyp error: https://stackoverflow.com/a/70803551/13161942
+FROM node:19-alpine
+WORKDIR /app
+# TODO: remove?
+# RUN apk add --no-cache git nano python3 py3-pip make g++
+COPY ./package*.json ./
+RUN npm install
+COPY . .
+CMD ["npm", "run", "dev"]

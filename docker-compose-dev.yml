@@ -14,6 +14,7 @@ services:
         depends_on:
             - "room-server"
             - "client"
+            - "client-vue3"
     room-server:
         build:
             dockerfile: Dockerfile.dev
@@ -51,6 +52,26 @@ services:
             - app-network
         hostname: client
         container_name: synctune_client
+    client-vue3:
+        build:
+            dockerfile: Dockerfile.dev
+            context: ./client-vue3
+        ports:
+            - "3051:8080"
+        volumes:
+            - /app/node_modules
+            - ./client-vue3:/app
+        environment:
+            - CHOKIDAR_USEPOLLING=true
+            - VUE_APP_ROOM_SERVER_URL=/room-server
+            - VUE_APP_PEERJS_HOST=/
+            - VUE_APP_PEERJS_PATH=/peer-server
+            - VUE_APP_PEERJS_PORT=3050
+            - VUE_APP_PEERJS_SECURE=false
+        networks:
+            - app-network
+        hostname: client-vue3
+        container_name: synctune_client_vue3
     redis:
         image: redis
         networks:
