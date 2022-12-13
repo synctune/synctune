@@ -3,6 +3,6 @@
 
 <template>
   <main>
-    <div>Home View</div>
+    <div>Room Create View</div>
   </main>
 </template>

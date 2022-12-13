@@ -3,6 +3,6 @@
 
 <template>
   <main>
-    <div>Home View</div>
+    <div>Page Not Found</div>
   </main>
 </template>

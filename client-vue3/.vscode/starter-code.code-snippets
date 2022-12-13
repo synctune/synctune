@@ -1,0 +1,17 @@
+{
+  "Single File Component": {
+    "scope": "vue",
+    "prefix": "starter-code-component",
+    "body": [
+      "<script setup lang=\"ts\"></script>",
+      "",
+      "<template>",
+      "  <div>TODO: implement</div>",
+      "</template>",
+      "",
+      "<style lang=\"scss\"></style>",
+      "",
+    ],
+    "description": "The starter code for a single file component"
+  },
+}
