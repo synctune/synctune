@@ -14,5 +14,8 @@ export const TIMESYNC_TIMEOUT = 10000;
 export const AUDIO_CHUNK_SIZE = 16384;
 export const AUDIO_COMPENSATE_AMOUNT = 0.01; // Seconds
 
+// Notification constants
+export const NOTIFICATION_GROUP = "notification";
+
 // Other constants
 export const DEFAULT_DOCUMENT_TITLE = "SyncTune";

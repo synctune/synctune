@@ -1,3 +1,15 @@
+<template>
+  <CustomPropertiesApplier
+    :properties="themeProperties"
+    :tag="tag"
+    :use-root="useRoot"
+    :use-el="useEl"
+    :el="el"
+  >
+    <slot></slot>
+  </CustomPropertiesApplier>
+</template>
+
 <script setup lang="ts">
 import CustomPropertiesApplier from "@/components/wrappers/CustomPropertiesApplier.vue";
 import { useThemeStore } from "@/stores/theme";
@@ -9,8 +21,8 @@ const props = withDefaults(
     namespace?: string;
     theme?: string;
     tag?: string;
-    useRoot: boolean;
-    useEl: boolean;
+    useRoot?: boolean;
+    useEl?: boolean;
     el?: HTMLElement;
   }>(),
   {
@@ -64,15 +76,3 @@ watch(
   }
 );
 </script>
-
-<template>
-  <CustomPropertiesApplier
-    :properties="themeProperties"
-    :tag="tag"
-    :use-root="useRoot"
-    :use-el="useEl"
-    :el="el"
-  >
-    <slot></slot>
-  </CustomPropertiesApplier>
-</template>

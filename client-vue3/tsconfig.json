@@ -2,8 +2,13 @@
   "extends": "@vue/tsconfig/tsconfig.web.json",
   "include": [
     "env.d.ts",
+    "shims*.d.ts",
     "src/**/*",
-    "src/**/*.vue"
+    // TODO: remove?
+    // "src/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules"
   ],
   "compilerOptions": {
     "baseUrl": ".",
@@ -16,7 +21,16 @@
       "es2017",
       "dom",
     ],
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "strict": true,
+    "strictNullChecks": true,
+    // TODO: remove?
+    // "jsx": "preserve",
+    // "importHelpers": true,
+    // "moduleResolution": "node",
+    // "esModuleInterop": true,
+    // "allowSyntheticDefaultImports": true,
+    // "sourceMap": true,
   },
   "references": [
     {

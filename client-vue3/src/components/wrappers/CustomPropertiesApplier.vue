@@ -1,3 +1,9 @@
+<template>
+  <component :is="tag" :style="cssStyles">
+    <slot></slot>
+  </component>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import type { GeneratedProperties } from "themer";
@@ -72,6 +78,9 @@ onBeforeMount(() => {
 
 onMounted(() => {
   if (props.useRoot) currentlyUsingRoot.value = true;
+
+  updateRootStyles(props.useRoot, props.properties);
+  updateUseElementStyles(props.useEl, props.el, props.properties);
 });
 
 const cssStyles = computed(() => {
@@ -102,9 +111,3 @@ watch(
   }
 );
 </script>
-
-<template>
-  <component :is="tag" :style="cssStyles">
-    <slot></slot>
-  </component>
-</template>
