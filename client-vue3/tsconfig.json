@@ -21,16 +21,25 @@
       "es2017",
       "dom",
     ],
+    "types": [
+      // "webpack-env",
+      // "node",
+    ],
     "noUncheckedIndexedAccess": true,
     "strict": true,
     "strictNullChecks": true,
-    // TODO: remove?
-    // "jsx": "preserve",
-    // "importHelpers": true,
     // "moduleResolution": "node",
     // "esModuleInterop": true,
     // "allowSyntheticDefaultImports": true,
     // "sourceMap": true,
+    // "noImplicitThis": false,
+    // TODO: remove?
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
   },
   "references": [
     {

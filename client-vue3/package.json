@@ -21,6 +21,7 @@
     "pinia": "^2.0.23",
     "themer": "github:alex-greff/themer#a16f85b9f15519a6b9a3fea1e208fd90990464bf",
     "timesync": "^1.0.5",
+    "tsafe": "^1.4.1",
     "uuidv4": "^6.0.6",
     "vue": "^3.2.41",
     "vue-material-design-icons": "^5.1.2",
