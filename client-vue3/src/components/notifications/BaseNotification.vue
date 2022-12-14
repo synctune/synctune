@@ -45,14 +45,12 @@
 import IconClickable from "@/components/ui/icons/IconClickable.vue";
 import CloseIcon from "vue-material-design-icons/Close.vue";
 import type { NotificationsSlotScope } from "@kyvg/vue3-notification";
-import { onMounted, type StyleValue } from "vue";
+import type { StyleValue } from "vue";
 
 const props = withDefaults(
   defineProps<{
     // Passed in from Vue-Notifications
-    // props: NotificationsOptions;
     notificationScope: NotificationsSlotScope;
-    // TODO: do some typing and spread magic to make a type macro for this stuff
     baseClass?: string;
     baseStyle?: StyleValue;
     baseId?: string;
@@ -71,12 +69,6 @@ const props = withDefaults(
   }>(),
   {}
 );
-
-onMounted(() => {
-  console.log(JSON.parse(JSON.stringify(props)));
-  console.log(JSON.parse(JSON.stringify(props.notificationScope)));
-  // console.log((props.props as any).props);
-});
 </script>
 
 <style lang="scss">
@@ -125,7 +117,7 @@ $width: 330px;
     flex-direction: row;
     align-items: center;
 
-    // Note: this should be overrided by the components that use it
+    // Note: this should be overridden by the components that use it
     background-color: color-link("GLOBAL", "background", "secondary");
 
     border-radius: $radius-amount;
