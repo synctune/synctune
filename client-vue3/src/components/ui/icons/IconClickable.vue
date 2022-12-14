@@ -1,8 +1,8 @@
 <template>
   <IconBase
-    :class="['IconClickable', disabled ? 'disabled' : '']"
-    v-bind="$attrs"
+    :class="['IconClickable', props.disabled ? 'disabled' : '']"
     @click="onClick"
+    :size="props.size"
   >
     <slot></slot>
   </IconBase>
@@ -11,15 +11,23 @@
 <script setup lang="ts">
 import IconBase from "@/components/ui/icons/IconBase.vue";
 import { defineEmits } from "vue";
+import * as Utilities from "@/utilities";
 
 const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
   },
+  size: {
+    type: String,
+    validator: Utilities.isCSSLength,
+    default: "3rem",
+  },
 });
 
-const emit = defineEmits(["click"]);
+const emit = defineEmits<{
+  (event: "click", e: MouseEvent): void;
+}>();
 
 const onClick = (e: MouseEvent) => {
   if (props.disabled) {

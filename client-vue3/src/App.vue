@@ -92,7 +92,7 @@ watch(
 const notificationManager = useNotificationManager();
 const tempNotification = () => {
   notificationManager.showErrorNotification("Sup bro", {
-    duration: 5000,
+    duration: 50000,
   });
 };
 </script>

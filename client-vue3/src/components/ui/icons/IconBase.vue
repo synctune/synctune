@@ -1,12 +1,6 @@
 <template>
-  <div class="BaseIcon" :style="styles">
-    <!-- TODO: remove -->
-    <!-- <component
-      class="BaseIcon__container"
-      @click="$emit('click', $event)"
-      :is="iconNameNormalized"
-    ></component> -->
-    <slot class="BaseIcon__container" @click="$emit('click', $event)"></slot>
+  <div class="IconBase" :style="styles">
+    <slot @click="emit('click', $event)"></slot>
   </div>
 </template>
 
@@ -22,6 +16,10 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits<{
+  (event: "click", e: MouseEvent): void;
+}>();
+
 const styles = computed<StyleValue>(() => ({
   height: props.size,
   width: props.size,
@@ -29,13 +27,8 @@ const styles = computed<StyleValue>(() => ({
 </script>
 
 <style lang="scss">
-.BaseIcon {
+.IconBase {
   display: flex;
-
-  & .BaseIcon__container {
-    width: 100%;
-    height: 100%;
-  }
 
   & svg {
     display: block;
