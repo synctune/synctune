@@ -10,12 +10,13 @@
       }"
     >
       <div id="App__container">
-        <!-- <notification-register></notification-register> -->
         <NotificationRegister />
 
-        <transition name="fade" mode="out-in">
-          <RouterView />
-        </transition>
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
 
         <!-- TODO: remove -->
         <button @click="tempNotification">Test</button>
