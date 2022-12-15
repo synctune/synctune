@@ -46,6 +46,11 @@ import { onBeforeMount, watch } from "vue";
 import { useNotificationManager } from "@/managers/NotificationManager";
 import type { Nullish } from "./utilities/types";
 
+// TODO: put in?
+// // No type declarations for these
+// // eslint-disable-next-line @typescript-eslint/no-var-requires
+// const { CSSPlugin, AttrPlugin } = require("gsap/all");
+
 const themeStore = useThemeStore();
 
 const instantiateThemes = () => {

@@ -5,13 +5,13 @@
 </template>
 
 <script setup lang="ts">
-import * as Utilities from "@/utilities";
 import { computed, type StyleValue } from "vue";
+import * as Validators from "@/validators";
 
 const props = defineProps({
   size: {
     type: String,
-    validator: Utilities.isCSSLength,
+    validator: Validators.CSSLength,
     default: "3rem",
   },
 });

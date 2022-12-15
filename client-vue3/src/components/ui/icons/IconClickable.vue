@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import IconBase from "@/components/ui/icons/IconBase.vue";
 import { defineEmits } from "vue";
-import * as Utilities from "@/utilities";
+import * as Validators from "@/validators";
 
 const props = defineProps({
   disabled: {
@@ -20,7 +20,7 @@ const props = defineProps({
   },
   size: {
     type: String,
-    validator: Utilities.isCSSLength,
+    validator: Validators.CSSLength,
     default: "3rem",
   },
 });

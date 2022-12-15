@@ -16,11 +16,11 @@
       "</style>",
       "",
     ],
-    "description": "The starter code for a single file component"
+    "description": "The starter code for a single file component."
   },
-  "Single File Component With Props": {
+  "Single File Component With Runtime Props": {
     "scope": "vue",
-    "prefix": "starter-code-component-props",
+    "prefix": "starter-code-component-props-runtime",
     "body": [
       "<template>",
       "  <div>TODO: implement</div>",
@@ -36,6 +36,42 @@
       "</style>",
       "",
     ],
-    "description": "The starter code for a single file component"
+    "description": "The starter code for a single file component using runtime props."
+  },
+  "Single File Component With Typed Props": {
+    "scope": "vue",
+    "prefix": "starter-code-component-props-typed",
+    "body": [
+      "<template>",
+      "  <div>TODO: implement</div>",
+      "</template>",
+      "",
+      "<script setup lang=\"ts\">",
+      "const props = withDefaults(defineProps<{}>(), {});",
+      "// TODO: implement",
+      "</script>",
+      "",
+      "<style lang=\"scss\">",
+      "// TODO: implement",
+      "</style>",
+      "",
+    ],
+    "description": "The starter code for a single file component using typescript prop types."
+  },
+  "Import Utilities": {
+    "scope": "vue,typescript",
+    "prefix": "import-utilities",
+    "body": [
+      "import * as Utilities from \"@/utilities\"",
+    ],
+    "description": "Imports the Utilities module."
+  },
+  "Import Validators": {
+    "scope": "vue,typescript",
+    "prefix": "import-validators",
+    "body": [
+      "import * as Validators from \"@/validators\"",
+    ],
+    "description": "Imports the Validators module."
   },
 }
