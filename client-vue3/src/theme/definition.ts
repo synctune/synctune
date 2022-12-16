@@ -65,7 +65,7 @@ export const schema: Schema = {
   // Misc components
   AudioVisualizerCircle: { $inherits: "GLOBAL" },
   AudioSeekbar: { $inherits: "GLOBAL" },
-  Container: { $inherits: "GLOBAL" },
+  ContentContainer: { $inherits: "GLOBAL" },
   ArtworkThumbnail: { $inherits: "GLOBAL" },
   RoomStatus: { $inherits: "GLOBAL" },
   // Room Components

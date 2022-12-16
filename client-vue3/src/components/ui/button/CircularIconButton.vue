@@ -5,11 +5,9 @@
     :size="props.size"
     :disabled="props.disabled"
   >
-    <IconBase
-      class="CircularIconButton__icon"
-      :icon-name="props.iconName"
-      :size="props.iconSize"
-    />
+    <IconBase class="CircularIconButton__icon" :size="props.iconSize">
+      <slot></slot>
+    </IconBase>
   </CircularButton>
 </template>
 
@@ -23,10 +21,6 @@ const props = defineProps({
     type: String,
     validator: Validators.CSSLength,
     default: "3rem",
-  },
-  iconName: {
-    type: String,
-    required: true,
   },
   // CircularButton props
   size: {
