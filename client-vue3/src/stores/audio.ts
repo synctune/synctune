@@ -6,53 +6,6 @@ import { computed, reactive, ref } from "vue";
 // --- Type Declarations ---
 // -------------------------
 
-// --- Payloads ---
-interface AudioBufferPayload {
-  audioBuffer: AudioBuffer | null;
-}
-
-interface AudioSourcePayload {
-  audioSource: AudioBufferSourceNode | null;
-}
-
-interface AudioFilePayload {
-  audioFile: Blob | null;
-}
-
-interface AudioFileMetadataPayload {
-  audioFileMetadata: AudioFileMetadata | null;
-}
-
-interface AudioLoadedPayload {
-  loaded: boolean;
-}
-
-interface IsPlayingPayload {
-  playing: boolean;
-}
-
-interface AudioContextPayload {
-  audioContext: AudioContext;
-}
-
-interface CurrentTimePayload {
-  currentTime: number;
-}
-
-interface StartedAtPayload {
-  startedAt: number;
-}
-
-interface PausedAtPayload {
-  pausedAt: number;
-}
-
-interface TotalCompensationPayload {
-  totalCompensation: number;
-}
-
-// --- Store Type Declarations ---
-
 export interface AudioState {
   isPlaying: boolean;
   audioContext: AudioContext;
@@ -90,6 +43,7 @@ export const useAudioStore = defineStore("audio", () => {
 
   const isPlaying = computed(() => state.isPlaying);
   const audioContext = computed(() => state.audioContext);
+  const audioBuffer = computed(() => state.audioBuffer);
   const audioSource = computed(() => state.audioSource);
   const audioFile = computed(() => state.audioFile);
   const audioFileMetadata = computed(() => state.audioFileMetadata);
@@ -107,19 +61,21 @@ export const useAudioStore = defineStore("audio", () => {
     state.audioContext = audioContext;
   };
 
-  const setAudioBuffer = (audioBuffer: AudioBuffer) => {
+  const setAudioBuffer = (audioBuffer: AudioBuffer | null) => {
     state.audioBuffer = audioBuffer;
   };
 
-  const setAudioSource = (audioSource: AudioBufferSourceNode) => {
+  const setAudioSource = (audioSource: AudioBufferSourceNode | null) => {
     state.audioSource = audioSource;
   };
 
-  const setAudioFile = (audioFile: Blob) => {
+  const setAudioFile = (audioFile: Blob | null) => {
     state.audioFile = audioFile;
   };
 
-  const setAudioFileMetadata = (audioFileMetadata: AudioFileMetadata) => {
+  const setAudioFileMetadata = (
+    audioFileMetadata: AudioFileMetadata | null
+  ) => {
     state.audioFileMetadata = audioFileMetadata;
   };
 
@@ -148,6 +104,7 @@ export const useAudioStore = defineStore("audio", () => {
     state,
     isPlaying,
     audioContext,
+    audioBuffer,
     audioSource,
     audioFile,
     audioFileMetadata,
