@@ -12,7 +12,6 @@
       :id="baseId"
     >
       <IconClickable
-        icon-name="close"
         :class="['BaseNotification__close', closeClass]"
         :style="[closeStyle]"
         :id="[closeId]"

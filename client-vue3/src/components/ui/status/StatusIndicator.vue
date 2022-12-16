@@ -63,7 +63,7 @@ const props = defineProps({
   },
   uploadProgress: {
     type: Number,
-    default: null,
+    required: false,
   },
   size: {
     type: String,

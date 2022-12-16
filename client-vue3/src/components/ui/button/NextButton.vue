@@ -1,9 +1,8 @@
 <template>
   <IconClickable
     class="NextButton"
-    :size="size"
-    v-bind="$attrs"
-    icon-name="next-icon"
+    :size="props.size"
+    :disabled="props.disabled"
     @click="emit('click', $event)"
   >
     <NextIcon />
@@ -20,6 +19,10 @@ const props = defineProps({
     type: String,
     validator: Validators.CSSLength,
     default: "4rem",
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 });
 
