@@ -22,6 +22,8 @@ services:
         volumes:
             - /app/node_modules
             - ./room-server:/app
+        environment:
+            - CLIENT_HOST_PATHS=["http://localhost:3050", "http://localhost:3051"]
         networks:
             - app-network
         hostname: room-server
@@ -63,8 +65,8 @@ services:
             - ./client-vue3:/app
         environment:
             - CHOKIDAR_USEPOLLING=true
-            - VITE_APP_ROOM_SERVER_URL=/room-server
-            - VITE_APP_PEERJS_HOST=/
+            - VITE_APP_ROOM_SERVER_URL=http://localhost:3050/room-server
+            - VITE_APP_PEERJS_HOST=localhost
             - VITE_APP_PEERJS_PATH=/peer-server
             - VITE_APP_PEERJS_PORT=3050
             - VITE_APP_PEERJS_SECURE=false

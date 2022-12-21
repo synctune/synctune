@@ -28,13 +28,14 @@ app.use(cookieParser());
 
 console.log(`Allowed CORS domains: ${KEYS.CLIENT_HOST_PATHS?.join(", ")}`);
 
+app.use(
+    cors({
+        origin: KEYS.CLIENT_HOST_PATHS ?? undefined,
+        credentials: true,
+    })
+);
+
 if (KEYS.IS_PROD) {
-    app.use(
-        cors({
-            origin: KEYS.CLIENT_HOST_PATHS ?? undefined,
-            credentials: true,
-        })
-    );
     app.use(sslRedirect);
 }
 

@@ -10,7 +10,6 @@
 
 <script setup lang="ts">
 import IconBase from "@/components/ui/icons/IconBase.vue";
-import { defineEmits } from "vue";
 import * as Validators from "@/validators";
 
 const props = defineProps({
