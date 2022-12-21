@@ -28,8 +28,8 @@ import RoomConnectionForm from "@/components/room/RoomConnectionForm.vue";
 import CrowdImage from "@/assets/crowd.png";
 
 const crowdImageStyles = computed(() => ({
-  // TODO: does this work?
-  backgroundImage: CrowdImage,
+  // Source: https://stackoverflow.com/a/67744676
+  backgroundImage: `url(${CrowdImage})`,
 }));
 </script>
 
@@ -54,6 +54,7 @@ const crowdImageStyles = computed(() => ({
     background-position: bottom center;
     background-repeat: no-repeat;
     background-size: 100%, 40rem;
+    // background-image: url(CrowdImage); // TODO: remove
 
     animation-name: image-hue-anim;
     animation-duration: 30s;

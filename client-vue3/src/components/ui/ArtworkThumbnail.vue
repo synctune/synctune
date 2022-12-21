@@ -11,8 +11,8 @@ import { computed } from "vue";
 import NoteImage from "@/assets/note.png";
 
 const noteIconStyles = computed(() => ({
-  // TODO: does this work?
-  backgroundImage: NoteImage,
+  // Source: https://stackoverflow.com/a/67744676
+  backgroundImage: `url(${NoteImage})`,
 }));
 </script>
 
