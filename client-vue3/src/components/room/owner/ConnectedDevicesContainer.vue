@@ -4,7 +4,7 @@
     base-class="ConnectedDevicesContainer__container"
     :vertical-accents="false"
   >
-    <overlay-scrollbar
+    <OverlayScrollbarsComponent
       v-if="hasClients"
       class="ConnectedDevicesContainer__device-list"
       :options="{
@@ -21,7 +21,7 @@
         :alternate-color="!!(n % 2)"
         @kick="emit('kick', client.id)"
       />
-    </overlay-scrollbar>
+    </OverlayScrollbarsComponent>
     <div v-else class="ConnectedDevicesContainer__no-devices">
       No connected devices
     </div>
@@ -29,10 +29,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { RoomClient } from "@/types";
 import ContentContainer from "@/components/ui/ContentContainer.vue";
 import ConnectedDeviceItem from "@/components/room/owner/ConnectedDeviceItem.vue";
-import { computed } from "vue";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-vue";
 
 const props = withDefaults(
   defineProps<{

@@ -17,7 +17,7 @@
       :placeholder="props.inputPlaceholder"
       :disabled="props.inputDisabled"
       :value="props.value"
-      @input="updateInputValue"
+      @update:value="updateInputValue"
       @blur="emit('blur')"
     />
   </div>
@@ -61,7 +61,7 @@ const onButtonClick = (e: MouseEvent) => {
   emit("button-click", e);
 };
 
-const updateInputValue = (value: any) => {
+const updateInputValue = (value: string) => {
   emit("update:value", value);
 };
 </script>

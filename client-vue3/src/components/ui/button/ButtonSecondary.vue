@@ -44,6 +44,8 @@ const emit = defineEmits<{
   display: inherit;
   z-index: 1;
 
+  cursor: pointer;
+
   font-size: 1.7rem;
 
   border-radius: $radius-amount;
@@ -100,6 +102,8 @@ const emit = defineEmits<{
   }
 
   &.disabled {
+    cursor: initial;
+
     color: color-link("ButtonSecondary", "text", "disabled");
 
     & a {

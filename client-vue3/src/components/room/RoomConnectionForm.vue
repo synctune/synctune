@@ -23,13 +23,11 @@
     <ButtonInputHybrid
       class="RoomConnectionForm__join"
       @button-click="joinRoom"
-      :button-disabled="
-        !validRoomName || roomStore.isConnected || !validNickname
-      "
+      :button-disabled="inputButtonDisabled"
       :input-disabled="roomStore.isConnected"
       input-placeholder="Enter Room Code"
       :value="state.roomName"
-      @input="updateRoomName"
+      @update:value="updateRoomName"
       autocomplete="off"
       autocorrect="off"
       autocapitalize="off"
@@ -76,13 +74,17 @@ const router = useRouter();
 const roomStore = useRoomStore();
 
 const validRoomName = computed(() => {
-  const isEmpty = !roomStore.roomName.trim();
+  const isEmpty = !state.roomName.trim();
   return !isEmpty;
 });
 
 const validNickname = computed(() => {
   const isEmpty = !state.nickname.trim();
   return !isEmpty;
+});
+
+const inputButtonDisabled = computed(() => {
+  return !validRoomName.value || roomStore.isConnected || !validNickname.value;
 });
 
 const joinRoom = () => {

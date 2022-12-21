@@ -1,12 +1,10 @@
 <template>
   <input
     class="InputField"
-    v-bind="$attrs"
     :type="props.type"
     :disabled="props.disabled"
     :value="props.value"
-    @input="updateValue"
-    @change="updateValue"
+    @input.stop="updateValue"
     @blur="emit('blur')"
   />
 </template>
@@ -35,6 +33,8 @@ const emit = defineEmits<{
 }>();
 
 const updateValue = (e: Event) => {
+  e.stopImmediatePropagation();
+
   const target = e.target as HTMLInputElement;
   emit("update:value", target.value);
 };

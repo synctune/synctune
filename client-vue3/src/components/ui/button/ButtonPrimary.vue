@@ -48,6 +48,8 @@ const emit = defineEmits<{
 
   position: relative;
 
+  cursor: pointer;
+
   background: color-link("ButtonPrimary", "gradient", "start");
   background: linear-gradient(
     90deg,
@@ -152,6 +154,8 @@ const emit = defineEmits<{
   }
 
   &.disabled {
+    cursor: initial;
+
     & .ButtonPrimary__disabled-overlay {
       opacity: 1;
     }
