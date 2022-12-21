@@ -1,6 +1,6 @@
 import ConnectionManager from "@/managers/ConnectionManager";
 import { defineStore } from "pinia";
-import { uuid } from "uuidv4";
+import { v4 as uuidv4 } from "uuid";
 import { computed, reactive } from "vue";
 
 // -------------------------
@@ -29,7 +29,7 @@ export interface RoomState {
 
 export const useRoomStore = defineStore("room", () => {
   const state = reactive<RoomState>({
-    connectionManager: new ConnectionManager(uuid()),
+    connectionManager: new ConnectionManager(uuidv4()),
     isConnected: false,
     isOwner: false,
     connectedClients: [],

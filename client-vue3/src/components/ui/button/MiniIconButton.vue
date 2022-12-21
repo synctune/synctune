@@ -63,7 +63,7 @@ $anim-time: 0.3s;
   width: $size;
   height: $size;
 
-  margin: $size / 10;
+  margin: div($size, 10);
 
   color: color-link("MiniIconButton", "text", "primary");
 

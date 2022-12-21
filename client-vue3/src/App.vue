@@ -18,22 +18,16 @@
           </transition>
         </router-view>
 
-        <!-- TODO: remove -->
-        <button @click="tempNotification">Test</button>
-
         <!-- Sticky components -->
-        <!-- <room-status />
-        <audio-player /> -->
+        <RoomStatus />
+        <AudioPlayer />
       </div>
     </OverlayScrollbarsComponent>
   </ThemeProvider>
 </template>
 
 <script setup lang="ts">
-import { RouterLink, RouterView, useRoute } from "vue-router";
-import NotificationRegister from "@/registers/NotificationRegister.vue";
-import ThemeProvider from "@/components/wrappers/ThemeProvider.vue";
-// import OverlayScrollbar from "overlayscrollbars-vue";
+import { RouterView, useRoute } from "vue-router";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-vue";
 import {
   DEFAULT_NAMESPACE,
@@ -42,9 +36,13 @@ import {
 } from "@/constants";
 import themes from "@/theme/themes";
 import { useThemeStore } from "@/stores/theme";
+import { useRoomStore } from "@/stores/room";
 import { onBeforeMount, watch } from "vue";
-import { useNotificationManager } from "@/managers/NotificationManager";
-import type { Nullish } from "./utilities/types";
+import type { Nullish } from "@/utilities/types";
+import NotificationRegister from "@/registers/NotificationRegister.vue";
+import ThemeProvider from "@/components/wrappers/ThemeProvider.vue";
+import RoomStatus from "@/components/sticky/RoomStatus.vue";
+import AudioPlayer from "@/components/sticky/AudioPlayer.vue";
 
 // TODO: put in?
 // // No type declarations for these
@@ -52,6 +50,7 @@ import type { Nullish } from "./utilities/types";
 // const { CSSPlugin, AttrPlugin } = require("gsap/all");
 
 const themeStore = useThemeStore();
+const roomStore = useRoomStore();
 
 const instantiateThemes = () => {
   // Add all the themes
@@ -73,9 +72,8 @@ onBeforeMount(() => {
 const route = useRoute();
 
 const updateTitle = (title: string | Nullish) => {
-  // TODO: hook into room store
-  const isConnected = false;
-  const roomName = "TODO:";
+  const isConnected = roomStore.isConnected;
+  const roomName = roomStore.roomName;
 
   // Ignore given title if connected to a room
   if (isConnected) {
@@ -92,14 +90,6 @@ watch(
     updateTitle(nextRouteName as string);
   }
 );
-
-// TODO: remove
-const notificationManager = useNotificationManager();
-const tempNotification = () => {
-  notificationManager.showErrorNotification("Sup bro", {
-    duration: 50000,
-  });
-};
 </script>
 
 <style lang="scss">

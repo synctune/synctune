@@ -12,7 +12,7 @@
     <InputField
       class="RoomConnectRoom__nickname-input"
       placeholder="Enter Nickname"
-      v-model="state.nickname"
+      v-model:value="state.nickname"
       :disabled="roomStore.isConnected"
       autocomplete="off"
       autocorrect="off"
@@ -35,7 +35,7 @@
       autocapitalize="off"
       spellcheck="false"
     >
-      Join Room
+      <template v-slot:hybrid-button> Join Room </template>
     </ButtonInputHybrid>
 
     <div class="RoomConnectionForm__or-text">or</div>

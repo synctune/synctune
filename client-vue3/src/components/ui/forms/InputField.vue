@@ -4,7 +4,7 @@
     v-bind="$attrs"
     :type="props.type"
     :disabled="props.disabled"
-    :value="props.modelValue"
+    :value="props.value"
     @input="updateValue"
     @change="updateValue"
     @blur="emit('blur')"
@@ -16,12 +16,12 @@ type SupportedInputTypes = "url" | "text" | "password" | "email" | "search";
 
 const props = withDefaults(
   defineProps<{
-    type: SupportedInputTypes;
-    disabled: boolean;
+    type?: SupportedInputTypes;
+    disabled?: boolean;
     // v-model passthrough stuff
     // Reference on how to setup v-model passthrough with Vue 3
     // https://serversideup.net/custom-component-v-model-attribute-with-vue-3/
-    modelValue: string;
+    value: string;
   }>(),
   {
     type: "text",
@@ -30,13 +30,13 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (event: "update:modelValue", value: string): void;
+  (event: "update:value", value: string): void;
   (event: "blur"): void;
 }>();
 
 const updateValue = (e: Event) => {
   const target = e.target as HTMLInputElement;
-  emit("update:modelValue", target.value);
+  emit("update:value", target.value);
 };
 </script>
 

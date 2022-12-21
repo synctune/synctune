@@ -6,7 +6,7 @@
       :disabled="props.buttonDisabled"
       disabled-overlay-class="ButtonInputHybrid__button-disabled-overlay"
     >
-      <slot></slot>
+      <slot name="hybrid-button"></slot>
     </ButtonPrimary>
 
     <InputField
@@ -33,7 +33,9 @@ const props = withDefaults(
     buttonDisabled?: boolean;
     inputDisabled?: boolean;
     inputPlaceholder?: string;
-    // v-model passthrough
+    // v-model passthrough stuff
+    // Reference on how to setup v-model passthrough with Vue 3
+    // https://serversideup.net/custom-component-v-model-attribute-with-vue-3/
     value: string;
   }>(),
   {
@@ -44,9 +46,9 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (event: "input", value: any): void;
   (event: "blur"): void;
   (event: "button-click", e: MouseEvent): void;
+  (event: "update:value", value: string): void;
 }>();
 
 const hasValue = computed(() => !!props.value);
@@ -60,7 +62,7 @@ const onButtonClick = (e: MouseEvent) => {
 };
 
 const updateInputValue = (value: any) => {
-  emit("input", value);
+  emit("update:value", value);
 };
 </script>
 

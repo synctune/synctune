@@ -80,7 +80,7 @@ const hasClients = computed(() => props.clients.length > 0);
     }
   }
 
-  &:not(.has-clients) /deep/.ConnectedDevicesContainer__container {
+  &:not(.has-clients) :deep(.ConnectedDevicesContainer__container) {
     justify-content: center;
   }
 }

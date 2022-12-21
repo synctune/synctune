@@ -36,3 +36,7 @@ import InfoNotification from "@/components/notifications/InfoNotification.vue";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { NotificationsSlotScope } from "@kyvg/vue3-notification";
 </script>
+
+<style lang="scss">
+@include transition-effect(slide-rr);
+</style>

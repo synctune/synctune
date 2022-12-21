@@ -6,14 +6,19 @@
     :to="to!"
     :custom="true"
   >
-    <component :is="tag">
+    <component v-bind="$attrs" :is="tag">
       <a :style="widthConstraintStyles" @click="onClick">
         <slot></slot>
       </a>
     </component>
   </RouterLink>
   <!-- Custom component -->
-  <component v-else :is="tag" :class="['Button', { disabled: disabled }]">
+  <component
+    v-else
+    v-bind="$attrs"
+    :is="tag"
+    :class="['Button', { disabled: disabled }]"
+  >
     <a :href="href" :style="widthConstraintStyles" @click="onClick">
       <slot></slot>
     </a>

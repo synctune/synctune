@@ -63,11 +63,11 @@ services:
             - ./client-vue3:/app
         environment:
             - CHOKIDAR_USEPOLLING=true
-            - VUE_APP_ROOM_SERVER_URL=/room-server
-            - VUE_APP_PEERJS_HOST=/
-            - VUE_APP_PEERJS_PATH=/peer-server
-            - VUE_APP_PEERJS_PORT=3050
-            - VUE_APP_PEERJS_SECURE=false
+            - VITE_APP_ROOM_SERVER_URL=/room-server
+            - VITE_APP_PEERJS_HOST=/
+            - VITE_APP_PEERJS_PATH=/peer-server
+            - VITE_APP_PEERJS_PORT=3050
+            - VITE_APP_PEERJS_SECURE=false
         networks:
             - app-network
         hostname: client-vue3

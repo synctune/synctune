@@ -1,6 +1,6 @@
 <template>
-  <div class="IconBase" :style="styles">
-    <slot @click="emit('click', $event)"></slot>
+  <div class="IconBase" :style="styles" @click="emit('click', $event)">
+    <slot></slot>
   </div>
 </template>
 

@@ -41,6 +41,7 @@ const emit = defineEmits<{
   $accent-move: 2px;
 
   position: relative;
+  display: inherit;
   z-index: 1;
 
   font-size: 1.7rem;

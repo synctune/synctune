@@ -4,7 +4,7 @@
       transition: opacity $duration !important;
     }
   
-    .fade-enter, .fade-leave-to {
+    .fade-enter-from, .fade-leave-to {
       opacity: 0;
     }
   }
@@ -18,11 +18,11 @@
       transition: opacity $duration, left $duration !important;
     }
   
-    .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+    .#{$anim-name}-enter-from, .#{$anim-name}-leave-to {
       opacity: 0;
     }
 
-    .#{$anim-name}-enter {
+    .#{$anim-name}-enter-from {
       left: calc(#{$abs-target} - #{$anim-amount});
     }
 
@@ -39,11 +39,11 @@
       transition: opacity $duration, transform $duration !important;
     }
   
-    .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+    .#{$anim-name}-enter-from, .#{$anim-name}-leave-to {
       opacity: 0;
     }
 
-    .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+    .#{$anim-name}-enter-from, .#{$anim-name}-leave-to {
       transform: translateX($anim-amount);
     }
   }
