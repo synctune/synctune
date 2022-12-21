@@ -1,8 +1,7 @@
-<script setup lang="ts">
-</script>
-
 <template>
-  <main>
-    <div>Room Create View</div>
-  </main>
+  <RoomConnectionHandler mode="create" />
 </template>
+
+<script setup lang="ts">
+import RoomConnectionHandler from "@/components/room/RoomConnectionHandler.vue";
+</script>

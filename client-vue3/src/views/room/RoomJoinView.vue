@@ -1,8 +1,7 @@
-<script setup lang="ts">
-</script>
-
 <template>
-  <main>
-    <div>Room Join View</div>
-  </main>
+  <RoomConnectionHandler mode="join" />
 </template>
+
+<script setup lang="ts">
+import RoomConnectionHandler from "@/components/room/RoomConnectionHandler.vue";
+</script>

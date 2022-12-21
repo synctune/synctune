@@ -89,7 +89,7 @@ const updateTitle = (title: string | Nullish) => {
 watch(
   () => route.meta.title,
   (nextRouteName) => {
-    updateTitle(nextRouteName?.toString());
+    updateTitle(nextRouteName as string);
   }
 );
 
