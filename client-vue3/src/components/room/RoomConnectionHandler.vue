@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useNotificationManager } from "@/managers/NotificationManager";
 import { useRoomStore } from "@/stores/room";
 import { assert } from "tsafe";
@@ -71,8 +71,6 @@ const clearEventListeners = () => {
 };
 
 const onSuccess = () => {
-  clearEventListeners();
-
   router.push(`/room`).catch(() => {});
 };
 
@@ -87,16 +85,12 @@ const onFail = (roomName: string) => {
     );
   }
 
-  clearEventListeners();
-
   // Go back to home page
   router.push(`/`).catch(() => {});
 };
 
 const onError = () => {
   notificationManager.showErrorNotification(`An unexpected error occurred.`);
-
-  clearEventListeners();
 
   // Go back to home page
   router.push(`/`).catch(() => {});
@@ -132,18 +126,38 @@ onMounted(() => {
   if (props.mode === "join") {
     connectionManager.joinRoom(targetRoomSanitized);
 
-    connectionManager.addEventListener("room-not-exists", onFail);
-    connectionManager.addEventListener("room-joined", onSuccess);
+    connectionManager.addEventListener(
+      "room-not-exists",
+      onFail,
+      CONNECTION_MANAGER_TAG
+    );
+    connectionManager.addEventListener(
+      "room-joined",
+      onSuccess,
+      CONNECTION_MANAGER_TAG
+    );
   }
   // Create room
   else if (props.mode === "create") {
     connectionManager.createRoom(targetRoomSanitized);
 
-    connectionManager.addEventListener("room-already-exists", onFail);
-    connectionManager.addEventListener("room-created", onSuccess);
+    connectionManager.addEventListener(
+      "room-already-exists",
+      onFail,
+      CONNECTION_MANAGER_TAG
+    );
+    connectionManager.addEventListener(
+      "room-created",
+      onSuccess,
+      CONNECTION_MANAGER_TAG
+    );
   }
 
-  connectionManager.addEventListener("error", onError);
+  connectionManager.addEventListener("error", onError, CONNECTION_MANAGER_TAG);
+});
+
+onBeforeUnmount(() => {
+  clearEventListeners();
 });
 </script>
 

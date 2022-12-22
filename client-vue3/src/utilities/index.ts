@@ -212,3 +212,12 @@ export function generateRoomCode() {
 export function clamp(a: number, b: number, c: number) {
   return Math.max(b, Math.min(a, c));
 }
+
+/**
+ * Returns a promise that resolves after `time` milliseconds.
+ */
+export function delay(time: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), time);
+  });
+}

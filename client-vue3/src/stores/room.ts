@@ -249,10 +249,6 @@ export const useRoomStore = defineStore("room", () => {
         state.isOwner = connectionManager.isOwner;
         state.roomName = connectionManager.room ?? "";
         state.timesynced = false;
-        // Vue.set(state, "connectedClients", [...clients]);
-        // Vue.set(state, "isOwner", connectionManager.isOwner);
-        // Vue.set(state, "roomName", connectionManager.room);
-        // Vue.set(state, "timesynced", false);
       },
       ROOM_STORE_TAG
     );

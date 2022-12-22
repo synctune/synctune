@@ -8,7 +8,9 @@ import { useAudioStore } from "@/stores/audio";
 import { useRoomStore } from "@/stores/room";
 import CancellationToken from "@/utilities/CancellationToken";
 import HighResolutionTimeout from "@/utilities/HighResolutionTimeout";
-import { onMounted, reactive, watch } from "vue";
+import { onBeforeUnmount, onMounted, reactive, watch } from "vue";
+
+const CONNECTION_MANAGER_TAG = "audio-player-connection-manager-tag";
 
 interface CachedPlaySignal {
   startLocation: number;
@@ -283,13 +285,21 @@ const unloadAudioFile = () => {
 const setupConnectionManagerListeners = (
   connectionManager: ConnectionManager
 ) => {
-  connectionManager.addEventListener("audiometadatasent", (metadata) => {
-    audioStore.setAudioFileMetadata(metadata);
-  });
+  connectionManager.addEventListener(
+    "audiometadatasent",
+    (metadata) => {
+      audioStore.setAudioFileMetadata(metadata);
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
-  connectionManager.addEventListener("audiometadatareceived", (metadata) => {
-    audioStore.setAudioFileMetadata(metadata);
-  });
+  connectionManager.addEventListener(
+    "audiometadatareceived",
+    (metadata) => {
+      audioStore.setAudioFileMetadata(metadata);
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
   connectionManager.addEventListener(
     "audiofilesyncing",
@@ -300,41 +310,114 @@ const setupConnectionManagerListeners = (
       unloadAudioFile();
 
       loadAudioFile(audioFile);
-    }
+    },
+    CONNECTION_MANAGER_TAG
   );
 
-  connectionManager.addEventListener("audiofilereceived", (audioFile) => {
-    loadAudioFile(audioFile);
-  });
+  connectionManager.addEventListener(
+    "audiofilereceived",
+    (audioFile) => {
+      loadAudioFile(audioFile);
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
-  connectionManager.addEventListener("playsignalreceived", (data) => {
-    playAudio(data.startLocation, data.startTime, data.instant);
-  });
+  connectionManager.addEventListener(
+    "playsignalreceived",
+    (data) => {
+      playAudio(data.startLocation, data.startTime, data.instant);
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
-  connectionManager.addEventListener("pausesignalreceived", () => {
-    pauseAudio();
-  });
+  connectionManager.addEventListener(
+    "pausesignalreceived",
+    () => {
+      pauseAudio();
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
-  connectionManager.addEventListener("stopsignalreceived", () => {
-    stopAudio();
-  });
+  connectionManager.addEventListener(
+    "stopsignalreceived",
+    () => {
+      stopAudio();
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
-  connectionManager.addEventListener("room-left", () => {
-    stopAudio();
-    unloadAudioFile();
-  });
+  connectionManager.addEventListener(
+    "room-left",
+    () => {
+      stopAudio();
+      unloadAudioFile();
+    },
+    CONNECTION_MANAGER_TAG
+  );
 
-  connectionManager.addEventListener("timesyncchanged", (timesynced) => {
-    if (timesynced == true && audioStore.audioLoaded) {
-      // Run the cached play signal, if it exists
-      runCachedPlaySignal();
-    }
-  });
+  connectionManager.addEventListener(
+    "timesyncchanged",
+    (timesynced) => {
+      if (timesynced == true && audioStore.audioLoaded) {
+        // Run the cached play signal, if it exists
+        runCachedPlaySignal();
+      }
+    },
+    CONNECTION_MANAGER_TAG
+  );
+};
+
+const removeConnectionManagerListeners = (
+  connectionManager: ConnectionManager
+) => {
+  connectionManager.removeEventListenersByTag(
+    "audiometadatasent",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "audiometadatareceived",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "audiofilesyncing",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "audiofilereceived",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "playsignalreceived",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "pausesignalreceived",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "stopsignalreceived",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "room-left",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "timesyncchanged",
+    CONNECTION_MANAGER_TAG
+  );
 };
 
 onMounted(() => {
   // TODO: why is this giving a type error and why is it expanding the type?
   setupConnectionManagerListeners(
+    roomStore.connectionManager as ConnectionManager
+  );
+});
+
+onBeforeUnmount(() => {
+  // TODO: why is this giving a type error and why is it expanding the type?
+  removeConnectionManagerListeners(
     roomStore.connectionManager as ConnectionManager
   );
 });

@@ -10,7 +10,7 @@ import {
   TIMESYNC_REPEAT,
   TIMESYNC_TIMEOUT,
   AUDIO_CHUNK_SIZE,
-} from "../constants";
+} from "@/constants";
 
 // TODO: refactor this
 // - Avoid all those case statements

@@ -66,10 +66,9 @@ export default class Emittable {
     // No listeners on event yet, add the first one
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = [recordItem];
-      return;
+    } else {
+      this.listeners[eventName]!.push(recordItem);
     }
-
-    this.listeners[eventName].push(recordItem);
   }
 
   /**
@@ -85,13 +84,13 @@ export default class Emittable {
     }
 
     // Attempt to find listener
-    const idx = this.listeners[eventName].findIndex(
+    const idx = this.listeners[eventName]!.findIndex(
       (record) => record.listener === listener
     );
 
     // Listener was found, remove it
     if (idx >= 0) {
-      this.listeners[eventName].splice(idx, 1);
+      this.listeners[eventName]!.splice(idx, 1);
     }
   }
 
@@ -108,7 +107,7 @@ export default class Emittable {
     }
 
     // Filter out all listeners with the tag
-    const listenersFiltered = this.listeners[eventName].filter(
+    const listenersFiltered = this.listeners[eventName]!.filter(
       (record) => record.tag !== tag
     );
     this.listeners[eventName] = listenersFiltered;
