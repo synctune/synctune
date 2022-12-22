@@ -14,7 +14,7 @@
     "audiomotion-analyzer": "github:alex-greff/audioMotion-analyzer#55c34c9ffc2a0f5ff2aa9b29cac383a985563d1d",
     "axios": "^0.19.2",
     "color": "^3.1.2",
-    "gsap": "^2.1.3",
+    "gsap": "^3.6.0",
     "overlayscrollbars": "2.0.1",
     "overlayscrollbars-vue": "0.5.0",
     "peerjs": "^1.2.0",
