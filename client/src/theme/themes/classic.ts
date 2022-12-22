@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import Color from "color";
 
 const LIGHT_1 = "#FFFFFF";
@@ -73,147 +72,153 @@ const SEEKBAR_SEEKER = "#DF1DFF";
 const SEEKBAR_DISABLED = "#E3CFE3";
 
 export default {
-    name: "classic",
-    theme: {
-        GLOBAL: {
-            background: {
-                primary: LIGHT_1,
-                secondary: LIGHT_2,
-                disabled: LIGHT_4
-            },
-            text: {
-                primary: DARK_1,
-                secondary: DARK_2,
-                tertiary: DARK_5,
-                disabled: DARK_4,
-            },
-            text_inverted: {
-                primary: LIGHT_1,
-                secondary: LIGHT_4,
-                disabled: LIGHT_3
-            },
-            accent: {
-                primary: PURPLE_1,
-                secondary: PINK_1,
-                tertiary: PINK_2,
-                disabled: Color(PURPLE_1).lighten(0.2).round().toString(), 
-            },
-            selected: {
-                primary: BLUE_3,
-                secondary: BLUE_4,
-                tertiary: BLUE_1
-            },
-            background_gradient: {
-                start: LIGHT_1,
-                end: PINK_3
-            },
-            gradient: {
-                start: PURPLE_2,
-                end: PINK_4
-            },
-            gradient_selected: {
-                start: BLUE_2,
-                end: BLUE_3
-            },
-            gradient_disabled: {
-                start: Color(PURPLE_2).lighten(0.2).round().toString(),
-                end: Color(PINK_4).lighten(0.2).round().toString()
-            },
-            error: {
-                background: ERROR_BG,
-                text: ERROR_TEXT,
-                accent: ERROR_ACCENT
-            },
-            info: {
-                background: INFO_BG,
-                text: INFO_TEXT,
-                accent: INFO_ACCENT
-            },
-            success: {
-                background: SUCCESS_BG,
-                text: SUCCESS_TEXT,
-                accent: SUCCESS_ACCENT
-            },
-            warning: {
-                background: WARNING_BG,
-                text: WARNING_TEXT,
-                accent: WARNING_ACCENT
-            },
-            sync_status: {
-                ready: STATUS_READY_COLOR,
-                syncing: STATUS_SYNCING_COLOR,
-                uploading: STATUS_UPLOADING_COLOR,
-                loading: STATUS_LOADING_COLOR,
-                error: STATUS_ERROR_COLOR
-            },
-            hue_rotate: {
-                color_1: HUE_ROTATE_COLOR_1,
-                color_2: HUE_ROTATE_COLOR_2,
-                color_3: HUE_ROTATE_COLOR_3,
-                color_4: HUE_ROTATE_COLOR_4,
-                color_5: HUE_ROTATE_COLOR_5,
-                color_6: HUE_ROTATE_COLOR_6,
-            }
-        },
-        AudioVisualizerCircle: {
-            gradient: {
-                start: AUDIO_VISUALIZER_GRADIENT_START,
-                end: AUDIO_VISUALIZER_GRADIENT_END
-            },
-            gradient_disabled: {
-                start: Color(AUDIO_VISUALIZER_GRADIENT_START,).lighten(0.2).round().toString(),
-                end: Color(AUDIO_VISUALIZER_GRADIENT_END).lighten(0.2).round().toString()
-            }
-        },
-        ButtonSecondary: {
-            text: {
-                primary: DARK_3
-            },
-            accent: {
-                tertiary: PINK_5,
-                disabled: Color(PINK_1).lighten(0.05).round().toString()
-            },
-        },
-        Home: {
-            accent: {
-                tertiary: PINK_6
-            }
-        },
-        CircularButton: {
-            text: {
-                primary: ICON_TEXT,
-                secondary: ICON_TEXT_HOVER,
-                tertiary: ICON_TEXT_CLICK
-            },
-            accent: {
-                primary: PINK_2,
-                secondary: PURPLE_3
-            }
-        },
-        ConnectedDevicesContainer: {
-            text: {
-                secondary: DARK_4
-            }
-        },
-        ConnectedDeviceItem: {
-            text: {
-                secondary: DARK_3
-            },
-            background: {
-                primary: DEVICE_ITEM_BG,
-                secondary: DEVICE_ITEM_BG_ALT
-            }
-        },
-        AudioSeekbar: {
-            text: {
-                primary: DARK_3,
-                secondary: LIGHT_1
-            },
-            background: {
-                primary: SEEKBAR_BG,
-                secondary: SEEKBAR_SEEKER,
-                disabled: SEEKBAR_DISABLED
-            }
-        }
-    }
-}
+  name: "classic",
+  theme: {
+    GLOBAL: {
+      background: {
+        primary: LIGHT_1,
+        secondary: LIGHT_2,
+        disabled: LIGHT_4,
+      },
+      text: {
+        primary: DARK_1,
+        secondary: DARK_2,
+        tertiary: DARK_5,
+        disabled: DARK_4,
+      },
+      text_inverted: {
+        primary: LIGHT_1,
+        secondary: LIGHT_4,
+        disabled: LIGHT_3,
+      },
+      accent: {
+        primary: PURPLE_1,
+        secondary: PINK_1,
+        tertiary: PINK_2,
+        disabled: Color(PURPLE_1).lighten(0.2).round().toString(),
+      },
+      selected: {
+        primary: BLUE_3,
+        secondary: BLUE_4,
+        tertiary: BLUE_1,
+      },
+      background_gradient: {
+        start: LIGHT_1,
+        end: PINK_3,
+      },
+      gradient: {
+        start: PURPLE_2,
+        end: PINK_4,
+      },
+      gradient_selected: {
+        start: BLUE_2,
+        end: BLUE_3,
+      },
+      gradient_disabled: {
+        start: Color(PURPLE_2).lighten(0.2).round().toString(),
+        end: Color(PINK_4).lighten(0.2).round().toString(),
+      },
+      error: {
+        background: ERROR_BG,
+        text: ERROR_TEXT,
+        accent: ERROR_ACCENT,
+      },
+      info: {
+        background: INFO_BG,
+        text: INFO_TEXT,
+        accent: INFO_ACCENT,
+      },
+      success: {
+        background: SUCCESS_BG,
+        text: SUCCESS_TEXT,
+        accent: SUCCESS_ACCENT,
+      },
+      warning: {
+        background: WARNING_BG,
+        text: WARNING_TEXT,
+        accent: WARNING_ACCENT,
+      },
+      sync_status: {
+        ready: STATUS_READY_COLOR,
+        syncing: STATUS_SYNCING_COLOR,
+        uploading: STATUS_UPLOADING_COLOR,
+        loading: STATUS_LOADING_COLOR,
+        error: STATUS_ERROR_COLOR,
+      },
+      hue_rotate: {
+        color_1: HUE_ROTATE_COLOR_1,
+        color_2: HUE_ROTATE_COLOR_2,
+        color_3: HUE_ROTATE_COLOR_3,
+        color_4: HUE_ROTATE_COLOR_4,
+        color_5: HUE_ROTATE_COLOR_5,
+        color_6: HUE_ROTATE_COLOR_6,
+      },
+    },
+    AudioVisualizerCircle: {
+      gradient: {
+        start: AUDIO_VISUALIZER_GRADIENT_START,
+        end: AUDIO_VISUALIZER_GRADIENT_END,
+      },
+      gradient_disabled: {
+        start: Color(AUDIO_VISUALIZER_GRADIENT_START)
+          .lighten(0.2)
+          .round()
+          .toString(),
+        end: Color(AUDIO_VISUALIZER_GRADIENT_END)
+          .lighten(0.2)
+          .round()
+          .toString(),
+      },
+    },
+    ButtonSecondary: {
+      text: {
+        primary: DARK_3,
+      },
+      accent: {
+        tertiary: PINK_5,
+        disabled: Color(PINK_1).lighten(0.05).round().toString(),
+      },
+    },
+    Home: {
+      accent: {
+        tertiary: PINK_6,
+      },
+    },
+    CircularButton: {
+      text: {
+        primary: ICON_TEXT,
+        secondary: ICON_TEXT_HOVER,
+        tertiary: ICON_TEXT_CLICK,
+      },
+      accent: {
+        primary: PINK_2,
+        secondary: PURPLE_3,
+      },
+    },
+    ConnectedDevicesContainer: {
+      text: {
+        secondary: DARK_4,
+      },
+    },
+    ConnectedDeviceItem: {
+      text: {
+        secondary: DARK_3,
+      },
+      background: {
+        primary: DEVICE_ITEM_BG,
+        secondary: DEVICE_ITEM_BG_ALT,
+      },
+    },
+    AudioSeekbar: {
+      text: {
+        primary: DARK_3,
+        secondary: LIGHT_1,
+      },
+      background: {
+        primary: SEEKBAR_BG,
+        secondary: SEEKBAR_SEEKER,
+        disabled: SEEKBAR_DISABLED,
+      },
+    },
+  },
+};

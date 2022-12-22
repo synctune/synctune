@@ -1,198 +1,186 @@
 <template>
-    <div id="RoomConnectionHandler">
-        <div id="RoomConnectionHandler__prefix-text">
-            {{ prefixText }}
-        </div>
-
-        <div id="RoomConnectionHandler__room-name" class="GLOBAL-monospace-font">
-            {{ roomName }}
-        </div>
-
-        <circle-spinner 
-            id="RoomConnectionHandler__spinner"
-            :radius="35"
-            :stroke="6"
-            :animate-color="true"
-        />
+  <div id="RoomConnectionHandler">
+    <div id="RoomConnectionHandler__prefix-text">
+      {{ prefixText }}
     </div>
+
+    <div id="RoomConnectionHandler__room-name" class="GLOBAL-monospace-font">
+      {{ roomName }}
+    </div>
+
+    <CircleSpinner
+      id="RoomConnectionHandler__spinner"
+      :radius="35"
+      :stroke="6"
+      :animate-color="true"
+    />
+  </div>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import { mapGetters } from "vuex";
-import { Getters, MapGettersStructure } from "../../store/modules/room";
-import VueRouter, { Route } from 'vue-router';
-import ConnectionManager, { RoomData } from '../../managers/ConnectionManager';
-import * as NotificationManager from "../../managers/NotificationManager";
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useNotificationManager } from "@/managers/NotificationManager";
+import { useRoomStore } from "@/stores/room";
+import { assert } from "tsafe";
+import { useRoute, useRouter } from "vue-router";
 
 import CircleSpinner from "@/components/ui/spinners/CircleSpinner.vue";
 
-const CONNECTION_MANAGER_TAG = 'room-connection-handler';
+const CONNECTION_MANAGER_TAG = "room-connection-handler";
 
-type Props = {
-    mode: "join" | "create";
-}
+type Mode = "join" | "create";
 
-type Data = {
-    roomName: string;
-}
+const props = withDefaults(
+  defineProps<{
+    mode: Mode;
+  }>(),
+  {}
+);
 
-type ModeProp = "join" | "create";
+const router = useRouter();
+const route = useRoute();
+const notificationManager = useNotificationManager();
+const roomStore = useRoomStore();
 
-type Computed = {
-    prefixText: string;
-} & Pick<MapGettersStructure, 
-    Getters.isConnected | Getters.connectionManager
->
+const roomName = ref<string>("");
 
-type Methods = {
-    onSuccess(room: RoomData): void;
-    onFail(roomName: string): void;
-    onError(): void;
-    clearEventListeners(): void;
-}
+const prefixText = computed(() =>
+  props.mode === "join" ? "Joining Room" : "Creating Room"
+);
 
-export default Vue.extend({
-    components: {
-        CircleSpinner
-    },
-    props: {
-        mode: {
-            type: String as () => ModeProp,
-            validator(val) {
-                return ["join", "create"].includes(val);
-            }
-        }
-    },
-    data() {
-        return {
-            roomName: ""
-        }
-    },
-    computed: {
-        ...mapGetters({
-            connectionManager: Getters.connectionManager
-        }),
-        prefixText() {
-            const { mode }: Props = this;
-            return (mode === "join") ? "Joining Room" : "Creating Room";
-        }
-    },
-    methods: {
-        onSuccess() {
-            const { clearEventListeners }: Methods = this;
-            const router = this.$router as VueRouter;
+const clearEventListeners = () => {
+  const connectionManager = roomStore.connectionManager;
 
-            clearEventListeners();
+  connectionManager.removeEventListenersByTag(
+    "room-not-exists",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "room-already-exists",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "room-joined",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag(
+    "room-created",
+    CONNECTION_MANAGER_TAG
+  );
+  connectionManager.removeEventListenersByTag("error", CONNECTION_MANAGER_TAG);
+};
 
-            router.push(`/room`).catch(() => {});
-        },
-        onFail(roomName: string) {
-            const { mode }: Props = this;
-            const { clearEventListeners }: Methods = this;
+const onSuccess = () => {
+  router.push(`/room`).catch(() => {});
+};
 
-            if (mode == "join") {
-                NotificationManager.showErrorNotification(this, `Unable to join room '${roomName}'.`);
-            } else {
-                NotificationManager.showErrorNotification(this, `Unable to create room '${roomName}'.`);
-            }
+const onFail = (roomName: string) => {
+  if (props.mode == "join") {
+    notificationManager.showErrorNotification(
+      `Unable to join room '${roomName}'.`
+    );
+  } else {
+    notificationManager.showErrorNotification(
+      `Unable to create room '${roomName}'.`
+    );
+  }
 
-            clearEventListeners();
+  // Go back to home page
+  router.push(`/`).catch(() => {});
+};
 
-            // Go back to home page
-            const router = this.$router as VueRouter;
-            router.push(`/`).catch(() => {});
-        },
-        onError() {
-            const { clearEventListeners }: Methods = this;
+const onError = () => {
+  notificationManager.showErrorNotification(`An unexpected error occurred.`);
 
-            NotificationManager.showErrorNotification(this, `An unexpected error occurred.`);
+  // Go back to home page
+  router.push(`/`).catch(() => {});
+};
 
-            clearEventListeners();
+onMounted(() => {
+  const connectionManager = roomStore.connectionManager;
 
-            // Go back to home page
-            const router = this.$router as VueRouter;
-            router.push(`/`).catch(() => {});
-        },
-        clearEventListeners() {
-            const connectionManager = this.connectionManager as ConnectionManager;
+  const targetRoom = route.params["id"];
+  if (targetRoom !== undefined) {
+    assert(!Array.isArray(targetRoom));
+    roomName.value = targetRoom ? targetRoom.toUpperCase() : "";
+  }
 
-            connectionManager.removeEventListenersByTag("room-not-exists", CONNECTION_MANAGER_TAG);
-            connectionManager.removeEventListenersByTag("room-already-exists", CONNECTION_MANAGER_TAG);
-            connectionManager.removeEventListenersByTag("room-joined", CONNECTION_MANAGER_TAG);
-            connectionManager.removeEventListenersByTag("room-created", CONNECTION_MANAGER_TAG);
-            connectionManager.removeEventListenersByTag("error", CONNECTION_MANAGER_TAG);
-        }
-    },
-    mounted() {
-        const { isConnected }: Computed = this;
-        const { onSuccess, onFail, onError }: Methods = this;
-        const { mode }: Props = this;
+  if (roomStore.isConnected && connectionManager.room !== targetRoom) {
+    notificationManager.showErrorNotification("Already connected to a room.");
 
-        const connectionManager = this.connectionManager as ConnectionManager;
-        const route = this.$route as Route;
-        const router = this.$router as VueRouter;
+    router.push("/").catch(() => {}); // Redirect to home
+    return;
+  }
 
-        const targetRoom = route.params["id"];
-        this.roomName = (targetRoom) ? targetRoom.toUpperCase() : "";
+  if (!targetRoom) {
+    notificationManager.showErrorNotification(`No room name provided.`);
+    router.push("/").catch(() => {}); // Redirect to home
+    return;
+  }
 
-        if (isConnected && connectionManager.room !== targetRoom) {
-            NotificationManager.showErrorNotification(this, "Already connected to a room.");
+  const targetRoomSanitized = targetRoom.trim().toUpperCase();
 
-            router.push("/").catch(() => {}); // Redirect to home
-            return;
-        }
+  connectionManager.leaveRoom();
 
-        if (!targetRoom) {
-            NotificationManager.showErrorNotification(this, `No room name provided.`);
-            router.push("/").catch(() => {}); // Redirect to home
-            return;
-        }
+  // Join the room
+  if (props.mode === "join") {
+    connectionManager.joinRoom(targetRoomSanitized);
 
-        const targetRoomSanitized = targetRoom.trim().toUpperCase();
+    connectionManager.addEventListener(
+      "room-not-exists",
+      onFail,
+      CONNECTION_MANAGER_TAG
+    );
+    connectionManager.addEventListener(
+      "room-joined",
+      onSuccess,
+      CONNECTION_MANAGER_TAG
+    );
+  }
+  // Create room
+  else if (props.mode === "create") {
+    connectionManager.createRoom(targetRoomSanitized);
 
-        connectionManager.leaveRoom();
+    connectionManager.addEventListener(
+      "room-already-exists",
+      onFail,
+      CONNECTION_MANAGER_TAG
+    );
+    connectionManager.addEventListener(
+      "room-created",
+      onSuccess,
+      CONNECTION_MANAGER_TAG
+    );
+  }
 
-        // Join the room
-        if (mode === "join") {
-            connectionManager.joinRoom(targetRoomSanitized);
+  connectionManager.addEventListener("error", onError, CONNECTION_MANAGER_TAG);
+});
 
-            connectionManager.addEventListener("room-not-exists", onFail);
-            connectionManager.addEventListener("room-joined", onSuccess);
-        } 
-        // Create room
-        else if (mode === "create") {
-            connectionManager.createRoom(targetRoomSanitized);
-
-            connectionManager.addEventListener("room-already-exists", onFail);
-            connectionManager.addEventListener("room-created", onSuccess);
-        }
-
-        connectionManager.addEventListener("error", onError);
-    }
+onBeforeUnmount(() => {
+  clearEventListeners();
 });
 </script>
 
 <style lang="scss">
-    #RoomConnectionHandler {
-        height: 100%;
-        
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+#RoomConnectionHandler {
+  height: 100%;
 
-        & #RoomConnectionHandler__prefix-text {
-            font-size: 1.5rem;
-        }
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
-        & #RoomConnectionHandler__room-name {
-            font-size: 3rem;
-            font-weight: 600;
-        }
+  & #RoomConnectionHandler__prefix-text {
+    font-size: 1.5rem;
+  }
 
-        & #RoomConnectionHandler__spinner {
-            margin-top: 2rem;
-        }
-    }
+  & #RoomConnectionHandler__room-name {
+    font-size: 3rem;
+    font-weight: 600;
+  }
+
+  & #RoomConnectionHandler__spinner {
+    margin-top: 2rem;
+  }
+}
 </style>

@@ -1,29 +1,32 @@
 <template>
-    <icon-clickable 
-        class="NextButton"
-        :size="size"
-        v-bind="$attrs"
-        icon-name="next-icon"
-        @click="$emit('click', $event)"
-    />
+  <IconClickable
+    class="NextButton"
+    :size="props.size"
+    :disabled="props.disabled"
+    @click="emit('click', $event)"
+  >
+    <NextIcon />
+  </IconClickable>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import * as Utilities from "../../../utilities";
-
+<script setup lang="ts">
+import * as Validators from "@/validators";
 import IconClickable from "@/components/ui/icons/IconClickable.vue";
+import NextIcon from "vue-material-design-icons/ChevronRight.vue";
 
-export default Vue.extend({
-    components: {
-        IconClickable
-    },
-    props: {
-        size: {
-            type: String,
-            validator: Utilities.isCSSLength,
-            default: "4rem"
-        },
-    }
+const props = defineProps({
+  size: {
+    type: String,
+    validator: Validators.CSSLength,
+    default: "4rem",
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits<{
+  (event: "click", e: MouseEvent): void;
+}>();
 </script>

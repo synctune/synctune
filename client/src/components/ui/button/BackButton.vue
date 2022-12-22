@@ -1,29 +1,25 @@
 <template>
-    <icon-clickable 
-        class="BackButton"
-        :size="size"
-        v-bind="$attrs"
-        icon-name="back-icon"
-        @click="$emit('click', $event)"
-    />
+  <IconClickable
+    class="BackButton"
+    :size="props.size"
+    @click="emit('click', $event)"
+  >
+    <BackIcon />
+  </IconClickable>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import * as Utilities from "../../../utilities";
-
+<script setup lang="ts">
 import IconClickable from "@/components/ui/icons/IconClickable.vue";
+import BackIcon from "vue-material-design-icons/ChevronLeft.vue";
+import * as Validators from "@/validators";
 
-export default Vue.extend({
-    components: {
-        IconClickable
-    },
-    props: {
-        size: {
-            type: String,
-            validator: Utilities.isCSSLength,
-            default: "4rem"
-        }
-    }
+const props = defineProps({
+  size: {
+    type: String,
+    validator: Validators.CSSLength,
+    default: "4rem",
+  },
 });
+
+const emit = defineEmits<{ (event: "click", e: MouseEvent): void }>();
 </script>

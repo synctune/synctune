@@ -1,33 +1,41 @@
 <template>
-    <base-mode
-        class="SyncingMode"
-        v-bind="$attrs"
-    >
-        <circle-spinner 
-            class="SyncingMode__spinner"
-            v-bind="$attrs"
-        />
-    </base-mode>
+  <BaseMode class="SyncingMode" :icon-size="props.iconSize">
+    <template #icon>
+      <SyncIcon />
+    </template>
+    <template #default>
+      <CircleSpinner
+        class="SyncingMode__spinner"
+        :radius="props.radius"
+        :stroke="props.stroke"
+        :animate-color="props.animateColor"
+      />
+    </template>
+  </BaseMode>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-
+<script setup lang="ts">
 import BaseMode from "@/components/ui/status/statusModes/BaseMode.vue";
 import CircleSpinner from "@/components/ui/spinners/CircleSpinner.vue";
+import SyncIcon from "vue-material-design-icons/Sync.vue";
 
-export default Vue.extend({
-    components: {
-        BaseMode,
-        CircleSpinner
-    }
-});
+const props = withDefaults(
+  defineProps<{
+    // BaseMode props
+    iconSize?: string;
+    // CircleSpinner props
+    radius?: number;
+    stroke?: number;
+    animateColor?: boolean;
+  }>(),
+  {}
+);
 </script>
 
 <style lang="scss">
-    .SyncingMode {
-        & .SyncingMode__spinner circle {
-            stroke: color-link("SyncingMode", "sync_status", "syncing");
-        }
-    }
+.SyncingMode {
+  & .SyncingMode__spinner circle {
+    stroke: color-link("SyncingMode", "sync_status", "syncing");
+  }
+}
 </style>

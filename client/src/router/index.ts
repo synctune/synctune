@@ -1,61 +1,55 @@
-import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
+import HomeView from "../views/HomeView.vue";
+import RoomView from "../views/room/RoomView.vue";
+import RoomJoinView from "../views/room/RoomJoinView.vue";
+import RoomCreateView from "../views/room/RoomCreateView.vue";
+import PageNotFoundView from "../views/PageNotFoundView.vue";
 
-import Home from "../views/Home.vue";
-import Room from "../views/room/Room.vue";
-import RoomJoin from "../views/room/RoomJoin.vue";
-import RoomCreate from "../views/room/RoomCreate.vue";
-import PageNotFound from "../views/PageNotFound.vue";
-
-Vue.use(VueRouter);
-
-const routes: RouteConfig[] = [
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
     {
-        path: "/",
-        name: "home",
-        component: Home,
-        meta: {
-            title: "SyncTune | Extend Your Sound"
-        }
+      path: "/",
+      name: "home",
+      component: HomeView,
+      meta: {
+        title: "SyncTune | Extend Your Sound",
+      },
     },
     {
-        path: "/room",
-        name: "room",
-        component: Room,
-        meta: {
-            title: "SyncTune | Room"
-        }
+      path: "/room",
+      name: "room",
+      component: RoomView,
+      meta: {
+        title: "SyncTune | Room",
+      },
     },
     {
-        path: "/room/join/:id",
-        name: "room-join",
-        component: RoomJoin,
-        meta: {
-            title: "SyncTune | Joining Room"
-        }
+      path: "/room/join/:id",
+      name: "room-join",
+      component: RoomJoinView,
+      meta: {
+        title: "SyncTune | Joining Room",
+      },
     },
     {
-        path: "/room/create/:id",
-        name: "room-create",
-        component: RoomCreate,
-        meta: {
-            title: "SyncTune | Creating Room"
-        }
+      path: "/room/create/:id",
+      name: "room-create",
+      component: RoomCreateView,
+      meta: {
+        title: "SyncTune | Creating Room",
+      },
     },
-    {
-        path: "*",
-        name: "404",
-        component: PageNotFound,
-        meta: {
-            title: "SyncTune | Page Not Found"
-        }
-    }
-];
-
-const router = new VueRouter({
-    mode: "history",
-    base: process.env.BASE_URL,
-    routes
+    // TODO: fix this
+    // {
+    //   path: "*",
+    //   name: "404",
+    //   component: PageNotFoundView,
+    //   meta: {
+    //     title: "SyncTune | Page Not Found",
+    //   },
+    // },
+  ],
 });
 
 export default router;

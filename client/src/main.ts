@@ -1,30 +1,19 @@
-import Vue from "vue";
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import VNotification from "@kyvg/vue3-notification";
+
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
-
-import VNotification from "vue-notification";
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue';
-
-import * as IconRegister from "./registers/IconRegister";
 
 // Global style sheet
 import "@/styling/main.scss";
-import 'overlayscrollbars/css/OverlayScrollbars.css';
 
-// Register all the used icons
-IconRegister.register();
+import "overlayscrollbars/overlayscrollbars.css";
 
-// Overlay scrollbars
-Vue.component('overlay-scrollbar', OverlayScrollbarsComponent);
+const app = createApp(App);
 
-// Vue notification
-Vue.use(VNotification);
+app.use(createPinia());
+app.use(router);
+app.use(VNotification);
 
-Vue.config.productionTip = false;
-
-new Vue({
-    router,
-    store,
-    render: h => h(App)
-}).$mount("#app");
+app.mount("#app");

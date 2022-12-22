@@ -1,33 +1,39 @@
 <template>
-    <base-mode
-        class="ErrorMode"
-        v-bind="$attrs"
-    >
-        <svg-ring
-            class="ErrorMode__ring"
-            v-bind="$attrs"
-        />
-    </base-mode>
+  <BaseMode class="ErrorMode" :icon-size="props.iconSize">
+    <template #icon>
+      <CloseIcon />
+    </template>
+    <template #default>
+      <SvgRing
+        class="ErrorMode__ring"
+        :radius="props.radius"
+        :stroke="props.stroke"
+      />
+    </template>
+  </BaseMode>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-
+<script setup lang="ts">
 import BaseMode from "@/components/ui/status/statusModes/BaseMode.vue";
 import SvgRing from "@/components/ui/rings/SvgRing.vue";
+import CloseIcon from "vue-material-design-icons/Close.vue";
 
-export default Vue.extend({
-    components: {
-        BaseMode,
-        SvgRing
-    }
-});
+const props = withDefaults(
+  defineProps<{
+    // BaseMode props
+    iconSize?: string;
+    // SVG ring props
+    radius?: number;
+    stroke?: number;
+  }>(),
+  {}
+);
 </script>
 
 <style lang="scss">
-    .ErrorMode {
-        & .ErrorMode__ring circle {
-            stroke: color-link("ErrorMode", "sync_status", "error");
-        }
-    }
+.ErrorMode {
+  & .ErrorMode__ring circle {
+    stroke: color-link("ErrorMode", "sync_status", "error");
+  }
+}
 </style>

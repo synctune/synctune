@@ -1,32 +1,68 @@
-import { NotificationOptions } from "vue-notification";
-
 // ------------------------------------------
 // --- The manager file for notifications ---
 // ------------------------------------------
 
+import { useNotification } from "@kyvg/vue3-notification";
+import type { NotificationsOptions } from "@kyvg/vue3-notification";
+import { NOTIFICATION_GROUP } from "@/constants";
+
 type NotificationTypes = "error" | "warning" | "success" | "info";
 
-export function showNotification(_this: any, group: string, type: NotificationTypes, text: string, options: NotificationOptions = {}) {
-    _this.$notify({
-        ...options,
-        group, 
-        type,
-        text
+export type NotificationsOptionsOmitted = Omit<
+  NotificationsOptions,
+  "text" | "group" | "type"
+>;
+
+export const useNotificationManager = () => {
+  const notification = useNotification();
+
+  const showNotification = (
+    group: string,
+    type: NotificationTypes,
+    text: string,
+    options: NotificationsOptionsOmitted = {}
+  ) => {
+    notification.notify({
+      ...options,
+      group,
+      type,
+      text,
     });
-}
+  };
 
-export function showErrorNotification(_this: any, text: string, options = {}) {
-    showNotification(_this, "notification", "error", text, options);
-}
+  const showErrorNotification = (
+    text: string,
+    options: NotificationsOptionsOmitted = {}
+  ) => {
+    showNotification(NOTIFICATION_GROUP, "error", text, options);
+  };
 
-export function showWarningNotification(_this: any, text: string, options = {}) {
-    showNotification(_this, "notification", "warning",text, options);
-}
+  const showWarningNotification = (
+    text: string,
+    options: NotificationsOptionsOmitted = {}
+  ) => {
+    showNotification(NOTIFICATION_GROUP, "warning", text, options);
+  };
 
-export function showSuccessNotification(_this: any, text: string, options = {}) {
-    showNotification(_this, "notification", "success", text, options);
-}
+  const showSuccessNotification = (
+    text: string,
+    options: NotificationsOptionsOmitted = {}
+  ) => {
+    showNotification(NOTIFICATION_GROUP, "success", text, options);
+  };
 
-export function showInfoNotification(_this: any, text: string, options = {}) {
-    showNotification(_this, "notification", "info", text, options);
-}
+  const showInfoNotification = (
+    text: string,
+    options: NotificationsOptionsOmitted = {}
+  ) => {
+    showNotification(NOTIFICATION_GROUP, "info", text, options);
+  };
+
+  return {
+    showNotification,
+    showErrorNotification,
+    showWarningNotification,
+    showSuccessNotification,
+    showInfoNotification,
+  };
+};

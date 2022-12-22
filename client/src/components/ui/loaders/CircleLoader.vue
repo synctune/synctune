@@ -1,78 +1,52 @@
 <template>
-    <svg 
-        class="CircleLoader"
-        :height="radius * 2"
-        :width="radius * 2"
-    >
-        <circle 
-            :stroke-dasharray="circumference + ' ' + circumference"
-            :style="{ strokeDashoffset: stokeDashOffset }"
-            :stroke-width="stroke"
-            fill="transparent"
-            :r="normalizedRadius"
-            :cx="radius"
-            :cy="radius"
-        />
-    </svg>
+  <svg
+    class="CircleLoader"
+    :height="props.radius * 2"
+    :width="props.radius * 2"
+  >
+    <circle
+      :stroke-dasharray="circumference + ' ' + circumference"
+      :style="{ strokeDashoffset: strokeDashOffset }"
+      :stroke-width="props.stroke"
+      fill="transparent"
+      :r="normalizedRadius"
+      :cx="props.radius"
+      :cy="props.radius"
+    />
+  </svg>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
+<script setup lang="ts">
+import { computed } from "vue";
 
-interface Props {
-    radius: number;
-    stroke: number;
-    progress: number;
-}
+const props = withDefaults(
+  defineProps<{
+    radius?: number;
+    progress?: number;
+    stroke?: number;
+  }>(),
+  {
+    radius: 52,
+    progress: 0,
+    stroke: 4,
+  }
+);
 
-interface Computed {
-    normalizedRadius: number;
-    circumference: number;
-    stokeDashOffset: number;
-}
-
-export default Vue.extend({
-    props: {
-        radius: {
-            type: Number,
-            default: 52
-        },
-        progress: {
-            type: Number,
-            default: 0
-        },
-        stroke: {
-            type: Number,
-            default: 4
-        }
-    },
-    computed: {
-        normalizedRadius() {
-            const { radius, stroke }: Props = this;
-            return radius - stroke / 2;
-        },
-        circumference() {
-            const { normalizedRadius }: Computed = this;
-            return normalizedRadius * 2 * Math.PI;
-        },
-        stokeDashOffset() {
-            const { progress }: Props = this;
-            const { circumference }: Computed = this;
-
-            return circumference - progress / 100 * circumference;
-        }
-    }
-});
+const normalizedRadius = computed(() => props.radius - props.stroke / 2);
+const circumference = computed(() => normalizedRadius.value * 2 * Math.PI);
+const strokeDashOffset = computed(
+  () => circumference.value - (props.progress / 100) * circumference.value
+);
 </script>
 
 <style lang="scss">
-    .CircleLoader {
-        & circle {
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-            transition: stroke-dashoffset 0.1s;
+.CircleLoader {
+  & circle {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.1s;
 
-            stroke: color-link("CircleLoader", "accent", "primary");
-        }
-    }
+    stroke: color-link("CircleLoader", "accent", "primary");
+  }
+}
 </style>

@@ -1,0 +1,50 @@
+@mixin transition-effect($transition, $duration: 0.3s, $abs-target: 50%) {
+    @if $transition == fade {
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity $duration !important;
+        }
+    
+        .fade-enter, .fade-leave-to {
+            opacity: 0;
+        }
+    }
+    // This is a slide animation for absolutely positioned elements that
+    // make use of transform for positioning
+    @if $transition == slide-lr-abs {
+        $anim-name: slide-lr-abs;
+        $anim-amount: 30px;
+
+        .#{$anim-name}-enter-active, .#{$anim-name}-leave-active {
+            transition: opacity $duration, left $duration !important;
+        }
+    
+        .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+            opacity: 0;
+        }
+
+        .#{$anim-name}-enter {
+            left: calc(#{$abs-target} - #{$anim-amount});
+        }
+
+        .#{$anim-name}-leave-to {
+            left: calc(#{$abs-target} + #{$anim-amount});
+        }
+    }
+
+    @if $transition == slide-rr {
+        $anim-name: slide-rr;
+        $anim-amount: 30px;
+
+        .#{$anim-name}-enter-active, .#{$anim-name}-leave-active {
+            transition: opacity $duration, transform $duration !important;
+        }
+    
+        .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+            opacity: 0;
+        }
+
+        .#{$anim-name}-enter, .#{$anim-name}-leave-to {
+            transform: translateX($anim-amount);
+        }
+    }
+}

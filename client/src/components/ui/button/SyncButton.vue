@@ -1,207 +1,170 @@
 <template>
-    <circular-button
-        :class="[
-            'SyncButton',
-            (syncing) ? 'syncing' : null
-        ]"
-        :size="size"
-        :disabled="syncing || disabled"
-        v-bind="$attrs"
-        @click="$emit('click', $event)"
-    >
-        <!-- Sync icon -->
-        <icon-base 
-            ref="syncIconRef"
-            class="SyncButton__icon"
-            icon-name="sync-icon"
-        />
+  <CircularButton
+    :class="['SyncButton', props.syncing ? 'syncing' : null]"
+    :size="props.size"
+    :disabled="props.syncing || props.disabled"
+    @click="emit('click', $event)"
+  >
+    <!-- Sync icon -->
+    <IconBase ref="syncIconRef" class="SyncButton__icon">
+      <SyncIcon />
+    </IconBase>
 
-        <transition name="fade" mode="out-in">
-            <div 
-                v-if="syncing && !disabled"
-                class="SyncButton__loader-container"
-            >
-                <!-- Sync loader/spinner -->
-                <circle-loader
-                    v-if="hasProgress"
-                    class="SyncButton__loader"
-                    :progress="syncProgress"
-                    :radius="sizePx / 2"
-                    :stroke="2"
-                />
-                <circle-spinner 
-                    v-else
-                    class="SyncButton__loader"
-                    :radius="sizePx / 2"
-                    :stroke="2"
-                />
-            </div>
-        </transition>
-    </circular-button>
+    <transition name="fade" mode="out-in">
+      <div v-if="syncing && !disabled" class="SyncButton__loader-container">
+        <!-- Sync loader/spinner -->
+        <CircleLoader
+          v-if="hasProgress"
+          class="SyncButton__loader"
+          :progress="syncProgress"
+          :radius="sizePx / 2"
+          :stroke="2"
+        />
+        <CircleSpinner
+          v-else
+          class="SyncButton__loader"
+          :radius="sizePx / 2"
+          :stroke="2"
+        />
+      </div>
+    </transition>
+  </CircularButton>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import * as Utilities from "../../../utilities";
+<script setup lang="ts">
+import * as Validators from "@/validators";
+import * as Utilities from "@/utilities";
+import { computed, onMounted, ref, watch } from "vue";
+import { assert } from "tsafe";
 import { TweenLite } from "gsap";
-
 import CircularButton from "@/components/ui/button/CircularButton.vue";
 import IconBase from "@/components/ui/icons/IconBase.vue";
 import CircleLoader from "@/components/ui/loaders/CircleLoader.vue";
 import CircleSpinner from "@/components/ui/spinners/CircleSpinner.vue";
+import SyncIcon from "vue-material-design-icons/Sync.vue";
 
-interface Props {
-    size: string;
-    iconSize: string;
-    syncing: boolean;
-    syncProgress: number | null;
-    disabled: boolean;
-}
+const props = defineProps({
+  size: {
+    type: String,
+    validator: Validators.CSSLength,
+    default: "5rem",
+  },
+  iconSize: {
+    type: String,
+    validator: Validators.CSSLength,
+    default: "3rem",
+  },
+  syncing: {
+    type: Boolean,
+    default: false,
+  },
+  syncProgress: {
+    type: Number,
+    default: null,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-interface Computed {
-    hasProgress: boolean;
-    sizePx: number;
-}
+const emit = defineEmits<{
+  (event: "click", e: MouseEvent): void;
+}>();
 
-interface Methods {
-    startSyncingSpinAnim(): void;
-    stopSyncingSpinAnim(): void;
-}
+const hasProgress = computed(() => props.syncProgress !== null);
+const sizePx = computed(() => Utilities.remToPixel(props.size));
 
-export default Vue.extend({
-    components: {
-        CircularButton,
-        IconBase,
-        CircleLoader,
-        CircleSpinner
-    },
-    props: {
-        size: {
-            type: String,
-            validator: Utilities.isCSSLength,
-            default: "5rem"
-        },
-        iconSize: {
-            type: String,
-            validator: Utilities.isCSSLength,
-            default: "3rem"
-        },
-        syncing: {
-            type: Boolean,
-            default: false
-        },
-        syncProgress: {
-            type: Number,
-            default: null
-        },
-        disabled: {
-            type: Boolean,
-            default: false
-        }
-    },
-    computed: {
-        hasProgress() {
-            const { syncProgress }: Props = this;
-            return syncProgress != null;
-        },
-        sizePx() {
-            const { size }: Props = this;
-            return Utilities.remToPixel(size);
-        },
-    },
-    methods: {
-        startSyncingSpinAnim() {
-            const syncIconEl = this.$refs.syncIconRef.$el as HTMLElement;
+const syncIconRef = ref<HTMLElement | null>(null);
 
-            function runRotation() {
-                const START_STATE = { 
-                    rotation: 0 
-                };
+const startSyncingSpinAnim = () => {
+  const syncIconEl = syncIconRef.value;
+  assert(syncIconEl !== null);
 
-                const END_STATE = {
-                    rotation: -360,
-                    ease: "power1.inOut",
-                    onComplete: runRotation
-                };
+  const runRotation = () => {
+    const START_STATE = { rotation: 0 };
 
-                TweenLite.fromTo(syncIconEl, 1, START_STATE, END_STATE);
-            }
+    const END_STATE = {
+      rotation: -360,
+      ease: "power1.inOut",
+      onComplete: runRotation,
+    };
 
-            runRotation();
-        },
-        stopSyncingSpinAnim() { 
-            const syncIconEl = this.$refs.syncIconRef.$el as HTMLElement;
+    TweenLite.fromTo(syncIconEl, 1, START_STATE, END_STATE);
+  };
 
-            TweenLite.killTweensOf(syncIconEl);
+  runRotation();
+};
 
-            TweenLite.to(syncIconEl, 0.5, {
-                rotation: 0,
-                ease: "power1.out"
-            });
-        }
-    },
-    watch: {
-        syncing(newSyncing: boolean) {
-            const { disabled }: Props = this;
-            const { startSyncingSpinAnim, stopSyncingSpinAnim }: Methods = this;
+const stopSyncingSpinAnim = () => {
+  const syncIconEl = syncIconRef.value;
+  assert(syncIconEl !== null);
 
-            if (newSyncing == true && disabled == false) {
-                startSyncingSpinAnim();
-            } else if (newSyncing == false) {
-                stopSyncingSpinAnim();
-            }
-        },
-        disabled(newDisabled: boolean) {
-            const { stopSyncingSpinAnim }: Methods = this;
+  TweenLite.killTweensOf(syncIconEl);
 
-            if (newDisabled == true) {
-                stopSyncingSpinAnim();
-            }
-        }
-    },
-    mounted() {
-        const { syncing, disabled }: Props = this;
-        const { startSyncingSpinAnim }: Methods = this;
+  TweenLite.to(syncIconEl, 0.5, {
+    rotation: 0,
+    ease: "power1.out",
+  });
+};
 
-        if (syncing == true && disabled == false) {
-            startSyncingSpinAnim();
-        }
-    },
+watch(
+  () => props.syncing,
+  (newSyncing) => {
+    if (newSyncing == true && props.disabled == false) {
+      startSyncingSpinAnim();
+    } else if (newSyncing == false) {
+      stopSyncingSpinAnim();
+    }
+  }
+);
+
+watch(
+  () => props.disabled,
+  (newDisabled) => {
+    if (newDisabled == true) {
+      stopSyncingSpinAnim();
+    }
+  }
+);
+
+onMounted(() => {
+  if (props.syncing == true && props.disabled == false) {
+    startSyncingSpinAnim();
+  }
 });
 </script>
 
 <style lang="scss">
-    $spin-reset-time: 1s;
-    $spin-duration: 1s;
+$spin-reset-time: 1s;
+$spin-duration: 1s;
 
-    .SyncButton {
-        position: relative;
+.SyncButton {
+  position: relative;
 
-        display: flex;
-        justify-content: center;
-        align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-        & .SyncButton__icon {
+  & .SyncButton__icon {
+  }
 
-        }
+  & .SyncButton__loader-container {
+    position: absolute;
+    top: 0;
+    left: 0;
 
-        & .SyncButton__loader-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-
-            & .SyncButton__loader circle {
-                stroke: color-link("SyncButton", "sync_status", "syncing");
-            }
-        }
-
-        &.syncing {
-            & .SyncButton__icon {
-                
-            }   
-        }
+    & .SyncButton__loader circle {
+      stroke: color-link("SyncButton", "sync_status", "syncing");
     }
+  }
 
-    // Transition effects
-    @include transition-effect(fade, 0.3s);
+  &.syncing {
+    & .SyncButton__icon {
+    }
+  }
+}
+
+// Transition effects
+@include transition-effect(fade, 0.3s);
 </style>

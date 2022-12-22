@@ -1,123 +1,78 @@
 <template>
-    <custom-properties-applier 
-        :properties="themeProperties"
-        :tag="tag"
-        :use-root="useRoot"
-        :use-el="useEl"
-        :el="el"
-    >
-        <slot></slot>
-    </custom-properties-applier>
+  <CustomPropertiesApplier
+    :properties="themeProperties"
+    :tag="tag"
+    :use-root="useRoot"
+    :use-el="useEl"
+    :el="el"
+  >
+    <slot></slot>
+  </CustomPropertiesApplier>
 </template>
 
-<script lang="ts">
-import { mapGetters } from 'vuex';
-import * as ThemeStore from "../../store/modules/theme";
+<script setup lang="ts">
+import CustomPropertiesApplier from "@/components/wrappers/CustomPropertiesApplier.vue";
+import { useThemeStore } from "@/stores/theme";
+import type { ThemeName } from "@/stores/theme";
+import { computed, onBeforeMount, watch } from "vue";
 
-import CustomPropertiesApplier from '@/components/wrappers/CustomPropertiesApplier.vue';
+const props = withDefaults(
+  defineProps<{
+    namespace?: string;
+    theme?: string;
+    tag?: string;
+    useRoot?: boolean;
+    useEl?: boolean;
+    el?: HTMLElement;
+  }>(),
+  {
+    tag: "div",
+    useRoot: false,
+    useEl: false,
+  }
+);
 
-interface Props {
-    namespace: string | undefined;
-    theme: string | undefined;
-    tag: string;
-    useRoot: boolean;
-    useEl: boolean;
-    el: HTMLElement | undefined;
-}
+const themeStore = useThemeStore();
 
-type Computed = {
-    themeProperties: ThemeStore.ThemeProperties;
-} & Pick<ThemeStore.MapGettersStructure,
-    ThemeStore.Getters.getNamespace
-    | ThemeStore.Getters.getTheme
->
+const validateProps = (
+  namespace: string | undefined,
+  theme: ThemeName | undefined,
+  useEl: boolean,
+  el?: HTMLElement
+) => {
+  const bothExist = !!namespace && !!theme;
+  const neitherExist = !namespace && !theme;
 
-interface Methods {
-    validateProps(namespace: string | undefined, theme: ThemeStore.ThemeName | undefined, useEl: boolean, el?: HTMLElement): never | void;
-}
+  if (bothExist)
+    throw `Error: only one of props 'namespace' and 'theme' can be specified at once`;
 
-export default {
-    components: {
-        customPropertiesApplier: CustomPropertiesApplier
-    },
-    props: {
-        namespace: { type: String, default: undefined },
-        theme: { type: String, default: undefined },
-        tag: {
-            type: String,
-            default: "div"
-        },
-        useRoot: {
-            type: Boolean,
-            default: false
-        },
-        useEl: {
-            type: Boolean,
-            required: false,
-            default: false
-        },
-        el: {
-            type: HTMLElement,
-            required: false,
-            default: undefined
-        }
-    },
-    computed: {
-        ...mapGetters({
-            getNamespace: ThemeStore.Getters.getNamespace,
-            getTheme: ThemeStore.Getters.getTheme
-        }),
-        themeProperties() {
-            const { namespace, theme, useEl, el }: Props = this;
-            const { getNamespace: getTargetTheme, getTheme: getThemeData }: Computed = this;
-            const { validateProps }: Methods = this;
+  if (neitherExist)
+    throw `Error: one of props 'namespace' and 'theme' must be specified`;
 
-            // Everytime this is recomputed check the props
-            validateProps(namespace, theme, useEl, el);
+  if (useEl && !el) throw `Error: el must be specified when useEl is 'true'`;
+};
 
-            // Get the related theme data
-            const themeName = (namespace) ? getTargetTheme(namespace) : theme;
-            const themeData = getThemeData(themeName!);
+const themeProperties = computed(() => {
+  // Every time this is recomputed check the props
+  validateProps(props.namespace, props.theme, props.useEl, props.el);
 
-            return (themeData) ? themeData["properties"] : {};
-        }
-    },
-    watch: {
-        namespace(nextNamespace: string) {
-            const { theme, useEl, el }: Props = this;
-            const { validateProps }: Methods = this;
-            validateProps(nextNamespace, theme, useEl, el);
-        },
-        theme(nextTheme: string) {
-            const { namespace, useEl, el }: Props = this;
-            const { validateProps }: Methods = this;
-            validateProps(namespace, nextTheme, useEl, el);
-        }
-    },
-    created() {
-        const { namespace, theme, useEl, el }: Props = this;
-        const { validateProps }: Methods = this;
-        validateProps(namespace, theme, useEl, el);
-    },
-    methods: {
-        // Makes sure the props are valid
-        validateProps(namespace: string | undefined, theme: ThemeStore.ThemeName | undefined, useEl: boolean, el?: HTMLElement) {
-            const bothExist = !!namespace && !!theme;
-            const neitherExist = !namespace && !theme;
+  // Get the related theme data
+  const themeName = props.namespace
+    ? themeStore.getNamespace(props.namespace)!
+    : props.theme!;
+  const themeData = themeStore.getTheme(themeName);
 
-            if (bothExist) {
-                throw `Error: only one of props 'namespace' and 'theme' can be specified at once`;
-            }
+  return themeData ? themeData["properties"] : {};
+});
 
-            if (neitherExist) {
-                throw `Error: one of props 'namespace' and 'theme' must be specified`;
-            }
+onBeforeMount(() => {
+  validateProps(props.namespace, props.theme, props.useEl, props.el);
+});
 
-            if (useEl && !el) {
-                throw `Error: el must be specified when useEl is 'true'`;
-            }
-        }
-    }
-}
+watch(
+  () => [props.namespace, props.theme],
+  ([nextNamespace, nextTheme]) => {
+    validateProps(nextNamespace, nextTheme, props.useEl, props.el);
+  }
+);
 </script>
-

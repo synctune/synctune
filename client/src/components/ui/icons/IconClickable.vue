@@ -1,69 +1,68 @@
 <template>
-    <icon-base
-        :class="['IconClickable', disabled ? 'disabled' : '']"
-        v-bind="$attrs"
-        @click="onClick"
-    ></icon-base>
+  <IconBase
+    :class="['IconClickable', props.disabled ? 'disabled' : '']"
+    @click="onClick"
+    :size="props.size"
+  >
+    <slot></slot>
+  </IconBase>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
+<script setup lang="ts">
 import IconBase from "@/components/ui/icons/IconBase.vue";
+import * as Validators from "@/validators";
 
-interface Props {
-    disabled: boolean;
-}
-
-export default Vue.extend({
-    components: {
-        iconBase: IconBase
-    },
-    props: {
-        disabled: {
-            type: Boolean,
-            default: false
-        }
-    },
-    methods: {
-        onClick(e: MouseEvent) {
-            const { disabled }: Props = this;
-
-            if (disabled) {
-                e.preventDefault();
-                return;
-            }
-
-            this.$emit('click', e);
-        }
-    }
+const props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  size: {
+    type: String,
+    validator: Validators.CSSLength,
+    default: "3rem",
+  },
 });
+
+const emit = defineEmits<{
+  (event: "click", e: MouseEvent): void;
+}>();
+
+const onClick = (e: MouseEvent) => {
+  if (props.disabled) {
+    e.preventDefault();
+    return;
+  }
+
+  emit("click", e);
+};
 </script>
 
 <style lang="scss">
-    .IconClickable {
-        $duration: 0.15s;
+.IconClickable {
+  $duration: 0.15s;
 
-        color: color-link("GLOBAL", "text", "primary");
-        cursor: pointer;
+  color: color-link("GLOBAL", "text", "primary");
+  cursor: pointer;
 
-        transition: color $duration;
+  transition: color $duration;
 
-        & i {
-            transition: color $duration;
-        }
+  & i {
+    transition: color $duration;
+  }
 
-        &:hover {
-            color: color-link("GLOBAL", "text", "tertiary");
-        }
+  &:hover {
+    color: color-link("GLOBAL", "text", "tertiary");
+  }
 
-        &.disabled {
-            cursor: inherit;
+  &.disabled {
+    cursor: inherit;
 
-            color: color-link("GLOBAL", "text", "disabled");
+    color: color-link("GLOBAL", "text", "disabled");
 
-            &:hover {
-                color: color-link("GLOBAL", "text", "disabled");
-            }
-        }
+    &:hover {
+      color: color-link("GLOBAL", "text", "disabled");
     }
+  }
+}
 </style>

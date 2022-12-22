@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+* {
+    // Global resets
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: 'Montserrat', sans-serif;
+}
+
+*.GLOBAL-monospace-font {
+    font-family: 'Roboto Mono', monospace;
+}
+
+html {
+    height: 100%;
+    width: 100%;
+
+    // Definition of 1rem
+    font-size: 62.5%; // 10px
+}
+
+body {
+    height: 100%;
+    width: 100%;
+
+    font-size: 1.5rem;
+}

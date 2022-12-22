@@ -1,73 +1,40 @@
 <template>
-    <div 
-        class="BaseIcon"
-        :style="styles"
-    >
-        <component 
-            class="BaseIcon__container"
-            @click="$emit('click', $event)"
-            :is="iconNameNormalized"
-        ></component>
-    </div>
+  <div class="IconBase" :style="styles" @click="emit('click', $event)">
+    <slot></slot>
+  </div>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import * as Utilities from "../../../utilities";
+<script setup lang="ts">
+import { computed, type StyleValue } from "vue";
+import * as Validators from "@/validators";
 
-interface Props {
-    iconName: string;
-    size: string;
-}
-
-export default Vue.extend({
-    props: {
-        size: {
-            type: String,
-            validator: Utilities.isCSSLength,
-            default: "3rem"
-        },
-        iconName: {
-            type: String,
-            required: true
-        }
-    },
-    computed: {
-        iconNameNormalized() {
-            const { iconName }: Props = this;
-
-            if (!iconName.endsWith("-icon") && !iconName.endsWith("Icon")) {
-                return `${iconName}-icon`;
-            }
-
-            return iconName;
-        },
-        styles() {
-            const { size }: Props = this;
-
-            return {
-                height: size,
-                width: size
-            }
-        }
-    }
+const props = defineProps({
+  size: {
+    type: String,
+    validator: Validators.CSSLength,
+    default: "3rem",
+  },
 });
+
+const emit = defineEmits<{
+  (event: "click", e: MouseEvent): void;
+}>();
+
+const styles = computed<StyleValue>(() => ({
+  height: props.size,
+  width: props.size,
+}));
 </script>
 
 <style lang="scss">
-    .BaseIcon {
-        display: flex;
+.IconBase {
+  display: flex;
 
-        & .BaseIcon__container {
-            width: 100%;
-            height: 100%;
-        }
+  & svg {
+    display: block;
 
-        & svg {
-            display: block;
-
-            width: 100%;
-            height: 100%;
-        }
-    }
+    width: 100%;
+    height: 100%;
+  }
+}
 </style>

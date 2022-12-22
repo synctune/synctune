@@ -1,180 +1,129 @@
 <template>
-    <theme-provider 
-        id="App"
-        :namespace="defaultNamespace"
-        use-root
+  <ThemeProvider id="App" :namespace="DEFAULT_NAMESPACE" use-root>
+    <OverlayScrollbarsComponent
+      id="App__overlay-container"
+      :options="{
+        paddingAbsolute: true,
+        scrollbars: {
+          autoHide: 'leave',
+        },
+      }"
     >
-        <overlay-scrollbar 
-            id="App__overlay-container"
-            :options="{
-                paddingAbsolute: true,
-                scrollbars: {
-                    autoHide: 'leave'
-                }
-            }"
-        >
-            <div id="App__container">
-                <notification-register></notification-register>
+      <div id="App__container">
+        <NotificationRegister />
 
-                <transition name="fade" mode="out-in">
-                    <router-view />
-                </transition>
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
 
-                <!-- Sticky components -->
-                <room-status />
-                <audio-player />
-            </div>
-        </overlay-scrollbar>
-    </theme-provider>
+        <!-- Sticky components -->
+        <RoomStatus />
+        <AudioPlayer />
+      </div>
+    </OverlayScrollbarsComponent>
+  </ThemeProvider>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import { mapActions, mapGetters } from "vuex";
-import * as ThemeStore from "./store/modules/theme";
-import * as RoomStore from "./store/modules/room";
-import { Route } from 'vue-router';
-import { DEFAULT_NAMESPACE, DEFAULT_THEME, DEFAULT_DOCUMENT_TITLE } from "./constants";
-
-import themes from "./theme/themes";
-
-import ThemeProvider from "./components/wrappers/ThemeProvider.vue";
-import RoomStatus from "./components/sticky/RoomStatus.vue";
-import AudioPlayer from "./components/sticky/AudioPlayer.vue";
+<script setup lang="ts">
+import { RouterView, useRoute } from "vue-router";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-vue";
+import {
+  DEFAULT_NAMESPACE,
+  DEFAULT_THEME,
+  DEFAULT_DOCUMENT_TITLE,
+} from "@/constants";
+import themes from "@/theme/themes";
+import { useThemeStore } from "@/stores/theme";
+import { useRoomStore } from "@/stores/room";
+import { onBeforeMount, watch } from "vue";
+import type { Nullish } from "@/utilities/types";
 import NotificationRegister from "@/registers/NotificationRegister.vue";
+import ThemeProvider from "@/components/wrappers/ThemeProvider.vue";
+import RoomStatus from "@/components/sticky/RoomStatus.vue";
+import AudioPlayer from "@/components/sticky/AudioPlayer.vue";
 
-// No type declarations for these
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { CSSPlugin, AttrPlugin } = require("gsap/all");
+// TODO: put in?
+// // No type declarations for these
+// // eslint-disable-next-line @typescript-eslint/no-var-requires
+// const { CSSPlugin, AttrPlugin } = require("gsap/all");
 
-interface Data {
-    defaultNamespace: string;
-}
+const themeStore = useThemeStore();
+const roomStore = useRoomStore();
 
-type Computed = {
+const instantiateThemes = () => {
+  // Add all the themes
+  Object.values(themes).forEach((themeData) => {
+    themeStore.addTheme(themeData.name, themeData.theme, true);
+  });
+};
 
-} & Pick<RoomStore.MapGettersStructure,
-    RoomStore.Getters.isConnected
-    | RoomStore.Getters.roomName
->
+const instantiateNamespaces = () => {
+  // Add default namespace
+  themeStore.addNamespace(DEFAULT_NAMESPACE, DEFAULT_THEME, true);
+};
 
-type Methods = {
-    instantiateThemes(): void;
-    instantiateNamespaces(): void;
-    updateTitle(title: string): void;
-} & Pick<ThemeStore.MapActionsStructure,
-    ThemeStore.Actions.addTheme
-    | ThemeStore.Actions.addNamespace
->
-
-export default Vue.extend({
-    components: {
-        ThemeProvider,
-        RoomStatus,
-        AudioPlayer,
-        NotificationRegister
-    },
-    data() {
-        return {
-            defaultNamespace: DEFAULT_NAMESPACE
-        }
-    },
-    created() {
-        const { instantiateThemes, instantiateNamespaces }: Methods = this;
-        instantiateThemes();
-        instantiateNamespaces();
-    },
-    mounted() {
-        // NOTE: this prevents the CSSPlugin and the AttrPlugin from getting tree shaked
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const plugins = [ CSSPlugin, AttrPlugin ];
-
-        // Update title
-        const { updateTitle }: Methods = this;
-        const route = this.$route as Route;
-        updateTitle(route.meta.title);
-    },
-    computed: {
-        ...mapGetters({
-            isConnected: RoomStore.Getters.isConnected,
-            roomName: RoomStore.Getters.roomName
-        })
-    },
-    methods: {
-        ...mapActions({
-            addTheme: ThemeStore.Actions.addTheme,
-            addNamespace: ThemeStore.Actions.addNamespace
-        }),
-        instantiateThemes() {
-            const { addTheme }: Methods = this;
-
-            // Add all the themes
-            Object.values(themes).forEach((themeData) => {
-                addTheme({
-                    name: themeData.name,
-                    themeValues: themeData.theme,
-                    override: true
-                });
-            });
-        },
-        instantiateNamespaces() {
-            const { addNamespace }: Methods = this;
-
-            // Add default namespace
-            addNamespace({
-                name: DEFAULT_NAMESPACE,
-                targetTheme: DEFAULT_THEME,
-                override: true
-            });
-        },
-        updateTitle(title: string) {
-            const { isConnected, roomName }: Computed = this;
-
-            // Ignore given title if connected to a room
-            if (isConnected) {
-                document.title = `SyncTune | Room ${roomName}`;
-            } else {
-                document.title = title || DEFAULT_DOCUMENT_TITLE;
-            }
-        }
-    },
-    watch: {
-        '$route'(to: Route) {
-            const { updateTitle }: Methods = this;
-            updateTitle(to.meta.title);
-        }
-    }
+onBeforeMount(() => {
+  instantiateThemes();
+  instantiateNamespaces();
 });
+
+const route = useRoute();
+
+const updateTitle = (title: string | Nullish) => {
+  const isConnected = roomStore.isConnected;
+  const roomName = roomStore.roomName;
+
+  // Ignore given title if connected to a room
+  if (isConnected) {
+    document.title = `SyncTune | Room ${roomName}`;
+  } else {
+    document.title = title || DEFAULT_DOCUMENT_TITLE;
+  }
+};
+
+// TODO: check if this actually works
+watch(
+  () => route.meta.title,
+  (nextRouteName) => {
+    updateTitle(nextRouteName as string);
+  }
+);
 </script>
 
 <style lang="scss">
-    #App {
-        height: 100%;
-        width: 100%;
+#App {
+  height: 100%;
+  width: 100%;
 
-        & #App__overlay-container {
-            height: 100%;
+  & #App__overlay-container {
+    height: 100%;
 
-            position: relative;
+    position: relative;
 
-            display: flex;
-            flex-direction: column;
+    display: flex;
+    flex-direction: column;
 
-            $cutoff-point: 60%;
-            background: color-link("App", "background_gradient", "start");
-            background: linear-gradient(color-link("App", "background_gradient", "start") 0%, color-link("App", "background_gradient", "start") $cutoff-point, color-link("App", "background_gradient", "end"));
+    $cutoff-point: 60%;
+    background: color-link("App", "background_gradient", "start");
+    background: linear-gradient(
+      color-link("App", "background_gradient", "start") 0%,
+      color-link("App", "background_gradient", "start") $cutoff-point,
+      color-link("App", "background_gradient", "end")
+    );
 
-            & #App__container {
-                position: relative;
-                
-                height: 100vh;
+    & #App__container {
+      position: relative;
 
-                display: flex;
-                flex-direction: column;
-            }
-        }
+      height: 100vh;
+
+      display: flex;
+      flex-direction: column;
     }
+  }
+}
 
-    // Transition effects
-    @include transition-effect(fade, 0.3s);
+// Transition effects
+@include transition-effect(fade, 0.3s);
 </style>
