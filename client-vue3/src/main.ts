@@ -8,6 +8,8 @@ import router from "./router";
 // Global style sheet
 import "@/styling/main.scss";
 
+import "overlayscrollbars/overlayscrollbars.css";
+
 const app = createApp(App);
 
 app.use(createPinia());

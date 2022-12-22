@@ -71,7 +71,7 @@ export const useRoomStore = defineStore("room", () => {
         const idx = state.connectedClients.findIndex(
           (data) => data.id === clientId
         );
-        if (idx >= 0) delete state.connectedClients[idx];
+        if (idx >= 0) state.connectedClients.splice(idx, 1);
       },
       ROOM_STORE_TAG
     );
