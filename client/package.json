@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "vite --host --port 8080",
     "build": "run-p type-check build-only",
+    "build:render": "git config --global url.\"https://github\".insteadOf ssh://git@github; npm run build",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
